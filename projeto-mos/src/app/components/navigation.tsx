@@ -136,6 +136,19 @@ export const Navigation = () => {
           </Link>
         )}
 
+        {userType === 'Administrador' && (
+          <Link
+            href="/verestatisticas"
+            className="px-4 py-2 rounded hover:opacity-90"
+            style={{
+              backgroundColor: '#6c757d',
+              color: '#ffffff',
+            }}
+          >
+            Ver Estatísticas
+          </Link>
+        )}
+
         {!isLoggedIn ? (
           <Link
             href="/login"
