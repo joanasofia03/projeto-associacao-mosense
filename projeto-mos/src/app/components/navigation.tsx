@@ -71,7 +71,20 @@ export const Navigation = () => {
           Menu
         </Link>
 
-        {userType === 'Administrador' && (
+        {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
+          <Link
+            href="/anularpedido"
+            className="px-4 py-2 rounded hover:opacity-90"
+            style={{
+              backgroundColor: '#6c757d',
+              color: '#ffffff',
+            }}
+          >
+            Anular Pedido
+          </Link>
+        )}
+
+        {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
           <Link
             href="/registarpedido"
             className="px-4 py-2 rounded hover:opacity-90"

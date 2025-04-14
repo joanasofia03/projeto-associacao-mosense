@@ -60,15 +60,13 @@ export default function AlterarItem() {
         console.error('Erro ao atualizar item:', error);
       } else {
         console.log('Item atualizado com sucesso!');
-
         const updatedItems = [...items];
         updatedItems[editIndex] = editItem as Item;
         setItems(updatedItems);
-
         setEditIndex(null);
       }
     } catch (err) {
-      console.error('Erro ao salvar item:', err);
+      console.error('Erro ao guardar item:', err);
     }
   };
 
@@ -83,7 +81,6 @@ export default function AlterarItem() {
         console.error('Erro ao excluir item:', error);
       } else {
         console.log('Item excluído com sucesso!');
-
         const updatedItems = [...items];
         updatedItems.splice(index, 1);
         setItems(updatedItems);
@@ -93,17 +90,16 @@ export default function AlterarItem() {
     }
   };
 
-  return (
-    <main className="min-h-screen px-6 py-10" style={{ backgroundColor: '#f8f9fa' }}>
-      <h1 className="text-3xl font-semibold mb-8 text-gray-800">Todos os Itens</h1>
+  const comidas = items.filter((item) => item.tipo === 'Comida');
+  const bebidas = items.filter((item) => item.tipo === 'Bebida');
 
-      {loading ? (
-        <p>A carregar...</p>
-      ) : items.length === 0 ? (
-        <p>Nenhum item encontrado.</p>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item, index) => (
+  const ItemList = ({ titulo, lista }: { titulo: string; lista: Item[] }) => (
+    <div className="mb-10">
+      <h2 className="text-2xl font-semibold mb-4 text-gray-700">{titulo}</h2>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {lista.map((item) => {
+          const index = items.findIndex((i) => i.id === item.id);
+          return (
             <div key={item.id} className="p-6 rounded shadow-md bg-white">
               {editIndex === index ? (
                 <div className="space-y-2">
@@ -166,14 +162,31 @@ export default function AlterarItem() {
                       onClick={() => handleDelete(item.id, index)}
                       className="text-sm text-red-600 hover:underline"
                     >
-                      <i className="fas fa-trash"></i> Excluir
+                      Excluir
                     </button>
                   </div>
                 </>
               )}
             </div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  return (
+    <main className="min-h-screen px-6 py-10" style={{ backgroundColor: '#f8f9fa' }}>
+      <h1 className="text-3xl font-semibold mb-8 text-gray-800">Todos os Itens</h1>
+
+      {loading ? (
+        <p>A carregar...</p>
+      ) : items.length === 0 ? (
+        <p>Nenhum item encontrado.</p>
+      ) : (
+        <>
+          <ItemList titulo="Comidas" lista={comidas} />
+          <ItemList titulo="Bebidas" lista={bebidas} />
+        </>
       )}
     </main>
   );
