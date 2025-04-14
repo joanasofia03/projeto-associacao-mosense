@@ -114,3 +114,10 @@ Cliente "1" -- "1..*" Pedido: faz >
 Admin!2025#david
 
 
+problemas:
+
+- é preciso dar refresh à pagina para atualizar as coisas
+
+- o design é simples, nao uso tailwind
+
+- as paginas das funcionalidades todas sao acessiveis por toda a gente pelo link, mesmo que os botoes so aparecam para certos roles e apenas eles possam completar a ação
