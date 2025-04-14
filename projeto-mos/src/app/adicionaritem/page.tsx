@@ -95,14 +95,17 @@ export default function AdicionarItem() {
             <label htmlFor="tipo" className="block mb-1 text-sm font-medium">
               Tipo
             </label>
-            <input
-              type="text"
+            <select
               id="tipo"
               value={tipo}
               onChange={(e) => setTipo(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-gray-300 rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400"
               required
-            />
+            >
+              <option value="">Selecione...</option>
+              <option value="Comida">Comida</option>
+              <option value="Bebida">Bebida</option>
+            </select>
           </div>
 
           <div className="flex items-center">
