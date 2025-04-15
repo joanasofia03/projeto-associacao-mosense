@@ -77,27 +77,6 @@ export default function AnularPedido() {
               </tr>
             </thead>
             <tbody>
-              {/* {pedidos.map((pedido) => (
-                <tr key={pedido.id} className="border-t">
-                  <td className="p-2">{pedido.numero_diario}</td>
-                  <td className="p-2">{pedido.nome_cliente}</td>
-                  <td className="p-2">{new Date(pedido.criado_em).toLocaleString()}</td>
-                  <td className="p-2">{pedido.estado_preparacao}</td>
-                  <td className="p-2">{pedido.estado_validade}</td>
-                  <td className="p-2">
-                    {pedido.estado_validade !== 'Anulado' ? (
-                      <button
-                        onClick={() => anularPedido(pedido.id)}
-                        className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
-                      >
-                        Anular
-                      </button>
-                    ) : (
-                      <span className="text-gray-400 text-sm">Anulado</span>
-                    )}
-                  </td>
-                </tr>
-              ))} */}
                 {pedidos.map((pedido, index) => (
                 <tr key={pedido.id} className="border-t">
                     <td className="p-2">{pedido.numero_diario}</td>

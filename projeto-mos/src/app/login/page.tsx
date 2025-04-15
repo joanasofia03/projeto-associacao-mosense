@@ -70,7 +70,7 @@ export default function Login() {
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label htmlFor="email" className="block mb-1 text-sm font-medium">
-              Email
+              E-mail
             </label>
             <input
               type="email"

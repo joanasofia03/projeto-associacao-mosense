@@ -121,3 +121,9 @@ problemas:
 - o design é simples, nao uso tailwind
 
 - as paginas das funcionalidades todas sao acessiveis por toda a gente pelo link, mesmo que os botoes so aparecam para certos roles e apenas eles possam completar a ação
+
+- update policy na tabela profiles
+
+- nao encontro a pagina do erro 404 logo nao consegui alterar
+
+- falta colocar quantidade nos itens de cada pedido
