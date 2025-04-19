@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabaseClient';
 
 export default function RegistarPedido() {
   const [itensMenu, setItensMenu] = useState<any[]>([]);
-  const [itensSelecionados, setItensSelecionados] = useState<{ item_id: number; para_levantar_depois: boolean }[]>([]);
+  const [itensSelecionados, setItensSelecionados] = useState<{ item_id: number; para_levantar_depois: boolean; quantidade: number; }[]>([]);
   const [nomeCliente, setNomeCliente] = useState('');
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -29,9 +29,12 @@ export default function RegistarPedido() {
     setItensSelecionados((prev) => {
       const existe = prev.find((i) => i.item_id === itemId);
       if (existe) return prev.filter((i) => i.item_id !== itemId);
-      return [...prev, { item_id: itemId, para_levantar_depois: false }];
+      return [
+        ...prev,
+        { item_id: itemId, para_levantar_depois: false, quantidade: 1 },
+      ];
     });
-  };
+  };  
 
   const handleCheckboxToggle = (itemId: number) => {
     setItensSelecionados((prev) =>
@@ -42,6 +45,16 @@ export default function RegistarPedido() {
       )
     );
   };
+
+  const handleQuantidadeChange = (itemId: number, novaQuantidade: number) => {
+    setItensSelecionados((prev) =>
+      prev.map((item) =>
+        item.item_id === itemId
+          ? { ...item, quantidade: novaQuantidade }
+          : item
+      )
+    );
+  };  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +107,8 @@ export default function RegistarPedido() {
         pedido_id: novoPedido.id,
         item_id: item.item_id,
         para_levantar_depois: item.para_levantar_depois,
-      }));
+        quantidade: item.quantidade,
+      }));      
 
       const { error: itensError } = await supabase
         .from('pedidos_itens')
@@ -157,17 +171,31 @@ export default function RegistarPedido() {
                 <span>{item.nome} - €{item.preco.toFixed(2)}</span>
 
                 {isItemSelecionado(item.id) && (
-                  <label className="ml-auto text-sm">
+                  <div className="flex items-center gap-2 ml-auto">
+                    <label className="text-sm">
+                      <input
+                        type="checkbox"
+                        checked={
+                          itensSelecionados.find((i) => i.item_id === item.id)
+                            ?.para_levantar_depois || false
+                        }
+                        onChange={() => handleCheckboxToggle(item.id)}
+                      />{' '}
+                      Para levantar depois
+                    </label>
+
                     <input
-                      type="checkbox"
-                      checked={
-                        itensSelecionados.find((i) => i.item_id === item.id)
-                          ?.para_levantar_depois || false
+                      type="number"
+                      min={1}
+                      value={
+                        itensSelecionados.find((i) => i.item_id === item.id)?.quantidade || 1
                       }
-                      onChange={() => handleCheckboxToggle(item.id)}
-                    />{' '}
-                    Para levantar depois
-                  </label>
+                      onChange={(e) =>
+                        handleQuantidadeChange(item.id, Number(e.target.value))
+                      }
+                      className="w-16 border border-gray-300 rounded px-2 py-1 text-sm"
+                    />
+                  </div>
                 )}
               </div>
             ))
