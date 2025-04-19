@@ -10,6 +10,18 @@ export default function RegistarPedido() {
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [nota, setNota] = useState('');
+  const [detalhesPedido, setDetalhesPedido] = useState<{
+    pedido_id: number;
+    nome_cliente: string;
+    nota?: string | null;
+    itens: {
+      nome: string;
+      preco: number;
+      para_levantar_depois: boolean;
+      quantidade: number;
+    }[];
+    total: number;
+  } | null>(null);  
 
   useEffect(() => {
     const fetchItens = async () => {
@@ -116,8 +128,42 @@ export default function RegistarPedido() {
 
       if (itensError) throw new Error('Erro ao inserir itens.');
 
+      const { data: itensComDetalhes, error: detalhesError } = await supabase
+      .from('itens')
+      .select('id, nome, preco')
+      .in('id', itensSelecionados.map(i => i.item_id));
+
+      if (detalhesError || !itensComDetalhes) throw new Error('Erro ao carregar detalhes dos itens.');
+
+      const itensDetalhados = itensSelecionados.map((item) => {
+      const info = itensComDetalhes.find((i) => i.id === item.item_id);
+      return {
+        nome: info?.nome || 'Item desconhecido',
+        preco: info?.preco || 0,
+        quantidade: item.quantidade,
+        para_levantar_depois: item.para_levantar_depois,
+      };
+      });
+
+      const total = itensDetalhados.reduce(
+      (acc, item) => acc + item.preco * item.quantidade,
+      0
+      );
+
+      setDetalhesPedido({
+      pedido_id: novoPedido.id,
+      nome_cliente: nomeCliente,
+      nota: nota,
+      itens: itensDetalhados,
+      total,
+      });
+
       setMensagem(`Pedido #${numeroDiario} registado com sucesso.`);
-      setTimeout(() => setMensagem(null), 3000);
+      setTimeout(() => {
+      setMensagem(null);
+      setDetalhesPedido(null);
+      }, 20000);
+
       setNomeCliente('');
       setItensSelecionados([]);
       setNota('');
@@ -213,7 +259,6 @@ export default function RegistarPedido() {
         />
         </div>
 
-
         <button
           type="submit"
           className="w-full py-2 rounded hover:opacity-90"
@@ -225,6 +270,34 @@ export default function RegistarPedido() {
           Registar Pedido
         </button>
       </form>
+
+      {detalhesPedido && (
+  <div className="bg-white border border-gray-300 rounded p-4 text-sm text-gray-800 mb-4">
+    <p><strong>Cliente:</strong> {detalhesPedido.nome_cliente}</p>
+    <p><strong>Pedido ID:</strong> {detalhesPedido.pedido_id}</p>
+    <div className="mt-2 space-y-1">
+  {detalhesPedido.itens.flatMap((item, index) =>
+    Array.from({ length: item.quantidade }).map((_, i) => (
+      <div key={`${index}-${i}`} className="flex justify-between">
+        <div>
+          {item.nome}{' '}
+          {item.para_levantar_depois && (
+            <span className="text-xs text-gray-500">(Levantar depois)</span>
+          )}
+        </div>
+        <div>€{item.preco.toFixed(2)}</div>
+      </div>
+    ))
+  )}
+</div>
+
+    <div className="mt-2">
+      <p><strong>Nota:</strong> {detalhesPedido.nota || '—'}</p>
+      <p className="mt-2 font-semibold">Total: €{detalhesPedido.total.toFixed(2)}</p>
+    </div>
+  </div>
+)}
+
     </div>
     </div>
   );
