@@ -116,17 +116,17 @@ Admin!2025#david
 
 problemas:
 
-- é preciso dar refresh à pagina para atualizar as coisas
+- é preciso dar refresh à pagina para atualizar as coisas (Se não o fizermos, muitas vezes não funciona as alterações);
 
-- o design é simples, nao uso tailwind
+- o design é simples, nao uso tailwind;
 
-- as paginas das funcionalidades todas sao acessiveis por toda a gente pelo link, mesmo que os botoes so aparecam para certos roles e apenas eles possam completar a ação
+- as paginas das funcionalidades todas sao acessiveis por toda a gente pelo link, mesmo que os botoes so aparecam para certos roles e apenas eles possam completar a ação;
 
-- update policy na tabela profiles
+- update policy na tabela profiles;
 
-- falta verificar inserção de itens etc. iguais
+- falta verificar inserção de itens etc. iguais;
 
-- alterar o "anular pedido" para "alterar", mas na base de dados é anulado e é criado um novo
+- alterar o "anular pedido" para "alterar", mas na base de dados é anulado e é criado um novo;
 
-- acrescentar verificacao de datas (festas diferentes)
+- acrescentar verificacao de datas (festas diferentes);
 

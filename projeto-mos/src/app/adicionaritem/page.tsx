@@ -84,9 +84,13 @@ export default function AdicionarItem() {
               type="number"
               id="preco"
               value={preco}
-              onChange={(e) => setPreco(Number(e.target.value))}
+              onChange={(e) => {
+                const valor = parseFloat(e.target.value);
+                setPreco(isNaN(valor) ? 0 : valor);
+              }}
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
               required
+              step="0.1"
               min="0"
             />
           </div>

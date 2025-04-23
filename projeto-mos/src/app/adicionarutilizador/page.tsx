@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 
 export default function AdicionarUtilizador() {
@@ -10,7 +11,47 @@ export default function AdicionarUtilizador() {
   const [tipo, setTipo] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [temPermissao, setTemPermissao] = useState(false);
 
+  useEffect(() => {
+    const verificarPermissao = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.replace('/login');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('tipo')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !data || data.tipo !== 'Administrador') {
+        router.replace('/');
+        return;
+      }
+
+      setTemPermissao(true);
+      setIsLoading(false);
+    };
+
+    verificarPermissao();
+  }, [router]);
+
+  if (isLoading) {
+    return <div className="text-center mt-10">A carregar...</div>;
+  }
+
+  if (!temPermissao) {
+    return null;
+  }
+  
   const waitForProfile = async (userId: string, attempts = 5, delay = 500) => {
     for (let i = 0; i < attempts; i++) {
       const { data } = await supabase
