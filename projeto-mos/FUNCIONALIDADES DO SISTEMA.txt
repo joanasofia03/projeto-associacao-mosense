@@ -124,6 +124,9 @@ problemas:
 
 - update policy na tabela profiles
 
-- nao encontro a pagina do erro 404 logo nao consegui alterar
+- falta verificar inserção de itens etc. iguais
 
-- falta colocar quantidade nos itens de cada pedido
+- alterar o "anular pedido" para "alterar", mas na base de dados é anulado e é criado um novo
+
+- acrescentar verificacao de datas (festas diferentes)
+

@@ -11,7 +11,7 @@ export default function RegistarPedido() {
   const [erro, setErro] = useState<string | null>(null);
   const [nota, setNota] = useState('');
   const [detalhesPedido, setDetalhesPedido] = useState<{
-    pedido_id: number;
+    pedido_numero_diario: number;
     nome_cliente: string;
     nota?: string | null;
     itens: {
@@ -151,7 +151,7 @@ export default function RegistarPedido() {
       );
 
       setDetalhesPedido({
-      pedido_id: novoPedido.id,
+      pedido_numero_diario: novoPedido.numero_diario,
       nome_cliente: nomeCliente,
       nota: nota,
       itens: itensDetalhados,
@@ -274,7 +274,7 @@ export default function RegistarPedido() {
       {detalhesPedido && (
   <div className="bg-white border border-gray-300 rounded p-4 text-sm text-gray-800 mb-4">
     <p><strong>Cliente:</strong> {detalhesPedido.nome_cliente}</p>
-    <p><strong>Pedido ID:</strong> {detalhesPedido.pedido_id}</p>
+    <p><strong>Pedido ID:</strong> {detalhesPedido.pedido_numero_diario}</p>
     <div className="mt-2 space-y-1">
   {detalhesPedido.itens.flatMap((item, index) =>
     Array.from({ length: item.quantidade }).map((_, i) => (

@@ -97,19 +97,6 @@ export const Navigation = () => {
           </Link>
         )}
 
-        {(userType === 'Administrador' || userType === 'Funcionario de Cozinha') && (
-          <Link
-            href="/pedidos"
-            className="px-4 py-2 rounded hover:opacity-90"
-            style={{
-              backgroundColor: '#6c757d',
-              color: '#ffffff',
-            }}
-          >
-            Pedidos
-          </Link>
-        )}
-
         {userType === 'Administrador' && (
           <Link
             href="/adicionaritem"
