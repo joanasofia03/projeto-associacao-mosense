@@ -148,7 +148,6 @@ export default function AdicionarUtilizador() {
               <option value="">Selecione...</option>
               <option value="Administrador">Administrador</option>
               <option value="Funcionario de Banca">Funcionário de Banca</option>
-              <option value="Funcionario de Cozinha">Funcionário da Cozinha</option>
             </select>
           </div>
 
