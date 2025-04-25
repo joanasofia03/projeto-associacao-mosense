@@ -116,7 +116,9 @@ Admin!2025#david
 
 problemas:
 
-- é preciso dar refresh à pagina para atualizar as coisas (Se não o fizermos, muitas vezes não funciona as alterações);
+- É preciso dar refresh à pagina para atualizar as coisas (Se não o fizermos, muitas vezes não funciona as alterações) 
+    A ligação é perdida sempre que sai da aba (quando se move para segundo plano) e é por isso que só volta a ser reestabelecida com o reload da página.
+    https://github.com/supabase/auth-js/issues/634
 
 - o design é simples, nao uso tailwind;
 

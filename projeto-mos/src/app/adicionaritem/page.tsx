@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 
 export default function AdicionarItem() {
@@ -126,7 +126,9 @@ export default function AdicionarItem() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded hover:opacity-90"
+            className={`w-full py-2 rounded hover:opacity-90 ${
+              loading ? 'cursor-not-allowed opacity-60' : ''
+            }`}
             style={{
               backgroundColor: '#343a40',
               color: '#ffffff',
