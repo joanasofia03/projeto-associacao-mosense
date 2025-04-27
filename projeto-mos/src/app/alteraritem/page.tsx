@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
 type Item = {
   id: string;
@@ -12,7 +13,7 @@ type Item = {
   isMenu: boolean;
 };
 
-export default function AlterarItem() {
+function AlterarItem() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -191,3 +192,5 @@ export default function AlterarItem() {
     </main>
   );
 }
+
+export default VerificacaoDePermissoes(AlterarItem, ['Administrador', 'Funcionario de Banca']);

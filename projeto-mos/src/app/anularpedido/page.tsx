@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
-export default function AnularPedido() {
+function AnularPedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -105,3 +106,5 @@ export default function AnularPedido() {
     </div>
   );
 }
+
+export default VerificacaoDePermissoes(AnularPedido, ['Administrador', 'Funcionario de Banca']);

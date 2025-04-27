@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
-export default function RegistarPedido() {
+function RegistarPedido() {
   const [itensMenu, setItensMenu] = useState<any[]>([]);
   const [itensSelecionados, setItensSelecionados] = useState<{ item_id: number; para_levantar_depois: boolean; quantidade: number; }[]>([]);
   const [nomeCliente, setNomeCliente] = useState('');
@@ -302,3 +303,5 @@ export default function RegistarPedido() {
     </div>
   );
 }
+
+export default VerificacaoDePermissoes(RegistarPedido, ['Administrador', 'Funcionario de Banca']);

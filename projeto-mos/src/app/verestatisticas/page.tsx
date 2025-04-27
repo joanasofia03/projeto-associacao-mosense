@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
-export default function VerEstatisticas() {
+function VerEstatisticas() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [ordem, setOrdem] = useState<'data' | 'cliente'>('data');
   const [filtroPreparacao, setFiltroPreparacao] = useState<string>('Todos');
@@ -200,3 +201,5 @@ export default function VerEstatisticas() {
     </main>
   );
 }
+
+export default VerificacaoDePermissoes(VerEstatisticas, ['Administrador', 'Funcionario de Banca']);

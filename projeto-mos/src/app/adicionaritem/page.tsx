@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
-export default function AdicionarItem() {
+function AdicionarItem() {
   const [nome, setNome] = useState('');
   const [preco, setPreco] = useState(0);
   const [tipo, setTipo] = useState('');
@@ -141,3 +142,5 @@ export default function AdicionarItem() {
     </div>
   );
 }
+
+export default VerificacaoDePermissoes(AdicionarItem, ['Administrador', 'Funcionario de Banca']);
