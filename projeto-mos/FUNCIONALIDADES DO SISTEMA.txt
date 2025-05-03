@@ -116,9 +116,9 @@ Admin!2025#david
 
 problemas:
 
--> o design é simples, nao uso tailwind;
+-> o design é simples, uso ligeiramente o tailwind;
 
--> update policy na tabela profiles - Permitir que os novos utilizadores (principalmente admistradores) tenham de facto as suas permissões;
+->  Update policy na tabela profiles - Permitir que os novos utilizadores (principalmente admistradores) tenham de facto as suas permissões;
 
 -> falta verificar a inserção de itens iguais, isto se, por exemplo, não permitir adicionar o mesmo item 2x;
 

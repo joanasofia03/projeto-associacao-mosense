@@ -39,7 +39,7 @@ export function VerificacaoDePermissoes<P extends object>(
       checkAuth();
     }, [router]);
 
-    if (loading) return null;
+    if (loading) return <div className="text-center mt-10">A verificar permissões...</div>;
 
     return <WrappedComponent {...props} />;
   };

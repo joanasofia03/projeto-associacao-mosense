@@ -1,64 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
-export default function AdicionarUtilizador() {
+function AdicionarUtilizador() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tipo, setTipo] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [temPermissao, setTemPermissao] = useState(false);
 
-  useEffect(() => {
-    const verificarPermissao = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.replace('/login');
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('tipo')
-        .eq('id', user.id)
-        .single();
-
-      if (error || !data || data.tipo !== 'Administrador') {
-        router.replace('/');
-        return;
-      }
-
-      setTemPermissao(true);
-      setIsLoading(false);
-    };
-
-    verificarPermissao();
-  }, [router]);
-
-  if (isLoading) {
-    return <div className="text-center mt-10">A carregar...</div>;
-  }
-
-  if (!temPermissao) {
-    return null;
-  }
-  
   const waitForProfile = async (userId: string, attempts = 5, delay = 500) => {
     for (let i = 0; i < attempts; i++) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', userId)
         .single();
+
+      if (error) {
+        console.error('Erro ao procurar perfil:', error.message);
+        return false;
+      }
 
       if (data) return true;
       await new Promise((res) => setTimeout(res, delay));
@@ -74,7 +39,7 @@ export default function AdicionarUtilizador() {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
-        password: password,
+        password,
       });
 
       if (error) {
@@ -85,34 +50,49 @@ export default function AdicionarUtilizador() {
 
       const user = data?.user;
 
-      if (user) {
-        const ready = await waitForProfile(user.id);
+      if (!user) {
+        setErro('Utilizador criado, mas não foi possível obter o ID.');
+        return;
+      }
 
-        if (!ready) {
-          setErro('Perfil ainda não está disponível. Tente novamente.');
-          return;
-        }
+      const profileExists = await waitForProfile(user.id);
 
-        const { error: profileError } = await supabase
+      if (profileExists) {
+        const { error: updateError } = await supabase
           .from('profiles')
           .update({
-            nome: nome,
-            tipo: tipo,
+            nome,
+            tipo,
           })
           .eq('id', user.id);
 
-        if (profileError) {
-          setErro('Erro ao guardar utilizador.');
-          console.error(profileError.message);
-        } else {
-          setMensagemSucesso('Utilizador criado com sucesso!');
-          setTimeout(() => setMensagemSucesso(null), 3000);
-          setNome('');
-          setEmail('');
-          setPassword('');
-          setTipo('');
+        if (updateError) {
+          setErro('Erro ao atualizar perfil.');
+          console.error(updateError.message);
+          return;
+        }
+      } else {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            nome,
+            tipo,
+          });
+
+        if (insertError) {
+          setErro('Erro ao guardar perfil.');
+          console.error(insertError.message);
+          return;
         }
       }
+
+      setMensagemSucesso('Utilizador criado com sucesso!');
+      setTimeout(() => setMensagemSucesso(null), 3000);
+      setNome('');
+      setEmail('');
+      setPassword('');
+      setTipo('');
     } catch (err) {
       setErro('Erro desconhecido.');
       console.error(err);
@@ -142,7 +122,7 @@ export default function AdicionarUtilizador() {
               id="nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-gray-300 rounded px-3 py-2"
               required
             />
           </div>
@@ -156,7 +136,7 @@ export default function AdicionarUtilizador() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-gray-300 rounded px-3 py-2"
               required
             />
           </div>
@@ -170,7 +150,7 @@ export default function AdicionarUtilizador() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-gray-300 rounded px-3 py-2"
               required
             />
           </div>
@@ -183,7 +163,7 @@ export default function AdicionarUtilizador() {
               id="tipo"
               value={tipo}
               onChange={(e) => setTipo(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
               required
             >
               <option value="">Selecione...</option>
@@ -194,11 +174,8 @@ export default function AdicionarUtilizador() {
 
           <button
             type="submit"
-            className="w-full py-2 rounded hover:opacity-90"
-            style={{
-              backgroundColor: '#343a40',
-              color: '#ffffff',
-            }}
+            className="w-full py-2 rounded"
+            style={{ backgroundColor: '#343a40', color: '#fff' }}
           >
             Adicionar Utilizador
           </button>
@@ -207,3 +184,5 @@ export default function AdicionarUtilizador() {
     </div>
   );
 }
+
+export default VerificacaoDePermissoes(AdicionarUtilizador, ['Administrador']);

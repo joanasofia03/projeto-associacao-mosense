@@ -8,6 +8,9 @@ function AnularPedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  const [itensDoPedido, setItensDoPedido] = useState<any[]>([]);
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [pedidoSelecionado, setPedidoSelecionado] = useState<number | null>(null);
 
   const fetchPedidos = async () => {
     setLoading(true);
@@ -30,13 +33,13 @@ function AnularPedido() {
   const anularPedido = async (id: number, index: number) => {
     const confirmDelete = window.confirm('Tem certeza que deseja anular este pedido?');
     if (!confirmDelete) return;
-  
+
     try {
       const { error } = await supabase
         .from('pedidos')
         .update({ estado_validade: 'Anulado' })
         .eq('id', id);
-  
+
       if (error) {
         console.error('Erro ao anular o pedido:', error);
         setErro('Erro ao anular o pedido');
@@ -51,7 +54,26 @@ function AnularPedido() {
       setErro('Erro inesperado ao anular o pedido');
     }
   };
-  
+
+  const fetchItensDoPedido = async (pedidoId: number) => {
+    const { data, error } = await supabase
+      .from('pedidos_itens')
+      .select(`
+        id, item_id, quantidade, para_levantar_depois,
+        itens (nome)
+      `)
+      .eq('pedido_id', pedidoId);
+
+    if (error) {
+      console.error('Erro ao carregar itens do pedido:', error);
+      setErro('Erro ao carregar itens do pedido');
+      return;
+    }
+
+    setItensDoPedido(data);
+    setPedidoSelecionado(pedidoId);
+    setMostrarModal(true);
+  };
 
   useEffect(() => {
     fetchPedidos();
@@ -78,31 +100,65 @@ function AnularPedido() {
               </tr>
             </thead>
             <tbody>
-                {pedidos.map((pedido, index) => (
+              {pedidos.map((pedido, index) => (
                 <tr key={pedido.id} className="border-t">
-                    <td className="p-2">{pedido.numero_diario}</td>
+                  <td className="p-2">{pedido.numero_diario}</td>
                   <td className="p-2">{pedido.nome_cliente}</td>
                   <td className="p-2">{new Date(pedido.criado_em).toLocaleString()}</td>
                   <td className="p-2">{pedido.estado_preparacao}</td>
                   <td className="p-2">{pedido.estado_validade}</td>
-                    <td className="p-2">
+                  <td className="p-2 space-x-2">
+                    <button
+                      onClick={() => fetchItensDoPedido(pedido.id)}
+                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                    >
+                      Ver Itens
+                    </button>
                     {pedido.estado_validade !== 'Anulado' ? (
-                        <button
+                      <button
                         onClick={() => anularPedido(pedido.id, index)}
                         className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
-                        >
+                      >
                         Anular
-                        </button>
+                      </button>
                     ) : (
-                        <span className="text-gray-400 text-sm">Anulado</span>
+                      <span className="text-gray-400 text-sm">Anulado</span>
                     )}
-                    </td>
+                  </td>
                 </tr>
-                ))}
+              ))}
             </tbody>
           </table>
         )}
       </div>
+
+      {mostrarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+            <h2 className="text-xl font-semibold mb-4">Itens do Pedido #{pedidoSelecionado}</h2>
+            <button
+              onClick={() => setMostrarModal(false)}
+              className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl"
+            >
+              &times;
+            </button>
+
+            {itensDoPedido.length === 0 ? (
+              <p>Sem itens para mostrar.</p>
+            ) : (
+              <ul className="space-y-2">
+                {itensDoPedido.map((item) => (
+                  <li key={item.id} className="border p-2 rounded">
+                    <p><strong>Item:</strong> {item.itens?.nome || `ID ${item.item_id}`}</p>
+                    <p><strong>Quantidade:</strong> {item.quantidade}</p>
+                    <p><strong>Para levantar depois:</strong> {item.para_levantar_depois ? 'Sim' : 'Não'}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
