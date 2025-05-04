@@ -126,7 +126,7 @@ function AnularPedido() {
                       onClick={() => fetchItensDoPedido(pedido.id)}
                       className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
                     >
-                      Ver Itens
+                      Ver Detalhes
                     </button>
                     {pedido.estado_validade !== 'Anulado' ? (
                       <button

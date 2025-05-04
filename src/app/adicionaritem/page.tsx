@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
@@ -20,9 +20,27 @@ function AdicionarItem() {
     setError(null);
 
     try {
-      const { data, error } = await supabase.from('itens').insert([
+      const { data: existingItems, error: fetchError } = await supabase
+        .from('itens')
+        .select('id')
+        .ilike('nome', nome.trim());
+
+      if (fetchError) {
+        setError('Erro ao verificar duplicação de nome.');
+        console.error(fetchError);
+        setLoading(false);
+        return;
+      }
+
+      if (existingItems.length > 0) {
+        setError('Já existe um item com esse nome.');
+        setLoading(false);
+        return;
+      }
+
+      const { error: insertError } = await supabase.from('itens').insert([
         {
-          nome,
+          nome: nome.trim(),
           preco,
           tipo,
           isMenu,
@@ -32,9 +50,9 @@ function AdicionarItem() {
 
       setLoading(false);
 
-      if (error) {
+      if (insertError) {
         setError('Ocorreu um erro ao adicionar o item.');
-        console.error(error.message);
+        console.error(insertError.message);
       } else {
         setSuccessMessage('Item adicionado com sucesso!');
         setTimeout(() => setSuccessMessage(''), 3000);
@@ -44,6 +62,7 @@ function AdicionarItem() {
         setIsMenu(false);
       }
     } catch (err) {
+      console.error('Erro inesperado:', err);
       setLoading(false);
       setError('Erro desconhecido ao adicionar o item.');
     }

@@ -107,13 +107,11 @@ problemas:
 
 -> o design é simples, uso ligeiramente o tailwind;
 
-->  Update policy na tabela profiles - Permitir que os novos utilizadores (principalmente admistradores) tenham de facto as suas permissões;
-
--> falta verificar a inserção de itens iguais, isto se, por exemplo, não permitir adicionar o mesmo item 2x;
-
 -> alterar o "anular pedido" para "alterar", mas na base de dados é anulado e é criado um novo;
 
 -> acrescentar verificacao de datas (festas diferentes);
 
-- Test
+-> a caixa do nome em alterar item nao deixa escrever tudo seguido
+
+-> especificar melhor os erros
 

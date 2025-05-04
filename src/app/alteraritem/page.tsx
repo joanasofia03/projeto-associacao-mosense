@@ -44,32 +44,55 @@ function AlterarItem() {
   };
 
   const handleSave = async () => {
-    if (editIndex === null || !editItem.nome) return;
-
+    if (editIndex === null || !editItem.nome || !editItem.tipo) return;
+  
+    const nomeTrimmed = editItem.nome.trim();
+  
     try {
+      const { data: existingItems, error: fetchError } = await supabase
+        .from('itens')
+        .select('id')
+        .ilike('nome', nomeTrimmed)
+        .eq('tipo', editItem.tipo);
+  
+      if (fetchError) {
+        console.error('Erro ao verificar duplicação de nome:', fetchError);
+        return;
+      }
+  
+      const isDuplicate = existingItems.some(item => item.id !== items[editIndex].id);
+      if (isDuplicate) {
+        alert('Já existe outro item com o mesmo nome e tipo.');
+        return;
+      }
+  
       const { error } = await supabase
         .from('itens')
         .update({
-          nome: editItem.nome,
+          nome: nomeTrimmed,
           preco: editItem.preco,
           tipo: editItem.tipo,
           isMenu: editItem.isMenu,
         })
         .eq('id', items[editIndex].id);
-
+  
       if (error) {
         console.error('Erro ao atualizar item:', error);
       } else {
         console.log('Item atualizado com sucesso!');
         const updatedItems = [...items];
-        updatedItems[editIndex] = editItem as Item;
+        updatedItems[editIndex] = {
+          ...updatedItems[editIndex],
+          ...editItem,
+          nome: nomeTrimmed,
+        } as Item;
         setItems(updatedItems);
         setEditIndex(null);
       }
     } catch (err) {
       console.error('Erro ao guardar item:', err);
     }
-  };
+  };  
 
   const handleDelete = async (id: string, index: number) => {
     const confirmDelete = window.confirm('Tem certeza que deseja excluir este item?');

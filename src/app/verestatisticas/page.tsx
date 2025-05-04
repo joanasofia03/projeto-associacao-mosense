@@ -14,6 +14,11 @@ function VerEstatisticas() {
     porEstadoValidade: {} as Record<string, number>,
   });
 
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [itensDoPedido, setItensDoPedido] = useState<any[]>([]);
+  const [numeroDiarioSelecionado, setNumeroDiarioSelecionado] = useState<string | null>(null);
+  const [notaSelecionada, setNotaSelecionada] = useState<string | null>(null);
+
   const fetchPedidos = async () => {
     let query = supabase
       .from('pedidos')
@@ -57,12 +62,12 @@ function VerEstatisticas() {
       contagemValidade[p.estado_validade] =
         (contagemValidade[p.estado_validade] || 0) + 1;
 
-        if (p.estado_validade === 'Confirmado') {
-            const soma = p.pedidos_itens?.reduce((s: number, item: any) => {
-              return s + (item.itens?.preco || 0);
-            }, 0);
-            totalFaturado += soma || 0;
-          }    
+      if (p.estado_validade === 'Confirmado') {
+        const soma = p.pedidos_itens?.reduce((s: number, item: any) => {
+          return s + (item.itens?.preco || 0);
+        }, 0);
+        totalFaturado += soma || 0;
+      }
     });
 
     setTotais({
@@ -72,6 +77,37 @@ function VerEstatisticas() {
     });
 
     setPedidos(filtrados);
+  };
+
+  const fetchItensDoPedido = async (pedidoId: number, numeroDiario: string) => {
+    const { data: pedido, error: pedidoError } = await supabase
+      .from('pedidos')
+      .select('nota')
+      .eq('id', pedidoId)
+      .single();
+
+    if (pedidoError) {
+      console.error('Erro ao obter nota do pedido:', pedidoError);
+      return;
+    }
+
+    const { data: itens, error } = await supabase
+      .from('pedidos_itens')
+      .select(`
+        id, item_id, quantidade, para_levantar_depois,
+        itens (nome)
+      `)
+      .eq('pedido_id', pedidoId);
+
+    if (error) {
+      console.error('Erro ao carregar itens do pedido:', error);
+      return;
+    }
+
+    setItensDoPedido(itens);
+    setNumeroDiarioSelecionado(numeroDiario);
+    setNotaSelecionada(pedido.nota || null);
+    setMostrarModal(true);
   };
 
   useEffect(() => {
@@ -141,6 +177,7 @@ function VerEstatisticas() {
               <th className="p-2">Data</th>
               <th className="p-2">Validade</th>
               <th className="p-2">Total (€)</th>
+              <th className="p-2">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -156,12 +193,55 @@ function VerEstatisticas() {
                   <td className="p-2">{new Date(pedido.criado_em).toLocaleString()}</td>
                   <td className="p-2">{pedido.estado_validade}</td>
                   <td className="p-2">{totalPedido.toFixed(2)} €</td>
+                  <td className="p-2">
+                    <button
+                      onClick={() => fetchItensDoPedido(pedido.id, pedido.numero_diario)}
+                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs"
+                    >
+                      Ver Detalhes
+                    </button>
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+
+      {mostrarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+            <h2 className="text-xl font-semibold mb-2">
+              Itens do Pedido Nº {numeroDiarioSelecionado}
+            </h2>
+            {notaSelecionada && (
+              <p className="text-gray-700 mb-4">
+                <strong>Nota:</strong> {notaSelecionada}
+              </p>
+            )}
+            <button
+              onClick={() => setMostrarModal(false)}
+              className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl"
+            >
+              &times;
+            </button>
+
+            {itensDoPedido.length === 0 ? (
+              <p>Sem itens para mostrar.</p>
+            ) : (
+              <ul className="space-y-2">
+                {itensDoPedido.map((item) => (
+                  <li key={item.id} className="border p-2 rounded">
+                    <p><strong>Item:</strong> {item.itens?.nome || `ID ${item.item_id}`}</p>
+                    <p><strong>Quantidade:</strong> {item.quantidade}</p>
+                    <p><strong>Para levantar depois:</strong> {item.para_levantar_depois ? 'Sim' : 'Não'}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
