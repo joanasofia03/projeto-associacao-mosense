@@ -7,12 +7,10 @@ import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 function VerEstatisticas() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [ordem, setOrdem] = useState<'data' | 'cliente'>('data');
-  const [filtroPreparacao, setFiltroPreparacao] = useState<string>('Todos');
   const [filtroValidade, setFiltroValidade] = useState<string>('Todos');
   const [totais, setTotais] = useState({
     total: 0,
     totalFaturado: 0,
-    porEstadoPreparacao: {} as Record<string, number>,
     porEstadoValidade: {} as Record<string, number>,
   });
 
@@ -24,7 +22,6 @@ function VerEstatisticas() {
         numero_diario,
         nome_cliente,
         criado_em,
-        estado_preparacao,
         estado_validade,
         pedidos_itens (
           item_id,
@@ -48,24 +45,19 @@ function VerEstatisticas() {
     }
 
     const filtrados = data.filter((p) => {
-      const passaPreparacao =
-        filtroPreparacao === 'Todos' || p.estado_preparacao === filtroPreparacao;
       const passaValidade =
         filtroValidade === 'Todos' || p.estado_validade === filtroValidade;
-      return passaPreparacao && passaValidade;
+      return passaValidade;
     });
 
-    const contagemPreparacao: Record<string, number> = {};
     const contagemValidade: Record<string, number> = {};
     let totalFaturado = 0;
 
     filtrados.forEach((p) => {
-      contagemPreparacao[p.estado_preparacao] =
-        (contagemPreparacao[p.estado_preparacao] || 0) + 1;
       contagemValidade[p.estado_validade] =
         (contagemValidade[p.estado_validade] || 0) + 1;
 
-        if (p.estado_preparacao === 'Concluido' && p.estado_validade === 'Confirmado') {
+        if (p.estado_validade === 'Confirmado') {
             const soma = p.pedidos_itens?.reduce((s: number, item: any) => {
               return s + (item.itens?.preco || 0);
             }, 0);
@@ -76,7 +68,6 @@ function VerEstatisticas() {
     setTotais({
       total: filtrados.length,
       totalFaturado,
-      porEstadoPreparacao: contagemPreparacao,
       porEstadoValidade: contagemValidade,
     });
 
@@ -85,9 +76,8 @@ function VerEstatisticas() {
 
   useEffect(() => {
     fetchPedidos();
-  }, [ordem, filtroPreparacao, filtroValidade]);
+  }, [ordem, filtroValidade]);
 
-  const estadosPreparacao = ['Todos', 'Registado', 'Concluido'];
   const estadosValidade = ['Todos', 'Confirmado', 'Anulado'];
 
   return (
@@ -106,20 +96,6 @@ function VerEstatisticas() {
               >
                 <option value="data">Data (mais recente)</option>
                 <option value="cliente">Cliente</option>
-              </select>
-            </label>
-            <label>
-              Estado Preparação:{' '}
-              <select
-                value={filtroPreparacao}
-                onChange={(e) => setFiltroPreparacao(e.target.value)}
-                className="border rounded px-2 py-1 ml-1"
-              >
-                {estadosPreparacao.map((estado) => (
-                  <option key={estado} value={estado}>
-                    {estado}
-                  </option>
-                ))}
               </select>
             </label>
             <label>
@@ -146,16 +122,6 @@ function VerEstatisticas() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
-            <h2 className="font-semibold text-gray-800 mb-2">Contagem por Estado de Preparação</h2>
-            <ul className="text-sm">
-              {Object.entries(totais.porEstadoPreparacao).map(([estado, count]) => (
-                <li key={estado}>
-                  {estado}: <strong>{count}</strong>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
             <h2 className="font-semibold text-gray-800 mb-2">Contagem por Estado de Validade</h2>
             <ul className="text-sm">
               {Object.entries(totais.porEstadoValidade).map(([estado, count]) => (
@@ -173,7 +139,6 @@ function VerEstatisticas() {
               <th className="p-2">Nº</th>
               <th className="p-2">Cliente</th>
               <th className="p-2">Data</th>
-              <th className="p-2">Preparação</th>
               <th className="p-2">Validade</th>
               <th className="p-2">Total (€)</th>
             </tr>
@@ -189,7 +154,6 @@ function VerEstatisticas() {
                   <td className="p-2">{pedido.numero_diario}</td>
                   <td className="p-2">{pedido.nome_cliente}</td>
                   <td className="p-2">{new Date(pedido.criado_em).toLocaleString()}</td>
-                  <td className="p-2">{pedido.estado_preparacao}</td>
                   <td className="p-2">{pedido.estado_validade}</td>
                   <td className="p-2">{totalPedido.toFixed(2)} €</td>
                 </tr>

@@ -4,7 +4,7 @@ FUNCIONALIDADES DO SISTEMA
 É constituído por data hora de criação e vários itens, cada um com a respetiva quantidade (que é sempre 1) e preço.
 
 2. Registar pedidos. 
-Cada pedido pode conter vários itens do menu, tem um número (começa em 1 e vai incrementando, e reseta a cada novo dia), o nome da pessoa que fez o pedido e o nome da pessoa que registou o pedido (pode ser obtido através da sessão do utilizador). O pedido deve apresentar todos os itens, o preço por item e o preço total, e o número. Adicionalmente, um pedido tem uma data hora de criação associada e 2 estados, com 2 valores possíveis cada. O primeiro estado pode ter o valor de "Registado" ou "Concluído", este último é adquirido quando começa a ser preparado pela cozinha. O segundo estado serve para nos dizer se um pedido foi alterado ou não. Quando alguém regista um pedido errado esse pedido deve ser alterado, mas o pedido inicial não deve ser eliminado. Ou seja o pedido inicial fica com o segundo estado como "Anulado", e novo pedido tem o estado "Confirmado". Na prática, um pedido pode estar "Concluído" e "Anulado" ao mesmo tempo pois, especificamente nas Mós, a cozinha prepara sempre todos os pedidos mesmo os que foram alterados. Eventualmente esses itens vão ser adquiridos por outras pessoas, mas o software não tem essa particularidade em conta. Quando um pedido é registado, é enviado para a cozinha. Por fim, cada item num pedido pode ser levantado mais tarde ou não, devendo isso ser indicado também.
+Cada pedido pode conter vários itens do menu, tem um número (começa em 1 e vai incrementando, e reseta a cada novo dia), o nome da pessoa que fez o pedido e o nome da pessoa que registou o pedido (pode ser obtido através da sessão do utilizador). O pedido deve apresentar todos os itens, o preço por item e o preço total, e o número. Adicionalmente, um pedido tem uma data hora de criação associada e um estados com 2 valores possíveis. Serve para nos dizer se um pedido foi alterado ou não. Quando alguém regista um pedido errado esse pedido deve ser alterado, mas o pedido inicial não deve ser eliminado. Eventualmente esses itens vão ser adquiridos por outras pessoas, mas o software não tem essa particularidade em conta. Por fim, cada item num pedido pode ser levantado mais tarde ou não, devendo isso ser indicado também.
 
 3. Alterar um pedido.
 Quando se quiser alterar um pedido, deve selecionar-se um pedido da lista de pedidos, ou pesquisar pelo seu número, nome, entre outros, e proceder-se à alteração do pedido.
@@ -16,7 +16,6 @@ Quando um pedido é registado uma impressora imprime um ticket com a informaçã
 Quando um pedido chega à cozinha e é dado início à sua preparação, o pedido passa a "Concluído", através da ação de alguém nesse lugar.
 
 5. Visualizar os pedidos e ordená-los segundo vários critérios.
-A cozinha deve apenas ver os pedidos "Registados". Dando inicio à sua preparação, o pedido passa a "Concluído" e deixa de estar visível para ela.
 
 6. Contagem do nº de pedidos.
 
@@ -27,7 +26,7 @@ A cozinha deve apenas ver os pedidos "Registados". Dando inicio à sua preparaç
 8. Criar itens, menu, e outros.
 
 9. Gestão das contas de utilizadores.
-O Administrador do Sistema não necessita de ser criado, vem com o software, e tem acesso a todas as funcionalidades. Somente ele pode gerir as contas de utilizadores, ver a contagem do dinheiro, ter acesso à base de dados, entre outros a definir. É ele quem cria todos os outros utilizadores. Teremos outro tipo de utilizador, que será quem está na banca a registar os pedidos e a guardar o dinheiro. Teremos ainda outro tipo de utilizador, que é quem trabalha na cozinha e levanta os pedidos.
+O Administrador do Sistema não necessita de ser criado e tem acesso a todas as funcionalidades. Somente ele pode gerir as contas de utilizadores, ver a contagem do dinheiro, ter acesso à base de dados, entre outros a definir. É ele quem cria todos os outros utilizadores. Teremos outro tipo de utilizador, que será quem está na banca a registar os pedidos e a guardar o dinheiro. 
 
 NÃO HÁ DEVOLUÇÕES.
 
@@ -73,11 +72,6 @@ note right
 FuncionarioDaBanca é um conceito do negócio e dos componentes de autenticação
 end note
 
-class FuncionarioDaCozinha
-note right
-FuncionarioDaCozinha é um conceito do negócio e dos componentes de autenticação
-end note
-
 class UtilizadorNaoRegistado
 note right
 UtilizadorNaoRegistado é um conceito do negócio e dos componentes de autenticação
@@ -90,7 +84,6 @@ class Cliente
 Administrador "1" -- "1..*" Menu: cria >
 Administrador "1" -- "1..*" Pedido: gerir >
 Administrador "1" -- "1..*" FuncionarioDaBanca: cria >
-Administrador "1" -- "1..*" FuncionarioDaCozinha: cria >
 Administrador "1" -- "1..*" Item: cria >
 FuncionarioDaBanca "1" -- "1..*" Pedido: pode alterar >
 FuncionarioDaBanca "1" -- "1..*" Pedido: pode listar >
@@ -99,10 +92,8 @@ Pedido "1" -- "1..*" Item: tem >
 UtilizadorNaoRegistado "1" -- "1" Menu: vê >
 Administrador "1" -- "1" Menu: vê >
 FuncionarioDaBanca "1" -- "1" Menu: vê >
-FuncionarioDaCozinha "1" -- "1" Menu: vê >
 Administrador "1" -- "1..*" Menu: cria >
 FuncionarioDaBanca "1" -- "1..*" Pedido: regista >
-FuncionarioDaCozinha "1" -- "1..*" Pedido: conclui >
 Pedido "1" -- "1" estadoDeAlteracaoDoPedido: tem >
 Pedido "1" -- "1" estadoDeConclusaoDoPedido: tem >
 Ticket "1" -- "1" Pedido: tem >
@@ -110,8 +101,6 @@ FuncionarioDaBanca "1" -- "1..*" Ticket: imprime >
 Cliente "1" -- "1..*" Pedido: faz >
 
 @enduml
-
-Admin!2025#david
 
 
 problemas:

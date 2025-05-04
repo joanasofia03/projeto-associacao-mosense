@@ -104,7 +104,6 @@ function RegistarPedido() {
             numero_diario: numeroDiario,
             nome_cliente: nomeCliente,
             registado_por: user.id,
-            estado_preparacao: 'Registado',
             estado_validade: 'Confirmado',
             criado_em_truncado: hojeISO,
             nota: nota || null,

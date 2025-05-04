@@ -11,13 +11,15 @@ function AnularPedido() {
   const [itensDoPedido, setItensDoPedido] = useState<any[]>([]);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [pedidoSelecionado, setPedidoSelecionado] = useState<number | null>(null);
+  const [numeroDiarioSelecionado, setNumeroDiarioSelecionado] = useState<string | null>(null);
+  const [notaSelecionada, setNotaSelecionada] = useState<string | null>(null);
 
   const fetchPedidos = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('pedidos')
       .select(`
-        id, numero_diario, nome_cliente, criado_em, estado_preparacao, estado_validade
+        id, numero_diario, nome_cliente, criado_em, estado_validade
       `)
       .order('criado_em', { ascending: false });
 
@@ -56,7 +58,19 @@ function AnularPedido() {
   };
 
   const fetchItensDoPedido = async (pedidoId: number) => {
-    const { data, error } = await supabase
+    const { data: pedido, error: pedidoError } = await supabase
+      .from('pedidos')
+      .select('numero_diario, nota')
+      .eq('id', pedidoId)
+      .single();
+
+    if (pedidoError) {
+      console.error('Erro ao obter dados do pedido:', pedidoError);
+      setErro('Erro ao obter dados do pedido');
+      return;
+    }
+
+    const { data: itens, error } = await supabase
       .from('pedidos_itens')
       .select(`
         id, item_id, quantidade, para_levantar_depois,
@@ -70,8 +84,10 @@ function AnularPedido() {
       return;
     }
 
-    setItensDoPedido(data);
+    setItensDoPedido(itens);
     setPedidoSelecionado(pedidoId);
+    setNumeroDiarioSelecionado(pedido.numero_diario);
+    setNotaSelecionada(pedido.nota || null);
     setMostrarModal(true);
   };
 
@@ -94,7 +110,6 @@ function AnularPedido() {
                 <th className="p-2">Nº</th>
                 <th className="p-2">Cliente</th>
                 <th className="p-2">Data</th>
-                <th className="p-2">Preparação</th>
                 <th className="p-2">Validade</th>
                 <th className="p-2">Ações</th>
               </tr>
@@ -105,7 +120,6 @@ function AnularPedido() {
                   <td className="p-2">{pedido.numero_diario}</td>
                   <td className="p-2">{pedido.nome_cliente}</td>
                   <td className="p-2">{new Date(pedido.criado_em).toLocaleString()}</td>
-                  <td className="p-2">{pedido.estado_preparacao}</td>
                   <td className="p-2">{pedido.estado_validade}</td>
                   <td className="p-2 space-x-2">
                     <button
@@ -135,7 +149,14 @@ function AnularPedido() {
       {mostrarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-            <h2 className="text-xl font-semibold mb-4">Itens do Pedido #{pedidoSelecionado}</h2>
+            <h2 className="text-xl font-semibold mb-2">
+              Itens do Pedido Nº {numeroDiarioSelecionado}
+            </h2>
+            {notaSelecionada && (
+              <p className="text-gray-700 mb-4">
+                <strong>Nota:</strong> {notaSelecionada}
+              </p>
+            )}
             <button
               onClick={() => setMostrarModal(false)}
               className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl"
