@@ -55,9 +55,9 @@ export default function Login() {
   }, [user]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md text-gray-800 shadow-md rounded p-8">
-        <h1 className="text-2xl font-semibold mb-6">Log In</h1>
+    <div className="min-h-screen overflow-hidden p-0 m-0 flex items-center justify-center flex-col">
+      <div className="w-full max-w-lg text-[#032221] shadow-md rounded p-8">
+        <h1 className="text-2xl text-[#032221] font-semibold mb-6">Iniciar sessão na sua conta </h1>
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
@@ -69,7 +69,7 @@ export default function Login() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block mb-1 text-sm font-medium">
+            <label htmlFor="email" className="block mb-1 text-sm font-medium text-[#032221]">
               E-mail
             </label>
             <input
@@ -77,12 +77,12 @@ export default function Login() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block mb-1 text-sm font-medium">
+            <label htmlFor="password" className="block mb-1 text-sm font-medium text-[#032221]">
               Password
             </label>
             <input
@@ -90,7 +90,7 @@ export default function Login() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
           </div>
 
@@ -98,8 +98,8 @@ export default function Login() {
             type="submit"
             className="w-full py-2 rounded hover:opacity-90"
             style={{
-              backgroundColor: '#343a40',
-              color: '#ffffff',
+              backgroundColor: '#032221',
+              color: '#f1f7f6',
             }}
           >
             Log In

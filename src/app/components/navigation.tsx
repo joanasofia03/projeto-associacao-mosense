@@ -85,13 +85,13 @@ export const Navigation = () => {
   if (loading) return <div className="text-center">A carregar...</div>;
 
   return (
-    <nav className="px-6 py-4 flex justify-between items-center" style={{ backgroundColor: '#e9ecef' }}>
-      <Link href="/" className="text-xl font-bold" style={{ color: '#2f2f2f' }}>
+    <nav className="px-6 py-4 flex justify-between items-center" style={{ backgroundColor: '#032221' }}>
+      <Link href="/" className="text-xl font-bold" style={{ color: '#f1f7f6' }}>
         Comissão de Festas das Mós
       </Link>
 
       <div className="flex items-center space-x-6">
-        <Link href="/menu" className="hover:underline" style={{ color: '#6c757d' }}>
+        <Link href="/menu" className="hover:underline" style={{ color: '#2cc295' }}>
           Menu
         </Link>
 
@@ -100,8 +100,8 @@ export const Navigation = () => {
             href="/anularpedido"
             className="px-4 py-2 rounded hover:opacity-90"
             style={{
-              backgroundColor: '#6c757d',
-              color: '#ffffff',
+              backgroundColor: '#03624c',
+              color: '#f1f7f6',
             }}
           >
             Anular Pedido
@@ -113,8 +113,8 @@ export const Navigation = () => {
             href="/registarpedido"
             className="px-4 py-2 rounded hover:opacity-90"
             style={{
-              backgroundColor: '#6c757d',
-              color: '#ffffff',
+              backgroundColor: '#03624c',
+              color: '#f1f7f6',
             }}
           >
             Registar Pedido
@@ -126,8 +126,8 @@ export const Navigation = () => {
             href="/adicionaritem"
             className="px-4 py-2 rounded hover:opacity-90"
             style={{
-              backgroundColor: '#6c757d',
-              color: '#ffffff',
+              backgroundColor: '#03624c',
+              color: '#f1f7f6',
             }}
           >
             Adicionar Item
@@ -139,8 +139,8 @@ export const Navigation = () => {
             href="/alteraritem"
             className="px-4 py-2 rounded hover:opacity-90"
             style={{
-              backgroundColor: '#6c757d',
-              color: '#ffffff',
+              backgroundColor: '#03624c',
+              color: '#f1f7f6',
             }}
           >
             Alterar Item
@@ -152,8 +152,8 @@ export const Navigation = () => {
             href="/adicionarutilizador"
             className="px-4 py-2 rounded hover:opacity-90"
             style={{
-              backgroundColor: '#6c757d',
-              color: '#ffffff',
+              backgroundColor: '#03624c',
+              color: '#f1f7f6',
             }}
           >
             Adicionar Utilizador
@@ -165,8 +165,8 @@ export const Navigation = () => {
             href="/verestatisticas"
             className="px-4 py-2 rounded hover:opacity-90"
             style={{
-              backgroundColor: '#6c757d',
-              color: '#ffffff',
+              backgroundColor: '#03624c',
+              color: '#f1f7f6',
             }}
           >
             Ver Estatísticas
@@ -178,8 +178,8 @@ export const Navigation = () => {
             href="/login"
             className="px-4 py-2 rounded hover:opacity-90"
             style={{
-              backgroundColor: '#343a40',
-              color: '#ffffff',
+              backgroundColor: '#03624c',
+              color: '#f1f7f6',
             }}
           >
             Log In
@@ -190,7 +190,7 @@ export const Navigation = () => {
             className="px-4 py-2 rounded hover:opacity-90"
             style={{
               backgroundColor: '#dc3545',
-              color: '#ffffff',
+              color: '#f1f7f6',
             }}
           >
             Log Out
