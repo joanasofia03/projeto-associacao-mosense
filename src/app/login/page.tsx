@@ -55,7 +55,7 @@ export default function Login() {
   }, [user]);
 
   return (
-    <div className="min-h-screen overflow-hidden p-0 m-0 flex items-center justify-center flex-col">
+    <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-gray-200">
       <div className="w-full max-w-lg text-[#032221] shadow-md rounded p-8">
         <h1 className="text-2xl text-[#032221] font-semibold mb-6">Iniciar sessão na sua conta </h1>
 
