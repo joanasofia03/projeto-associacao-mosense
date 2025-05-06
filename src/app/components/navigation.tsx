@@ -86,7 +86,7 @@ export const Navigation = () => {
   if (loading) return <div className="text-center">A carregar...</div>;
 
   return (
-    <nav className="flex-col flex items-center min-w-75" style={{ backgroundColor: '#f1f6f7' }}>
+    <nav className="flex-col flex items-center min-w-75 sticky fixed" style={{ backgroundColor: '#f1f6f7' }}>
       <Link href="/" className='py-6'>
         <Image src="/OsMosenses.png" alt="Logo" width={150} height={150} />
       </Link>

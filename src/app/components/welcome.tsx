@@ -43,7 +43,7 @@ export const Welcome = () => {
   if (!profile) return null;
 
   return (
-    <div className="text-center mt-6">
+    <div className="text-center mt-6 flex flex-col">
       <p className="text-sm text-gray-500">{profile.tipo}</p>
       <h1 className="text-3xl font-bold text-gray-800 mt-1">Bem-vindo/a, {profile.nome}!</h1>
     </div>

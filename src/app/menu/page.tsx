@@ -58,7 +58,7 @@ export default function Menu() {
   };
 
   return (
-    <main className="w-full min-h-screen px-6 py-10" style={{ backgroundColor: '#e5e7eb' }}>
+    <main className="w-full min-h-screen px-6 py-10 overflow-y-scroll" style={{ backgroundColor: '#e5e7eb' }}>
       <h1 className="text-3xl font-semibold mb-8" style={{ color: '#2f2f2f' }}>
         Menu
       </h1>
