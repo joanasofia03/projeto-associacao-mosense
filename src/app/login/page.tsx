@@ -26,7 +26,7 @@ export default function Login() {
       } else {
         // Guarda a sessão no localStorage como no navigation.tsx
         localStorage.setItem('session', JSON.stringify(data));
-        router.push('/'); // Redireciona após login
+        router.push('/welcome'); // Redireciona após login
       }
     } catch (err) {
       setError('Ocorreu um erro.');

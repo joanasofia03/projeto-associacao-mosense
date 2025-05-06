@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "./components/navigation";
-import { Welcome } from "./components/welcome";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -26,7 +25,6 @@ export default function RootLayout({
       >
         <Navigation />
         <div className="flex flex-col w-full h-full">
-          <Welcome />
           {children}
         </div>
       </body>

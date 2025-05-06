@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 
-export const Welcome = () => {
+export default function Welcome () {
   const [profile, setProfile] = useState<{ nome: string; tipo: string } | null>(null);
 
   const fetchProfile = async () => {

@@ -120,3 +120,5 @@ problemas:
 -> Colocar o perfil logado na navbar juntamente com a opção de logout;
 
 -> Fazer a expensão e recolha da navbar;
+
+-> Impedir que ao adicionar um novo utilizador a sessão atual seja encerrada e dê entrda na sessão do novo utilizador;
