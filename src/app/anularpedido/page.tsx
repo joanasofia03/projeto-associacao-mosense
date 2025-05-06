@@ -96,7 +96,7 @@ function AnularPedido() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-200">
       <div className="w-full max-w-4xl text-gray-800 shadow-md rounded p-6 bg-white">
         <h1 className="text-2xl font-semibold mb-6">Pedidos Registados</h1>
 

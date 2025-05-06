@@ -117,7 +117,7 @@ function VerEstatisticas() {
   const estadosValidade = ['Todos', 'Confirmado', 'Anulado'];
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-gray-50">
+    <main className="min-h-screen px-6 py-10 bg-gray-200">
       <div className="max-w-6xl mx-auto bg-white shadow-md rounded-lg p-6">
         <h1 className="text-2xl font-semibold text-gray-800 mb-6">Estatísticas dos Pedidos</h1>
 

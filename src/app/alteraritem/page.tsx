@@ -199,7 +199,7 @@ function AlterarItem() {
   );
 
   return (
-    <main className="min-h-screen px-6 py-10" style={{ backgroundColor: '#f8f9fa' }}>
+    <main className="h-full px-6 py-10 bg-gray-200 overflow-y-scroll">
       <h1 className="text-3xl font-semibold mb-8 text-gray-800">Todos os Itens</h1>
 
       {loading ? (

@@ -7,17 +7,19 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 //Import de Icons
-import { SlArrowDownCircle } from "react-icons/sl";
 import { MdOutlineMenu } from "react-icons/md";
 import { MdOutlineCancel } from "react-icons/md";
 import { IoAddCircleOutline } from "react-icons/io5";
 import { CiEdit } from "react-icons/ci";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import { FaRegEye } from "react-icons/fa";
+import { CgArrowLeftO } from "react-icons/cg";
+import { IoIosLogOut } from "react-icons/io";
 
 export const Navigation = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userType, setUserType] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
   
@@ -66,12 +68,13 @@ export const Navigation = () => {
   
     const { data, error } = await supabase
       .from('profiles')
-      .select('tipo')
+      .select('tipo, nome')
       .eq('id', session?.user.id)
       .single();
     
     if (data && !error) {
       setUserType(data.tipo);
+      setUserName(data.nome);
     }
   };
 
@@ -95,12 +98,12 @@ export const Navigation = () => {
   if (loading) return <div className="text-center">A carregar...</div>;
 
   return (
-    <nav className="flex-col flex items-center min-w-75 sticky fixed" style={{ backgroundColor: '#f1f6f7' }}>
+    <nav className="flex-col flex items-center justify-around min-w-75 sticky fixed" style={{ backgroundColor: '#f1f6f7' }}>
       <div className='py-6 flex flex-row justify-around items-center w-full'>
         <Link href="/">
           <Image src="/OsMosenses.png" alt="Logo" width={150} height={150} />
         </Link>
-        <SlArrowDownCircle size={16} color="#032221"/>
+        <CgArrowLeftO size={20} color="#032221"/>
       </div>
 
       <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-65"></div>
@@ -133,7 +136,7 @@ export const Navigation = () => {
           </Link>
         )}
 
-        {isLoggedIn && (
+        {(userType === 'Administrador') && isLoggedIn && (
           <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
         )}
 
@@ -157,7 +160,7 @@ export const Navigation = () => {
           </Link>
         )}
 
-        {isLoggedIn && (
+        {(userType === 'Administrador') && isLoggedIn && (
           <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
         )}
 
@@ -171,7 +174,7 @@ export const Navigation = () => {
           </Link>
         )}
 
-        {isLoggedIn && (
+        {(userType === 'Administrador') && isLoggedIn && (
           <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
         )}
 
@@ -185,11 +188,11 @@ export const Navigation = () => {
           </Link>
         )}
 
-        {isLoggedIn && (
+        {(userType === 'Administrador') && isLoggedIn && (
           <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
         )}
 
-        {!isLoggedIn ? (
+        {!isLoggedIn && (
           <Link
             href="/login"
             className="flex justify-center w-60 px-4 py-2 rounded hover:opacity-90"
@@ -200,19 +203,34 @@ export const Navigation = () => {
           >
             Log In
           </Link>
-        ) : (
-          <button
-            onClick={handleLogout}
-            className="flex justify-center w-60 px-4 py-2 rounded hover:opacity-90"
-            style={{
-              backgroundColor: '#dc3545',
-              color: '#f1f7f6',
-            }}
-          >
-            Log Out
-          </button>
         )}
       </div>
+
+      {isLoggedIn && ( //Responsável pelo conteúdo do bottom navbar;
+        <>
+          <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
+
+          <div className="flex flex-row items-center justify-between gap-3 w-65 py-6 px-2">
+            <Image
+              src="/SimboloOsMosenses.png"
+              alt="Logo"
+              width={30}
+              height={30}
+              className="rounded-full"
+            />
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="text-xs text-[#032221] font-bold truncate">{userName}</span>
+              <span className="text-xs text-[#032221] truncate">{userType}</span>
+            </div>
+            <IoIosLogOut
+              onClick={handleLogout}
+              size={20}
+              className="cursor-pointer font-bold text-[#032221] hover:text-[#dc3545] transition duration-200 ease-in-out"
+              title="Terminar sessão"
+            />
+          </div>
+        </>
+      )}
     </nav>
   );
 };

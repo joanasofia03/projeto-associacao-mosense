@@ -111,13 +111,11 @@ problemas:
 
 -> acrescentar verificacao de datas (festas diferentes);
 
--> a caixa do nome em alterar item nao deixa escrever tudo seguido
+-> a caixa do nome em alterar item nao deixa escrever tudo seguido;
 
--> especificar melhor os erros
+-> especificar melhor os erros;
 
 -> Testar a impressão de informação na impressora térmica;
-
--> Colocar o perfil logado na navbar juntamente com a opção de logout;
 
 -> Fazer a expensão e recolha da navbar;
 
