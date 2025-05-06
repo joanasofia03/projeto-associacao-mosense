@@ -1,20 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [user, setUser] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -23,49 +22,23 @@ export default function Login() {
 
       if (error) {
         setError('Ocorreu um erro.');
-        console.log(error.message)
-        
+        console.log(error.message);
       } else {
-        setUser(data?.user);
-        setSuccessMessage('Login efetuado com sucesso!');
-        setTimeout(() => setSuccessMessage(null), 3000);
+        // Guarda a sessão no localStorage como no navigation.tsx
+        localStorage.setItem('session', JSON.stringify(data));
+        router.push('/'); // Redireciona após login
       }
     } catch (err) {
       setError('Ocorreu um erro.');
     }
   };
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (user) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('nome, tipo')
-          .eq('id', user.id)
-          .single();
-        if (error) {
-          console.error('Error fetching user profile:', error.message);
-        } else {
-          setUserProfile(data);
-        }
-      }
-    };
-
-    fetchUserProfile();
-  }, [user]);
-
   return (
-    <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-gray-200">
+    <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-gray-200 min-h-screen">
       <div className="w-full max-w-lg text-[#032221] shadow-md rounded p-8">
-        <h1 className="text-2xl text-[#032221] font-semibold mb-6">Iniciar sessão na sua conta </h1>
+        <h1 className="text-2xl text-[#032221] font-semibold mb-6">Iniciar sessão na sua conta</h1>
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-        {successMessage && (
-          <div className="bg-green-500 text-white p-3 rounded mb-4">
-            {successMessage}
-          </div>
-        )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -105,14 +78,6 @@ export default function Login() {
             Log In
           </button>
         </form>
-
-        {/* {userProfile && (
-          <div className="mt-6">
-            <h2 className="font-semibold">User Info:</h2>
-            <p>Name: {userProfile.nome}</p>
-            <p>Type: {userProfile.tipo}</p>
-          </div>
-        )} */}
       </div>
     </div>
   );

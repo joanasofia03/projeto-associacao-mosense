@@ -6,6 +6,15 @@ import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
+//Import de Icons
+import { SlArrowDownCircle } from "react-icons/sl";
+import { MdOutlineMenu } from "react-icons/md";
+import { MdOutlineCancel } from "react-icons/md";
+import { IoAddCircleOutline } from "react-icons/io5";
+import { CiEdit } from "react-icons/ci";
+import { AiOutlineUserAdd } from "react-icons/ai";
+import { FaRegEye } from "react-icons/fa";
+
 export const Navigation = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userType, setUserType] = useState<string | null>(null);
@@ -87,51 +96,53 @@ export const Navigation = () => {
 
   return (
     <nav className="flex-col flex items-center min-w-75 sticky fixed" style={{ backgroundColor: '#f1f6f7' }}>
-      <Link href="/" className='py-6'>
-        <Image src="/OsMosenses.png" alt="Logo" width={150} height={150} />
-      </Link>
-      <div className="border-b-1 border-gray-200 py-0 w-65"></div>
+      <div className='py-6 flex flex-row justify-around items-center w-full'>
+        <Link href="/">
+          <Image src="/OsMosenses.png" alt="Logo" width={150} height={150} />
+        </Link>
+        <SlArrowDownCircle size={16} color="#032221"/>
+      </div>
 
-      <div className="flex flex-col space-y-6 items-center py-6 h-full">
-        <Link href="/menu" className="hover:underline" style={{ color: '#2cc295' }}>
+      <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-65"></div>
+
+      <div className="flex flex-col space-y-3 items-center py-10 h-full">
+        <Link href="/menu" className="flex flex-row gap-2 items-center w-60 px-4 py-1 text-16 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] hover:rounded-xl">
+          <MdOutlineMenu size={16}/>
           Menu
         </Link>
+        
+        <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
 
         {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
           <Link
-            href="/anularpedido"
-            className="flex justify-center w-50 px-4 py-2 rounded hover:opacity-90"
-            style={{
-              backgroundColor: '#03624c',
-              color: '#f1f7f6',
-            }}
+            href="/registarpedido"
+            className="flex flex-row w-60 gap-2 items-center text-16 px-4 py-1 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] hover:rounded-xl"
           >
-            Anular Pedido
+            <CiEdit size={16}/>
+            Registar Pedido
           </Link>
         )}
 
         {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
           <Link
-            href="/registarpedido"
-            className="flex justify-center w-50 px-4 py-2 rounded hover:opacity-90"
-            style={{
-              backgroundColor: '#03624c',
-              color: '#f1f7f6',
-            }}
+            href="/anularpedido"
+            className="flex flex-row w-60 gap-2 items-center text-16 px-4 py-1 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] hover:rounded-xl"
           >
-            Registar Pedido
+            <MdOutlineCancel size={16}/>
+            Anular Pedido
           </Link>
+        )}
+
+        {isLoggedIn && (
+          <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
         )}
 
         {userType === 'Administrador' && (
           <Link
             href="/adicionaritem"
-            className="flex justify-center w-50 px-4 py-2 rounded hover:opacity-90"
-            style={{
-              backgroundColor: '#03624c',
-              color: '#f1f7f6',
-            }}
+            className="flex flex-row w-60 gap-2 items-center text-16 px-4 py-1 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] hover:rounded-xl"
           >
+            <IoAddCircleOutline size={16}/>
             Adicionar Item
           </Link>
         )}
@@ -139,46 +150,49 @@ export const Navigation = () => {
         {userType === 'Administrador' && (
           <Link
             href="/alteraritem"
-            className="flex justify-center w-50 px-4 py-2 rounded hover:opacity-90"
-            style={{
-              backgroundColor: '#03624c',
-              color: '#f1f7f6',
-            }}
+            className="flex flex-row w-60 gap-2 items-center text-16 px-4 py-1 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] hover:rounded-xl"
           >
+            <CiEdit size={16}/>
             Alterar Item
           </Link>
+        )}
+
+        {isLoggedIn && (
+          <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
         )}
 
         {userType === 'Administrador' && (
           <Link
             href="/adicionarutilizador"
-            className="flex justify-center w-50 px-4 py-2 rounded hover:opacity-90"
-            style={{
-              backgroundColor: '#03624c',
-              color: '#f1f7f6',
-            }}
+            className="flex flex-row w-60 gap-2 items-center text-16 px-4 py-1 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] hover:rounded-xl"
           >
+            <AiOutlineUserAdd size={16}/>
             Adicionar Utilizador
           </Link>
+        )}
+
+        {isLoggedIn && (
+          <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
         )}
 
         {userType === 'Administrador' && (
           <Link
             href="/verestatisticas"
-            className="flex justify-center w-50 px-4 py-2 rounded hover:opacity-90"
-            style={{
-              backgroundColor: '#03624c',
-              color: '#f1f7f6',
-            }}
+            className="flex flex-row w-60 gap-2 items-center text-16 px-4 py-1 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] hover:rounded-xl"
           >
+            <FaRegEye size={16}/>
             Ver Estatísticas
           </Link>
+        )}
+
+        {isLoggedIn && (
+          <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
         )}
 
         {!isLoggedIn ? (
           <Link
             href="/login"
-            className="flex justify-center w-50 px-4 py-2 rounded hover:opacity-90"
+            className="flex justify-center w-60 px-4 py-2 rounded hover:opacity-90"
             style={{
               backgroundColor: '#03624c',
               color: '#f1f7f6',
@@ -189,7 +203,7 @@ export const Navigation = () => {
         ) : (
           <button
             onClick={handleLogout}
-            className="flex justify-center w-50 px-4 py-2 rounded hover:opacity-90"
+            className="flex justify-center w-60 px-4 py-2 rounded hover:opacity-90"
             style={{
               backgroundColor: '#dc3545',
               color: '#f1f7f6',
