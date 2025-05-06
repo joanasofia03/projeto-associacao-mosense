@@ -115,3 +115,8 @@ problemas:
 
 -> especificar melhor os erros
 
+-> Testar a impressão de informação na impressora térmica;
+
+-> Colocar o perfil logado na navbar juntamente com a opção de logout;
+
+-> Fazer a expensão e recolha da navbar;
