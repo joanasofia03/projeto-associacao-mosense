@@ -15,6 +15,7 @@ import { AiOutlineUserAdd } from "react-icons/ai";
 import { FaRegEye } from "react-icons/fa";
 import { CgArrowLeftO } from "react-icons/cg";
 import { IoIosLogOut } from "react-icons/io";
+import { IoSettingsOutline } from "react-icons/io5";
 
 export const Navigation = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -208,6 +209,16 @@ export const Navigation = () => {
 
       {isLoggedIn && ( //Responsável pelo conteúdo do bottom navbar;
         <>
+          {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
+            <Link
+              href="/settings"
+              className="flex flex-row w-60 gap-2 items-center text-16 px-4 py-1 my-2 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] hover:rounded-xl"
+            >
+              <IoSettingsOutline size={16}/>
+              Definições
+            </Link>
+          )}
+
           <div className="border-b border-[rgba(114,120,133,0.1)] py-0 w-60"></div>
 
           <div className="flex flex-row items-center justify-between gap-3 w-65 py-6 px-2">
