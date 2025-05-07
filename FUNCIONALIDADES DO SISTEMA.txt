@@ -105,8 +105,6 @@ Cliente "1" -- "1..*" Pedido: faz >
 
 problemas:
 
--> o design é simples, uso ligeiramente o tailwind;
-
 -> alterar o "anular pedido" para "alterar", mas na base de dados é anulado e é criado um novo;
 
 -> acrescentar verificacao de datas (festas diferentes);
