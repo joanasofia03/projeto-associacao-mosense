@@ -140,7 +140,7 @@ export const Navigation = () => {
       <div className="flex-1 flex flex-col items-start gap-2 px-2 overflow-y-auto">
         <Link href="/menu" className={linkClass}>
           <MdOutlineMenu size={iconSize} />
-          <span className={`transition-all duration-500 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>Menu</span>
+          <span className={`transition-all duration-500 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden py-3'}`}>Menu</span>
         </Link>
 
         {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
