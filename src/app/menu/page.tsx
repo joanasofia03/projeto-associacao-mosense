@@ -25,7 +25,7 @@ type GroupedMenu = {
 
 export default function Menu() {
   const [groupedMenuItems, setGroupedMenuItems] = useState<GroupedMenu>({});
-  const [sortOrderMap, setSortOrderMap] = useState<Record<string, 'asc' | 'desc'>>({});
+  const [searchQuery, setSearchQuery] = useState<string>(''); 
 
   const fetchMenuItems = async () => {
     const { data, error } = await supabase
@@ -38,80 +38,64 @@ export default function Menu() {
       return;
     }
 
+    const filteredData = data.filter((item: MenuItem) =>
+      item.nome.toLowerCase().includes(searchQuery.toLowerCase())  //Filtro baseado no nome do item
+    );
+
     const grouped: GroupedMenu = {};
-    data.forEach((item: MenuItem) => {
+    filteredData.forEach((item: MenuItem) => {
       if (!grouped[item.tipo]) grouped[item.tipo] = [];
       grouped[item.tipo].push(item);
     });
 
-    const sortedGrouped: GroupedMenu = {};
-    for (const tipo in grouped) {
-      const sortOrder = sortOrderMap[tipo] || 'asc';
-      sortedGrouped[tipo] = grouped[tipo].sort((a, b) =>
-        sortOrder === 'asc' ? a.preco - b.preco : b.preco - a.preco
-      );
-    }
-
-    setGroupedMenuItems(sortedGrouped);
+    setGroupedMenuItems(grouped);
   };
 
   useEffect(() => {
     fetchMenuItems();
-  }, [sortOrderMap]);
+  }, [searchQuery]); //Chama a função sempre que o valor da searchQuery mudar
 
-  const toggleSortOrder = (tipo: string) => {
-    setSortOrderMap((prev) => ({
-      ...prev,
-      [tipo]: prev[tipo] === 'desc' ? 'asc' : 'desc',
-    }));
+  //Função para colocar o icon correto baseado no tipo do item
+  const getIconByType = (tipo: string) => {
+    switch (tipo.toLowerCase()) {
+      case 'sopa':
+      case 'sopas':
+        return <LuSoup className="text-[#032221]" size={15} />;
+      case 'bebida':
+      case 'bebidas':
+        return <RiDrinks2Line className="text-[#032221]" size={15} />;
+      case 'comida':
+      case 'pratos':
+      case 'prato principal':
+        return <IoFastFoodOutline className="text-[#032221]" size={15} />;
+      case 'sobremesa':
+      case 'sobremesas':
+        return <LuDessert className="text-[#032221]" size={15} />;
+      case 'álcool':
+      case 'alcool':
+      case 'bebidas alcoólicas':
+        return <BiDrink className="text-[#032221]" size={15} />;
+      default:
+        return <LuSoup className="text-[#032221]" size={15} />;
+    }
   };
 
   return (
-    /*<main className="w-full px-6 py-10 overflow-y-scroll bg-[#f6faf5]">
-      <h1 className="text-3xl font-semibold mb-8" style={{ color: '#2f2f2f' }}>
-        Menu
-      </h1>
-
-      {Object.entries(groupedMenuItems).map(([tipo, items]) => (
-        <section key={tipo} className="mb-10">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold" style={{ color: '#343a40' }}>
-              {tipo}
-            </h2>
-            <button
-              onClick={() => toggleSortOrder(tipo)}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 text-sm"
-            >
-              Ordenar por Preço ({sortOrderMap[tipo] === 'desc' ? 'Menor a Maior' : 'Maior a Menor'})
-            </button>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            {items.map((item) => (
-              <div key={item.id} className="p-6 rounded shadow-md bg-white">
-                <h3 className="text-xl font-medium mb-1">{item.nome}</h3>
-                <p className="text-sm mb-2 text-gray-500">{item.tipo}</p>
-                <p className="font-semibold text-gray-800">€{item.preco.toFixed(2)}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-    </main>*/
-
     <main className='flex flex-col justify-start items-center w-full h-full px-10 py-5 gap-5 overflow-y-scroll bg-[#eaf2e9]'>
       {/* Barra de Pesquisa */}
       <div className='flex justify-between gap-1 px-4 items-center bg-[#f1f6f7] w-full min-h-10 rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
         <GoSearch size={20}/>
         <input
-          type="textopesquisa"
+          type="text"
           placeholder="Pesquisar..."
-          className="w-full p-2 focus:outline-none text-lg text-gray-500"
+          value={searchQuery} 
+          onChange={(e) => setSearchQuery(e.target.value)}  //Atualiza o estado conforme o utilizador digita
+          className="w-full p-2 focus:outline-none text-lg text-gray-500 transition-all duration-300 ease-in-out"
         />
       </div>
 
       {/* Itens */}
-      <div className='grid grid-cols-4 gap-4 w-full h-full'>
+      <div className='grid grid-cols-4 gap-4 w-full h-full max-h-10'>
         {Object.entries(groupedMenuItems).map(([tipo, items]) =>
           items.map((item) => (
             <div key={item.id} className="flex flex-col justify-start bg-[#f1f6f7] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
@@ -133,16 +117,15 @@ export default function Menu() {
               {/* Preço e Categoria */}
               <div className="flex flex-row justify-between items-center">
                 <span className='text-[#17876d] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
-                <span className='flex flex-row items-center text-black font-normal text-base gap-1 text-gray-500'>
-                  <LuSoup className="text-[#032221]" size={15}/>
-                  {item.tipo}
+                <span className='flex flex-row items-center justify-center text-black font-normal text-base gap-2 text-gray-500'>
+                  {getIconByType(item.tipo)}
+                  <span className="relative top-[1px]">{item.tipo}</span>
                 </span>
               </div>
             </div>
           ))
         )}
       </div>
-
     </main>
   );
 }
