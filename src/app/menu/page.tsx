@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import Image from 'next/image';
+
+//Import de Icons
+import { GoSearch } from "react-icons/go";
+import { LuSoup } from "react-icons/lu";
+import { RiDrinks2Line } from "react-icons/ri";
+import { IoFastFoodOutline } from "react-icons/io5";
+import { LuDessert } from "react-icons/lu";
+import { BiDrink } from "react-icons/bi";
 
 type MenuItem = {
   id: number;
@@ -58,7 +67,7 @@ export default function Menu() {
   };
 
   return (
-    <main className="w-full px-6 py-10 overflow-y-scroll" style={{ backgroundColor: '#e5e7eb' }}>
+    /*<main className="w-full px-6 py-10 overflow-y-scroll bg-[#f6faf5]">
       <h1 className="text-3xl font-semibold mb-8" style={{ color: '#2f2f2f' }}>
         Menu
       </h1>
@@ -88,6 +97,52 @@ export default function Menu() {
           </div>
         </section>
       ))}
+    </main>*/
+
+    <main className='flex flex-col justify-start items-center w-full h-full px-10 py-5 gap-5 overflow-y-scroll bg-[#eaf2e9]'>
+      {/* Barra de Pesquisa */}
+      <div className='flex justify-between gap-1 px-4 items-center bg-[#f1f6f7] w-full min-h-10 rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
+        <GoSearch size={20}/>
+        <input
+          type="textopesquisa"
+          placeholder="Pesquisar..."
+          className="w-full p-2 focus:outline-none text-lg text-gray-500"
+        />
+      </div>
+
+      {/* Itens */}
+      <div className='grid grid-cols-4 gap-4 w-full h-full'>
+        {Object.entries(groupedMenuItems).map(([tipo, items]) =>
+          items.map((item) => (
+            <div key={item.id} className="flex flex-col justify-start bg-[#f1f6f7] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
+              {/* Imagem (mantida estática) */}
+              <div className="relative w-full h-42 rounded-2xl overflow-hidden">
+                <Image 
+                  src="/CaldoVerde.jpg" 
+                  alt={item.nome} 
+                  fill
+                  className="object-cover rounded-2xl" 
+                />
+              </div>
+
+              {/* Título (nome do item) */}
+              <div className="flex justify-start py-1">
+                <h1 className='text-[#032221] text-xl font-semibold'>{item.nome}</h1>
+              </div>
+
+              {/* Preço e Categoria */}
+              <div className="flex flex-row justify-between items-center">
+                <span className='text-[#17876d] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
+                <span className='flex flex-row items-center text-black font-normal text-base gap-1 text-gray-500'>
+                  <LuSoup className="text-[#032221]" size={15}/>
+                  {item.tipo}
+                </span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
     </main>
   );
 }
