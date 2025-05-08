@@ -52,7 +52,7 @@ export default function TermosPage() {
           {activeTab === 'privacidade' ? (
             <>
               
-              <h1 className="text-3xl font-bold mb-6">Política de privacidade</h1>
+              <h1 className="text-3xl font-bold mb-6">Política de Privacidade</h1>
 
               <section className="mb-8">
   <h2 className="text-xl font-semibold mb-2">1. Recolha de Informação e Dados Pessoais</h2>
