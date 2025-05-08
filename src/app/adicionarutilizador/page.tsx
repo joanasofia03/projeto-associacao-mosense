@@ -64,7 +64,7 @@ function AdicionarUtilizador() {
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-[#eaf2e9] px-4">
-      <div className="w-full max-w-lg rounded-2xl bg-gray-100 text-[#032221] shadow-md p-10">
+      <div className="w-full max-w-lg rounded-2xl bg-[#f1f6f7] text-[#032221] shadow-md p-10">
         <h1 className="text-2xl font-semibold mb-6">Adicionar Utilizador</h1>
 
         {erro && <p className="text-red-500 text-sm mb-4">{erro}</p>}
@@ -131,6 +131,7 @@ function AdicionarUtilizador() {
               <option value="">Selecione...</option>
               <option value="Administrador">Administrador</option>
               <option value="Funcionario de Banca">Funcionário de Banca</option>
+              <option value="Cliente">Cliente</option>
             </select>
           </div>
 

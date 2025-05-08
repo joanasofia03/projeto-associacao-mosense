@@ -15,7 +15,7 @@ import { AiOutlineUserAdd } from "react-icons/ai";
 import { FaRegEye } from "react-icons/fa";
 import { CgArrowLeftO } from "react-icons/cg";
 import { IoIosLogOut } from "react-icons/io";
-import { CiCircleInfo } from "react-icons/ci";
+import { TbProgressHelp } from "react-icons/tb";
 
 export const Navigation = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -263,7 +263,7 @@ export const Navigation = () => {
         <div className="border-t border-[rgba(114,120,133,0.1)] pt-3 pb-4 px-3 mt-auto">
         {/* Ajuda visível sempre */}
         <Link href="/help" className={`${linkClass} mb-3`}>
-          <CiCircleInfo size={iconSize}/>
+          <TbProgressHelp size={iconSize}/>
           <span className={`transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
             Ajuda
           </span>

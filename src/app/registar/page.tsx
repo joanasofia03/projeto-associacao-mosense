@@ -55,7 +55,7 @@ export default function SignUp() {
 
   return (
     <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-[#eaf2e9] min-h-screen">
-      <div className="w-full max-w-lg rounded-2xl bg-gray-100 text-[#032221] shadow-md p-10">
+      <div className="w-full max-w-lg rounded-2xl bg-[#f1f6f7] text-[#032221] shadow-md p-10">
         <h1 className="text-2xl text-[#032221] font-semibold mb-6">Criar uma nova conta</h1>
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
@@ -120,7 +120,7 @@ export default function SignUp() {
 
           <div className="text-sm text-[#032221] mt-2">
             Ao criar uma conta está automaticamente a concordar com os{' '}
-            <Link href="/termos" className="underline text-[#064e3b] hover:text-[#043d2c]">
+            <Link href="/termsofuseprivacypolicy" className="underline text-[#064e3b] hover:text-[#043d2c]">
               Termos de Utilização e Política de Privacidade
             </Link>.
           </div>
