@@ -7,10 +7,16 @@ import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 //Import de Icons
 import { GoSearch } from "react-icons/go";
 import { CiEdit } from "react-icons/ci";
+import { IoCheckmarkOutline } from "react-icons/io5";
 
 function RegistarPedido() {
   const [itensMenu, setItensMenu] = useState<any[]>([]);
   const [erro, setErro] = useState<string | null>(null);
+  const [nomeCliente, setNomeCliente] = useState("Nome & Sobrenome");
+  const [contactoCliente, setContactoCliente] = useState("Contacto");
+  const [isEditing, setIsEditing] = useState(false);
+  const [campoEditavel, setCampoEditavel] = useState<"nome" | "contacto" | null>(null);
+
 
   useEffect(() => {
     const fetchItens = async () => {
@@ -31,7 +37,7 @@ function RegistarPedido() {
       {/* Coluna 1 - Lado Esquerdo */}
       <div className="flex flex-col justify-between gap-4 flex-1 p-3 min-w-150 h-full bg-[#eaf2e9] transition-all duration-500">
         {/* Barra de Pesquisa */}
-        <div className='h-12 p-4 mt-4 flex justify-between gap-1 items-center bg-[#f1f6f7] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
+        <div className='h-10 p-4 mt-4 flex justify-between gap-1 items-center bg-[#f1f6f7] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
           <GoSearch size={20}/>
           <input
             type="text"
@@ -55,11 +61,42 @@ function RegistarPedido() {
         {/* Nome */}
         <div className='w-full h-20 p-2 flex flex-1 flex-row justify-between'>
           <div className='flex flex-col w-full justify-start'>
-            <h1 className='text-[#032221] text-base font-semibold'>Nome & Sobrenome</h1>
-            <span className='text-gray-500 text-sm font-normal'>Contacto</span>
+            {isEditing ? (
+              <>
+                <input
+                  type="text"
+                  value={nomeCliente}
+                  onChange={(e) => setNomeCliente(e.target.value)}
+                  className='text-[#032221] text-lg font-semibold bg-transparent focus:outline-none hover:'
+                />
+                <input
+                  type="text"
+                  value={contactoCliente}
+                  onChange={(e) => setContactoCliente(e.target.value)}
+                  className='text-gray-500 text-sm font-normal bg-transparent focus:outline-none'
+                />
+              </>
+            ) : (
+              <>
+                <h1 className='min-w-70 text-[#032221] text-lg font-semibold'>{nomeCliente}</h1>
+                <span className='min-w-70 text-gray-500 text-sm font-normal'>{contactoCliente}</span>
+              </>
+            )}
           </div>
-          <div className='flex w-full justify-end items-center pr-2'>
-            <CiEdit size={22} className='bg-gray-200 text-[#032221]'/>
+          <div className='flex w-full justify-end items-center'>
+            {isEditing ? (
+              <IoCheckmarkOutline
+                size={40}
+                className='bg-[#03624c] text-[#f1f6f7] p-2 font-bold rounded-xl cursor-pointer'
+                onClick={() => setIsEditing(false)}
+              />
+            ) : (
+              <CiEdit
+                size={40}
+                className='bg-gray-200 p-2 text-[#032221] font-bold rounded-xl cursor-pointer'
+                onClick={() => setIsEditing(true)}
+              />
+            )}
           </div>
         </div>
 
@@ -69,20 +106,23 @@ function RegistarPedido() {
         {/* Resumo do Pedido */}
         <div className='bg-gray-500 w-full h-200 p-4'></div>
 
+        {/* Notas */}
+        <div className='bg-gray-500 w-full h-30 p-4'></div>
+
         {/* Total a Pagar */}
-        <div className='bg-[#F6F0F0] w-full h-60 py-4 px-6 rounded-lg flex flex-col justify-around'>
+        <div className='bg-[#F6F0F0] w-full h-30 py-4 px-6 rounded-lg flex flex-col justify-around'>
           <div>
             <span className='flex flex-row w-full justify-between text-base text-gray-600'>Sub Total
               <span className='text-base'>63.00€</span>
             </span>
           </div>
           <div>
-            <span className='flex flex-row w-full justify-between text-base text-gray-600'>IVA
+            <span className='flex flex-row w-full justify-between text-base text-gray-600 pb-1'>IVA
               <span className='text-base'>7.00€</span>
             </span> 
           </div>
           <div>
-            <span className='flex flex-row justify-between py-2 border-t border-dashed w-full font-semibold text-lg'>Total a Pagar
+            <span className='flex flex-row justify-between pt-2 border-t border-dashed w-full font-semibold text-lg'>Total a Pagar
               <span className=' font-semibold text-lg'>70.00€</span>
             </span>
           </div>
