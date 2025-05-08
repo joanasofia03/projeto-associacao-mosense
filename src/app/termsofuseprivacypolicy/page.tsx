@@ -1,22 +1,60 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function TermosPage() {
+  const [activeTab, setActiveTab] = useState<'privacidade' | 'termos'>('privacidade');
+
   return (
-    <div className="min-h-screen pt-5 bg-[#f6faf5] text-[#032221] px-6 py-12 overflow-y-scroll">
-        
+    <div className="min-h-screen pt-5 bg-[#f6faf5] text-[#032221] px-6 py-12 overflow-y-auto">
+      <main className="flex-grow flex flex-col items-center justify-center gap-4 px-4">
+        <Image src="/OsMosenses.png" alt="Logo" width={500} height={500} />
+      </main>
 
-
-        <div className="max-w-3xl mx-auto">
-  <section className="mb-8">
-    <p>
-      Ao utilizar esta aplicação, o utilizador concorda em cumprir estes termos de utilização e a nossa política de privacidade.
-      Reservamo-nos o direito de alterar estes termos a qualquer momento. Sempre que houver alterações relevantes, notificaremos os utilizadores.
-      Para qualquer questão, <Link href="/" className="text-[#064e3b] underline hover:text-[#043d2c]">contacte os desenvolvedores</Link>.
-    </p>
-  </section>
-  <h1 className="text-3xl font-bold mb-6">Política de privacidade</h1>
-
+      <div className="w-full max-w-5xl pt-10 mx-auto">
+        {/* Conteúdo da Política de Privacidade */}
         <section className="mb-8">
+                <p>
+                  Ao utilizar esta aplicação, o utilizador concorda em cumprir estes termos de utilização e a nossa política de privacidade.
+                  Reservamo-nos o direito de alterar estes termos a qualquer momento. Sempre que houver alterações relevantes, notificaremos os utilizadores.
+                  Para qualquer questão,{' '}
+                  <Link href="/" className="text-[#064e3b] underline hover:text-[#043d2c]">
+                    contacte os desenvolvedores
+                  </Link>.
+                </p>
+              </section>
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            onClick={() => setActiveTab('privacidade')}
+            className={`px-4 py-2 rounded-full transition-colors ${
+              activeTab === 'privacidade'
+                ? 'bg-[#032221] text-white'
+                : 'bg-gray-200 text-[#032221] hover:bg-gray-300'
+            }`}
+          >
+            Política de Privacidade
+          </button>
+          <button
+            onClick={() => setActiveTab('termos')}
+            className={`px-4 py-2 rounded-full transition-colors ${
+              activeTab === 'termos'
+                ? 'bg-[#032221] text-white'
+                : 'bg-gray-200 text-[#032221] hover:bg-gray-300'
+            }`}
+          >
+            Termos de Uso
+          </button>
+        </div>
+
+        <div className="transition-all duration-500 ease-in-out">
+          {activeTab === 'privacidade' ? (
+            <>
+              
+              <h1 className="text-3xl font-bold mb-6">Política de privacidade</h1>
+
+              <section className="mb-8">
   <h2 className="text-xl font-semibold mb-2">1. Recolha de Informação e Dados Pessoais</h2>
   <p>
     Para utilizar os nossos serviços, é necessário recolher e tratar alguns dados pessoais durante o processo de registo de conta na plataforma. 
@@ -78,31 +116,31 @@ export default function TermosPage() {
   </p>
 </section>
 
-        <h1 className="text-3xl font-bold mb-6">Termos de Uso</h1>
+            </>
+          ) : (
+            <>
+              {/* Conteúdo dos Termos de Uso */}
+              <h1 className="text-3xl font-bold mb-6">Termos de Uso</h1>
+              <section className="mb-8">
+                <h2 className="text-xl font-semibold mb-2">1. Responsabilidades do Utilizador</h2>
+                <p>
+                  O utilizador compromete-se a fornecer informações verdadeiras durante o registo e a não utilizar a aplicação para fins ilícitos ou abusivos.
+                  Não nos responsabilizamos por danos causados pela utilização indevida da conta de utilizador (por exemplo, compartilhar a conta com terceiros) nem por ações ou contrangimentos provocados por terceiros que não estejam diretamente relacionados com os nossos serviços.
+                </p>
+              </section>
 
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-2">1. Responsabilidades do Utilizador</h2>
-          <p>
-            O utilizador compromete-se a fornecer informações verdadeiras durante o registo e a não utilizar a aplicação para fins ilícitos ou abusivos. 
-            Não nos responsabilizamos por danos causados pela utilização indevida da conta de utilizador (por exemplo, compartilhar a conta com terceiros) nem por ações ou contrangimentos provocados por terceiros que não estejam diretamente relacionados com os nossos serviços.
-          </p>
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-2">2. Responsabilidade pela conta</h2>
-          <p>
-          O utilizador é responsável pela confidencialidade da sua palavra-passe e outras informações da conta. Caso haja suspeita de uso não autorizado, deve notificar-nos imediatamente.
-          </p>
-        </section>
+              <section className="mb-8">
+                <h2 className="text-xl font-semibold mb-2">2. Responsabilidade pela conta</h2>
+                <p>
+                  O utilizador é responsável pela confidencialidade da sua palavra-passe e outras informações da conta. Caso haja suspeita de uso não autorizado, deve notificar-nos imediatamente.
+                </p>
+              </section>
+            </>
+          )}
+        </div>
 
         <p className="text-sm mt-10 pb-5 text-gray-600">Última atualização: 8 de maio de 2025</p>
-
-
-
       </div>
-
-      
-
     </div>
   );
 }

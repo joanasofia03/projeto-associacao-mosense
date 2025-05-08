@@ -1,5 +1,6 @@
 import Head from "next/head";
 import Image from 'next/image';
+import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
 import { FaLinkedin } from "react-icons/fa";
 
@@ -18,6 +19,11 @@ export default function Home() {
         <h1 className="text-xl text-[#032221] text-center">
           Um sistema informático de apoio à organização de festas e eventos, gerido pela atual comissão de festas.
         </h1>
+        <h1 className="text-sm text-[#032221] text-center">
+            <Link href="/termsofuseprivacypolicy" className="underline text-[#064e3b] hover:text-[#043d2c]">
+              Termos de Utilização e Política de Privacidade
+            </Link>
+          </h1>
       </main>
       <footer className="pb-5 text-sm text-gray-800 flex flex-col items-center gap-2">
   <span className="text-sm text-gray-800">Desenvolvido por</span>
