@@ -17,6 +17,7 @@ type MenuItem = {
   nome: string;
   preco: number;
   tipo: string;
+  imagem_url: string | null;
 };
 
 type GroupedMenu = {
@@ -30,7 +31,7 @@ export default function Menu() {
   const fetchMenuItems = async () => {
     const { data, error } = await supabase
       .from('itens')
-      .select('id, nome, preco, tipo')
+      .select('id, nome, preco, tipo, imagem_url')
       .eq('isMenu', true);
 
     if (error) {
@@ -101,12 +102,22 @@ export default function Menu() {
             <div key={item.id} className="flex flex-col justify-start bg-[#f1f6f7] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
               {/* Imagem (mantida estática) */}
               <div className="relative w-full h-42 rounded-2xl overflow-hidden">
-                <Image 
-                  src="/CaldoVerde.jpg" 
-                  alt={item.nome} 
-                  fill
-                  className="object-cover rounded-2xl" 
-                />
+                {item.imagem_url ? (
+                  <Image 
+                    src={item.imagem_url}
+                    alt={item.nome} 
+                    fill
+                    className="object-cover rounded-2xl" 
+                    unoptimized={true} // Importante para URLs externas
+                  />
+                ) : (
+                  <Image 
+                    src="/CaldoVerde.jpg"
+                    alt={item.nome} 
+                    fill
+                    className="object-cover rounded-2xl" 
+                  />
+                )}
               </div>
 
               {/* Título (nome do item) */}
