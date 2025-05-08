@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 
+import { CgLogIn } from "react-icons/cg";
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +36,7 @@ export default function Login() {
   };
 
   return (
-    <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-gray-200 min-h-screen">
+    <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-[#eaf2e9] min-h-screen">
       <div className="w-full max-w-lg rounded-2xl bg-gray-100 text-[#032221] shadow-md p-10">
         <h1 className="text-2xl text-[#032221] font-semibold mb-6">Iniciar sessão na sua conta</h1>
 
@@ -56,7 +58,7 @@ export default function Login() {
 
           <div>
             <label htmlFor="password" className="block mb-1 text-sm font-medium text-[#032221]">
-              Password
+              Palavra-passe
             </label>
             <input
               type="password"
@@ -69,13 +71,14 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full py-2 rounded hover:opacity-90"
+            className="w-full py-2 rounded flex items-center justify-center gap-2 hover:opacity-90"
             style={{
               backgroundColor: '#032221',
               color: '#f1f7f6',
             }}
           >
-            Log In
+            Entrar
+            <CgLogIn size={20} />
           </button>
         </form>
       </div>

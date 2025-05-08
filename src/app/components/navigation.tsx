@@ -253,37 +253,36 @@ export const Navigation = () => {
       </div>
 
       {/* Footer */}
-      {isLoggedIn && (
         <div className="border-t border-[rgba(114,120,133,0.1)] pt-3 pb-4 px-3 mt-auto">
-          {/* Definições */}
-          {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
-            <Link href="/settings" className={`${linkClass} mb-3`}>
-              <CiCircleInfo size={iconSize}/>
-              <span className={`transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
-                Acerca de
-              </span>
-            </Link>
-          )}
+        {/* Ajuda visível sempre */}
+        <Link href="/help" className={`${linkClass} mb-3`}>
+          <CiCircleInfo size={iconSize}/>
+          <span className={`transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
+            Ajuda
+          </span>
+        </Link>
 
-          {/* Perfil e Logout */}
-          <div className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} px-2 py-2 mt-1 bg-gray-100 rounded-lg`}>
-            <div className={`flex items-center transition-all duration-500 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
-              <Image src="/SimboloOsMosenses.png" alt="User Icon" width={30} height={30} className="rounded-full" />
-              <div className="ml-3 truncate">
-                <p className="text-xs font-semibold text-[#032221] truncate">{userName}</p>
-                <p className="text-xs text-[#032221] opacity-75 truncate">{userType}</p>
+        {isLoggedIn && (
+          <>
+            <div className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} px-2 py-2 mt-1 bg-gray-100 rounded-lg`}>
+              <div className={`flex items-center transition-all duration-500 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
+                <Image src="/SimboloOsMosenses.png" alt="User Icon" width={30} height={30} className="rounded-full" />
+                <div className="ml-3 truncate">
+                  <p className="text-xs font-semibold text-[#032221] truncate">{userName}</p>
+                  <p className="text-xs text-[#032221] opacity-75 truncate">{userType}</p>
+                </div>
               </div>
+              <button
+                onClick={handleLogout}
+                className="p-1 text-[#032221] hover:text-[#dc3545] hover:bg-gray-200 rounded-full transition-all"
+                title="Terminar sessão"
+              >
+                <IoIosLogOut size={iconSize} />
+              </button>
             </div>
-            <button
-              onClick={handleLogout}
-              className="p-1 text-[#032221] hover:text-[#dc3545] hover:bg-gray-200 rounded-full transition-all"
-              title="Terminar sessão"
-            >
-              <IoIosLogOut size={iconSize} />
-            </button>
-          </div>
+          </>
+        )}
         </div>
-      )}
     </nav>
   );
 };
