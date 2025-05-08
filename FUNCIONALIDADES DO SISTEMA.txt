@@ -115,8 +115,14 @@ problemas:
 
 -> Testar a impressão de informação na impressora térmica;
 
--> Fazer a expensão e recolha da navbar;
+-> Ajustar navbar à resolução da tela;
 
--> Impedir que ao adicionar um novo utilizador a sessão atual seja encerrada e dê entrda na sessão do novo utilizador;
+-> Permitir a criação de novas contas - Clientes;
+
+-> Adicionar Eventos;
+
+-> Fazer design da página "AdicionarPedido";
 
 -> a navbar nao deve aparecer no not-found, por exemplo
+
+-> Impedir que ao adicionar um novo utilizador a sessão atual seja encerrada e dê entrda na sessão do novo utilizador;
