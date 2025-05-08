@@ -7,7 +7,7 @@ export default function Home() {
   const iconSize = 18;
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-200">
+    <div className="flex flex-col min-h-screen bg-[#f6faf5]">
       <Head>
         <title>Next App</title>
         <link rel="icon" href="/favicon.ico" />

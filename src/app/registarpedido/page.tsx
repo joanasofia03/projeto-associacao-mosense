@@ -25,7 +25,7 @@ function RegistarPedido() {
   return (
     <div className='flex flex-row w-full h-full'>
       {/* Coluna 1 - Lado Esquerdo */}
-      <div className="flex flex-col justify-between gap-4 flex-1 p-3 min-w-150 h-full bg-[#E7F2E4] transition-all duration-500">
+      <div className="flex flex-col justify-between gap-4 flex-1 p-3 min-w-150 h-full bg-[#f6faf5] transition-all duration-500">
         {/* Barra de Pesquisa */}
         <div className='bg-gray-500 w-full h-20 p-4'></div>
 
