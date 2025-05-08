@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function TermosPage() {
   return (
-    <div className="min-h-screen pt-5 bg-[#f6faf5] text-[#032221] px-6 py-12">
+    <div className="min-h-screen pt-5 bg-[#f6faf5] text-[#032221] px-6 py-12 overflow-y-scroll">
         
 
 
