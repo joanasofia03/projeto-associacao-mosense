@@ -24,6 +24,7 @@ export const Navigation = () => {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   //Quando a sessão finaliza ---> forçar a expansão da navbar
   useEffect(() => {
@@ -46,11 +47,12 @@ export const Navigation = () => {
         const user = session?.user;
         setIsLoggedIn(!!user);
         if (user) {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('tipo, nome')
-            .eq('id', user.id)
-            .single();
+  setUserId(user.id);
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('tipo, nome')
+    .eq('id', user.id)
+    .single();
 
           if (data && !error) {
             setUserType(data.tipo);
@@ -75,6 +77,7 @@ export const Navigation = () => {
   const handleLogin = async (session: any) => {
     localStorage.setItem('session', JSON.stringify(session));
     setIsLoggedIn(true);
+setUserId(session?.user.id);
 
     const { data, error } = await supabase
       .from('profiles')
@@ -259,37 +262,45 @@ export const Navigation = () => {
         )}
       </div>
 
-      {/* Footer */}
-        <div className="border-t border-[rgba(114,120,133,0.1)] pt-3 pb-4 px-3 mt-auto">
-        {/* Ajuda visível sempre */}
-        <Link href="/help" className={`${linkClass} mb-3`}>
-          <TbProgressHelp size={iconSize}/>
-          <span className={`transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
-            Ajuda
-          </span>
-        </Link>
+{/* Footer */}
+<div className="border-t border-[rgba(114,120,133,0.1)] pt-3 pb-4 px-3 mt-auto">
+  {/* Ajuda visível sempre */}
+  <Link href="/help" className={`${linkClass} mb-3`}>
+    <TbProgressHelp size={iconSize} />
+    <span className={`transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
+      Ajuda
+    </span>
+  </Link>
 
-        {isLoggedIn && (
-          <>
-            <div className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} px-2 py-2 mt-1 bg-gray-100 rounded-lg`}>
-              <div className={`flex items-center transition-all duration-500 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
-                <Image src="/SimboloOsMosenses.png" alt="User Icon" width={30} height={30} className="rounded-full" />
-                <div className="ml-3 truncate">
-                  <p className="text-xs font-semibold text-[#032221] truncate">{userName}</p>
-                  <p className="text-xs text-[#032221] opacity-75 truncate">{userType}</p>
-                </div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="p-1 text-[#032221] hover:text-[#dc3545] hover:bg-gray-200 rounded-full transition-all"
-                title="Terminar sessão"
-              >
-                <IoIosLogOut size={iconSize} />
-              </button>
-            </div>
-          </>
-        )}
-        </div>
+  {isLoggedIn && (
+    <>
+      <div className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} px-2 py-2 mt-1 bg-gray-100 rounded-lg`}>
+        <Link
+  href={`/editarperfil/${encodeURIComponent(userName || '')}`} // fallback to empty string if userName is null
+  className={`flex items-center transition-all duration-500 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}
+>
+  <Image src="/SimboloOsMosenses.png" alt="User Icon" width={30} height={30} className="rounded-full" />
+  <div className="ml-3 truncate">
+    <p className="text-xs font-semibold text-[#032221] truncate">{userName}</p>
+    <p className="text-xs text-[#032221] opacity-75 truncate">{userType}</p>
+  </div>
+</Link>
+
+
+        <button
+          onClick={handleLogout}
+          className="p-1 text-[#032221] hover:text-[#dc3545] hover:bg-gray-200 rounded-full transition-all"
+          title="Terminar sessão"
+        >
+          <IoIosLogOut size={iconSize} />
+        </button>
+      </div>
+    </>
+  )}
+</div>
+
+
+
     </nav>
   );
 };
