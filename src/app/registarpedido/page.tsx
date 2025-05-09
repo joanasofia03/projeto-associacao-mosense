@@ -16,6 +16,8 @@ function RegistarPedido() {
   const [contactoCliente, setContactoCliente] = useState("Contacto");
   const [isEditing, setIsEditing] = useState(false);
   const [campoEditavel, setCampoEditavel] = useState<"nome" | "contacto" | null>(null);
+  const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
+
 
 
   useEffect(() => {
@@ -101,7 +103,23 @@ function RegistarPedido() {
         </div>
 
         {/* Tipo de Pedido (No Local/Take-Away) */}
-        <div className='bg-gray-500 w-full h-20 p-4'></div>
+        <div className='bg-[rgba(229,231,235,0.5)] w-full h-14 flex flex-row justify-around items-stretch rounded-3xl border border-[rgba(209,213,219,0.3)]'>
+          {['Comer Aqui', 'Take Away', 'Entrega'].map((opcao) => (
+            <h1
+              key={opcao}
+              onClick={() => setOpcaoSelecionada(opcao)}
+              className={`text-sm font-bold flex-1 flex items-center justify-center cursor-pointer transition-all duration-300
+                rounded-3xl
+                ${
+                  opcaoSelecionada === opcao
+                    ? 'bg-[#03624c] text-[#f1f6f7] h-14'
+                    : 'bg-transparent text-[#032221] h-14'
+                }`}
+            >
+              {opcao}
+            </h1>
+          ))}
+        </div>
 
         {/* Resumo do Pedido */}
         <div className='bg-gray-500 w-full h-200 p-4'></div>
