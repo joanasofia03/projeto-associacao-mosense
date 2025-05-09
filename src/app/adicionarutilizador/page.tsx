@@ -120,19 +120,22 @@ function AdicionarUtilizador() {
           </div>
 
           <div>
-            <label htmlFor="tipo" className="block mb-1 text-sm font-medium">Tipo de Utilizador</label>
-            <select
-              id="tipo"
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400"
-              required
-            >
-              <option value="">Selecione...</option>
-              <option value="Administrador">Administrador</option>
-              <option value="Funcionario de Banca">Funcionário de Banca</option>
-              <option value="Cliente">Cliente</option>
-            </select>
+            <label className="block mb-2 text-sm font-medium">Tipo de Utilizador</label>
+            <div className="flex justify-between gap-2">
+              {['Administrador', 'Funcionario de Banca', 'Cliente'].map((opcao) => (
+                <button
+                  key={opcao}
+                  type="button"
+                  onClick={() => setTipo(opcao)}
+                  className={`flex-1 px-3 py-1 text-sm rounded-full border transition-all
+                    ${tipo === opcao
+                      ? 'bg-[#032221] text-white border-[#032221]'
+                      : 'bg-white text-[#032221] border-gray-300 hover:bg-gray-100'}`}
+                >
+                  {opcao}
+                </button>
+              ))}
+            </div>
           </div>
 
           <p className="text-sm mt-2">

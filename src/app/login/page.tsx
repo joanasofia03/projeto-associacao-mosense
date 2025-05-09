@@ -69,6 +69,12 @@ export default function Login() {
             />
           </div>
 
+          <p className="text-sm mt-2">
+            <a href="/esquecipassword" className="underline text-[#064e3b] hover:text-[#043d2c]">
+              Esqueci-me da palavra-passe
+            </a>
+          </p>
+
           <button
             type="submit"
             className="w-full py-2 rounded flex items-center justify-center gap-2 hover:opacity-90"
