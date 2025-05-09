@@ -13,6 +13,7 @@ export default function SignUp() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [nome, setNome] = useState('');
+  const [telemovel, setTelemovel] = useState('');
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -20,7 +21,6 @@ export default function SignUp() {
     setError(null);
     setSuccess(null);
 
-    // Verificação se as senhas coincidem
     if (password !== confirmPassword) {
       setError('As palavras-passe não coincidem.');
       return;
@@ -34,10 +34,11 @@ export default function SignUp() {
           data: {
             nome,
             tipo: 'Cliente',
-            aceitou_TU_e_PP: 'sim',
+            aceitou_TU_e_PP: 'Sim',
+            telemovel: telemovel ? Number(telemovel) : null,
           },
         },
-      });      
+      });
 
       if (error) {
         setError('Erro ao registar. Tente novamente.');
@@ -45,8 +46,7 @@ export default function SignUp() {
         return;
       }
 
-        setSuccess('Utilizador criado com sucesso! Verifique o seu e-mail para confirmar o registo.');
-      
+      setSuccess('Utilizador criado com sucesso! Verifique o seu e-mail para confirmar o registo.');
     } catch (err) {
       setError('Ocorreu um erro ao registar.');
       console.error(err);
@@ -63,9 +63,7 @@ export default function SignUp() {
 
         <form onSubmit={handleSignUp} className="space-y-4">
           <div>
-            <label htmlFor="nome" className="block mb-1 text-sm font-medium text-[#032221]">
-              Nome
-            </label>
+            <label htmlFor="nome" className="block mb-1 text-sm font-medium text-[#032221]">Nome</label>
             <input
               type="text"
               id="nome"
@@ -77,9 +75,7 @@ export default function SignUp() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block mb-1 text-sm font-medium text-[#032221]">
-              E-mail
-            </label>
+            <label htmlFor="email" className="block mb-1 text-sm font-medium text-[#032221]">E-mail</label>
             <input
               type="email"
               id="email"
@@ -91,9 +87,20 @@ export default function SignUp() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block mb-1 text-sm font-medium text-[#032221]">
-              Palavra-passe
-            </label>
+            <label htmlFor="telemovel" className="block mb-1 text-sm font-medium text-[#032221]">Telemóvel (opcional)</label>
+            <input
+              type="tel"
+              id="telemovel"
+              value={telemovel}
+              onChange={(e) => setTelemovel(e.target.value)}
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              pattern="[0-9]*"
+              inputMode="numeric"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block mb-1 text-sm font-medium text-[#032221]">Palavra-passe</label>
             <input
               type="password"
               id="password"
@@ -105,9 +112,7 @@ export default function SignUp() {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block mb-1 text-sm font-medium text-[#032221]">
-              Confirmar palavra-passe
-            </label>
+            <label htmlFor="confirmPassword" className="block mb-1 text-sm font-medium text-[#032221]">Confirmar palavra-passe</label>
             <input
               type="password"
               id="confirmPassword"

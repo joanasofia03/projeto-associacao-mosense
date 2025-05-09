@@ -11,6 +11,7 @@ function AdicionarUtilizador() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [tipo, setTipo] = useState('');
+  const [telemovel, setTelemovel] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
   const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
@@ -34,10 +35,12 @@ function AdicionarUtilizador() {
           data: {
             nome,
             tipo,
-            aceitou_TU_e_PP: 'sim',
+            aceitou_TU_e_PP: 'Sim',
+            telemovel: telemovel ? Number(telemovel) : null,
           },
         },
       });
+
 
       if (error) {
         setErro('Erro ao criar o utilizador.');
@@ -58,6 +61,8 @@ function AdicionarUtilizador() {
       setPassword('');
       setConfirmPassword('');
       setTipo('');
+      setTelemovel('');
+      setOpcaoSelecionada(null);
     } catch (err) {
       setErro('Erro desconhecido ao tentar criar o utilizador.');
       console.error(err);
@@ -98,6 +103,19 @@ function AdicionarUtilizador() {
           </div>
 
           <div>
+            <label htmlFor="telemovel" className="block mb-1 text-sm font-medium">Telemóvel (opcional)</label>
+            <input
+              type="tel"
+              id="telemovel"
+              value={telemovel}
+              onChange={(e) => setTelemovel(e.target.value)}
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              pattern="[0-9]*"
+              inputMode="numeric"
+            />
+          </div>
+
+          <div>
             <label htmlFor="password" className="block mb-1 text-sm font-medium">Palavra-passe</label>
             <input
               type="password"
@@ -122,24 +140,22 @@ function AdicionarUtilizador() {
           </div>
 
           <div className="bg-[rgba(229,231,235,0.5)] flex w-full rounded-3xl border border-[rgba(209,213,219,0.3)]">
-  {['Administrador', 'Funcionario de Banca', 'Cliente'].map((opcao, index) => (
-    <button
-      key={opcao}
-      type="button"
-      onClick={() => {
-        setOpcaoSelecionada(opcao);
-        setTipo(opcao);
-      }}
-      aria-pressed={opcaoSelecionada === opcao}
-      className={`flex-1 text-sm font-semibold py-3 rounded-3xl transition-all duration-300
-        ${opcaoSelecionada === opcao ? 'bg-[#03624c] text-[#f1f6f7]' : 'text-[#032221] bg-transparent'}`}
-    >
-      {opcao}
-    </button>
-  ))}
-</div>
-
-          
+            {['Administrador', 'Funcionario de Banca', 'Cliente'].map((opcao) => (
+              <button
+                key={opcao}
+                type="button"
+                onClick={() => {
+                  setOpcaoSelecionada(opcao);
+                  setTipo(opcao);
+                }}
+                aria-pressed={opcaoSelecionada === opcao}
+                className={`flex-1 text-sm font-semibold py-3 rounded-3xl transition-all duration-300
+                  ${opcaoSelecionada === opcao ? 'bg-[#03624c] text-[#f1f6f7]' : 'text-[#032221] bg-transparent'}`}
+              >
+                {opcao}
+              </button>
+            ))}
+          </div>
 
           <p className="text-sm mt-2">
             Ao criar uma conta está automaticamente a concordar com os{' '}
