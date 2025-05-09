@@ -3,22 +3,51 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
+import Image from 'next/image';
 
 //Import de Icons
 import { GoSearch } from "react-icons/go";
 import { CiEdit } from "react-icons/ci";
 import { IoCheckmarkOutline } from "react-icons/io5";
+import { PiSquaresFour } from "react-icons/pi";
+import { LuSoup } from "react-icons/lu";
+import { IoFastFoodOutline } from "react-icons/io5";
+import { LuDessert } from "react-icons/lu";
+import { RiDrinks2Line } from "react-icons/ri";
+import { BiDrink } from "react-icons/bi";
+
+type MenuItem = {
+  id: number;
+  nome: string;
+  preco: number;
+  tipo: string;
+  imagem_url: string | null;
+  IVA: number; // Campo para o IVA na tabela itens
+  quantidade?: number;
+};
 
 function RegistarPedido() {
-  const [itensMenu, setItensMenu] = useState<any[]>([]);
+  const [itensMenu, setItensMenu] = useState<MenuItem[]>([]);
+  const [itensFiltrados, setItensFiltrados] = useState<MenuItem[]>([]);
+  const [itensSelecionados, setItensSelecionados] = useState<Record<number, MenuItem>>({});
   const [erro, setErro] = useState<string | null>(null);
   const [nomeCliente, setNomeCliente] = useState("Nome & Sobrenome");
   const [contactoCliente, setContactoCliente] = useState("Contacto");
   const [isEditing, setIsEditing] = useState(false);
   const [campoEditavel, setCampoEditavel] = useState<"nome" | "contacto" | null>(null);
   const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
+  const [filtroSelecionado, setFiltroSelecionado] = useState<string | null>("todos");
+  const [contagemPorTipo, setContagemPorTipo] = useState<Record<string, number>>({});
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-
+  const filtros = [ //Organização dos filtros
+    { nome: 'Todos os itens', id: 'todos', icon: PiSquaresFour },
+    { nome: 'Sopas', id: 'Sopas', icon: LuSoup },
+    { nome: 'Comida', id: 'Comida', icon: IoFastFoodOutline },
+    { nome: 'Sobremesas', id: 'Sobremesas', icon: LuDessert },
+    { nome: 'Bebida', id: 'Bebida', icon: RiDrinks2Line },
+    { nome: 'Álcool', id: 'Álcool', icon: BiDrink },
+  ];
 
   useEffect(() => {
     const fetchItens = async () => {
@@ -27,35 +56,264 @@ function RegistarPedido() {
         .select('*')
         .eq('isMenu', true);
 
-      if (error) setErro('Erro ao carregar itens do menu.');
-      else setItensMenu(data || []);
+      if (error) {
+        setErro('Erro ao carregar itens do menu.');
+      } else {
+        setItensMenu(data || []);
+        setItensFiltrados(data || []);
+
+        // Contar itens por tipo
+        const contagem: Record<string, number> = {};
+        for (const item of data || []) {
+          const tipo = item.tipo;
+          contagem[tipo] = (contagem[tipo] || 0) + 1;
+        }
+
+        // Adicionar total
+        contagem["Todos"] = data.length;
+
+        setContagemPorTipo(contagem);
+      }
     };
 
     fetchItens();
   }, []);
 
+  // Filtrar itens baseado no filtro selecionado e pesquisa
+  useEffect(() => {
+    let itensFiltrados = itensMenu;
+
+    // Filtrar por tipo (categoria)
+    if (filtroSelecionado && filtroSelecionado !== 'todos') {
+      itensFiltrados = itensFiltrados.filter(item => 
+        item.tipo === filtroSelecionado
+      );
+    }
+
+    // Filtrar por pesquisa
+    if (searchQuery) {
+      itensFiltrados = itensFiltrados.filter(item =>
+        item.nome.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setItensFiltrados(itensFiltrados);
+  }, [filtroSelecionado, searchQuery, itensMenu]);
+
+  // Funções para manipular a quantidade dos itens - CORRIGIDO: removida a duplicação
+  const adicionarItem = (item: MenuItem) => {
+    setItensSelecionados(prev => {
+      const novoItem = { ...item, quantidade: 1 };
+      return { ...prev, [item.id]: novoItem };
+    });
+  };
+
+  const aumentarQuantidade = (itemId: number) => {
+    setItensSelecionados(prev => {
+      if (!prev[itemId]) return prev;
+      
+      const novoItem = { ...prev[itemId], quantidade: (prev[itemId].quantidade || 0) + 1 };
+      return { ...prev, [itemId]: novoItem };
+    });
+  };
+
+  const diminuirQuantidade = (itemId: number) => {
+    setItensSelecionados(prev => {
+      if (!prev[itemId] || (prev[itemId].quantidade || 0) <= 1) {
+        const newItems = { ...prev };
+        delete newItems[itemId];
+        return newItems;
+      }
+      
+      const novoItem = { ...prev[itemId], quantidade: (prev[itemId].quantidade || 0) - 1 };
+      return { ...prev, [itemId]: novoItem };
+    });
+  };
+  
+  const removerItem = (itemId: number) => {
+    setItensSelecionados(prev => {
+      const newItems = { ...prev };
+      delete newItems[itemId];
+      return newItems;
+    });
+  };
+
+  // Função para obter o ícone conforme o tipo de item
+  const getIconByType = (tipo: string) => {
+    switch (tipo) {
+      case 'Sopas':
+        return <LuSoup className="text-[#032221]" size={15} />;
+      case 'Bebida':
+        return <RiDrinks2Line className="text-[#032221]" size={15} />;
+      case 'Comida':
+        return <IoFastFoodOutline className="text-[#032221]" size={15} />;
+      case 'Sobremesas':
+        return <LuDessert className="text-[#032221]" size={15} />;
+      case 'Álcool':
+        return <BiDrink className="text-[#032221]" size={15} />;
+      default:
+        return <LuSoup className="text-[#032221]" size={15} />;
+    }
+  };
+
+  // Cálculos para o resumo de pagamento - CORRIGIDO: correção dos valores de subtotal e IVA
+  const calcularTotais = () => {
+    let subtotalSemIVA = 0;
+    let totalIVA = 0;
+
+    Object.values(itensSelecionados).forEach(item => {
+      const quantidade = item.quantidade || 0;
+      const precoUnitario = item.preco;
+      const taxaIVA = item.IVA || 0; // Usar o valor de IVA do item
+      
+      //Calcular o valor sem IVA - Subtotal
+      const valorSemIVA = (precoUnitario - precoUnitario*taxaIVA*0.01) * quantidade;
+      
+      //Calcular o valor do IVA
+      const valorIVA = precoUnitario*taxaIVA*0.01*quantidade;
+      
+      subtotalSemIVA += valorSemIVA;
+      totalIVA += valorIVA;
+    });
+
+    const total = subtotalSemIVA + totalIVA;
+
+    return {
+      subtotal: subtotalSemIVA,
+      iva: totalIVA,
+      total: total
+    };
+  };
+
+  const { subtotal, iva, total } = calcularTotais();
+
   return (
     <div className='flex flex-row w-full h-full'>
       {/* Coluna 1 - Lado Esquerdo */}
-      <div className="flex flex-col justify-between gap-4 flex-1 p-3 min-w-150 h-full bg-[#eaf2e9] transition-all duration-500">
+      <div className="flex flex-col justify-between gap-4 flex-1 pt-1 pb-5 px-6 min-w-150 h-full bg-[#eaf2e9] transition-all duration-500">
         {/* Barra de Pesquisa */}
         <div className='h-10 p-4 mt-4 flex justify-between gap-1 items-center bg-[#f1f6f7] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
           <GoSearch size={20}/>
           <input
             type="text"
             placeholder="Pesquisar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full p-2 focus:outline-none text-lg text-gray-500 transition-all duration-300 ease-in-out"
           />
         </div>
 
-        {/* Filtros */}
-        <div className='bg-gray-500 w-full h-60 p-4'></div>
+        <div className='w-full h-60 grid grid-cols-6 gap-5'>
+          {filtros.map((filtro) => {
+            const Icone = filtro.icon;
+            const isActive = filtroSelecionado === filtro.id;
 
-        {/* Itens */}
-        <div className='bg-gray-500 w-full h-200 p-4'></div>
+            return (
+              <div
+                key={filtro.id}
+                onClick={() => setFiltroSelecionado(filtro.id)}
+                className={`cursor-pointer w-full flex flex-col justify-between py-4 px-5 rounded-3xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]
+                  ${isActive ? 'bg-[rgba(3,98,76,0.1)]' : 'bg-[#f1f6f7]'}`}
+              >
+                <Icone size={45} className={isActive ? 'text-[#032221]' : 'text-[#03624c]'} />
+                <div className='flex flex-col justify-between'>
+                  <h1 className={`font-semibold text-lg ${isActive ? 'text-[#032221]' : 'text-[#03624c]'}`}>
+                    {filtro.nome}
+                  </h1>
+                  <span className={`font-normal text-sm ${isActive ? 'text-[#032221]' : 'text-gray-500'}`}>
+                      {filtro.id === 'todos'
+                        ? `${contagemPorTipo["Todos"] || 0} itens`
+                        : `${contagemPorTipo[filtro.id] || 0} itens`}
+                    </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-        {/* Últimos Pedidos */}
-        <div className='bg-gray-500 w-full h-20 p-4'></div>
+        {/* Itens - Integração do Menu aqui */}
+        <div className='w-full h-200 overflow-y-auto'>
+          <div className='grid grid-cols-4 gap-4 w-full'>
+            {itensFiltrados.map((item) => (
+                              <div 
+                key={item.id} 
+                className={`flex flex-col justify-start bg-[#f1f6f7] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] cursor-pointer ${itensSelecionados[item.id] ? 'ring-1 ring-[#03624c] ring-inset' : ''}`}
+                onClick={() => !itensSelecionados[item.id] && adicionarItem(item)}
+              >
+                {/* Imagem do item */}
+                <div className="relative w-full h-40 rounded-2xl overflow-hidden">
+                  {item.imagem_url ? (
+                    <Image 
+                      src={item.imagem_url}
+                      alt={item.nome} 
+                      fill
+                      className="object-cover rounded-2xl" 
+                      unoptimized={true}
+                    />
+                  ) : (
+                    <Image 
+                      src="/CaldoVerde.jpg"
+                      alt={item.nome} 
+                      fill
+                      className="object-cover rounded-2xl" 
+                    />
+                  )}
+                </div>
+
+                {/* Título (nome do item) */}
+                <div className="flex justify-start py-1">
+                  <h1 className='text-[#032221] text-xl font-semibold'>{item.nome}</h1>
+                </div>
+
+                {/* Preço e Categoria */}
+                <div className="flex flex-row justify-between items-center">
+                  <span className='text-[#17876d] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
+                  <span className='flex flex-row items-center justify-center text-black font-normal text-base gap-2 text-gray-500'>
+                    {getIconByType(item.tipo)}
+                    <span className="relative top-[1px]">{item.tipo}</span>
+                  </span>
+                </div>
+
+                {/* Botão de Adicionar ou Controles de Quantidade */}
+                {itensSelecionados[item.id] ? (
+                  <div className="mt-2 flex items-center justify-between bg-[rgba(3,98,76,0.1)] rounded-lg p-2">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        diminuirQuantidade(item.id);
+                      }}
+                      className="w-8 h-8 flex items-center justify-center bg-[#03624c] text-white rounded-full font-bold text-xl"
+                    >
+                      -
+                    </button>
+                    <span className="font-semibold text-[#032221]">
+                      {itensSelecionados[item.id]?.quantidade || 0}
+                    </span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        aumentarQuantidade(item.id);
+                      }}
+                      className="w-8 h-8 flex items-center justify-center bg-[#03624c] text-white rounded-full font-bold text-xl"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      adicionarItem(item);
+                    }}
+                    className="mt-2 w-full py-2 bg-[#03624c] text-white rounded-lg font-medium hover:bg-[#044a39] transition-colors"
+                  >
+                    Adicionar ao pedido
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
       
       {/* Coluna 2 - Lado Direito */}
@@ -69,22 +327,23 @@ function RegistarPedido() {
                   type="text"
                   value={nomeCliente}
                   onChange={(e) => setNomeCliente(e.target.value)}
-                  className='text-[#032221] text-lg font-semibold bg-transparent focus:outline-none hover:'
+                  className='text-[#032221] min-w-65 text-lg font-semibold px-2 border border border-transparent bg-[rgba(3,98,76,0.1)] rounded-t-lg'
                 />
                 <input
                   type="text"
                   value={contactoCliente}
                   onChange={(e) => setContactoCliente(e.target.value)}
-                  className='text-gray-500 text-sm font-normal bg-transparent focus:outline-none'
+                  className='text-gray-500 min-w-65 text-sm font-normal px-2 border border border-transparent bg-[rgba(3,98,76,0.1)] rounded-b-lg'
                 />
               </>
             ) : (
               <>
-                <h1 className='min-w-70 text-[#032221] text-lg font-semibold'>{nomeCliente}</h1>
-                <span className='min-w-70 text-gray-500 text-sm font-normal'>{contactoCliente}</span>
+                <h1 className='min-w-65 text-[#032221] text-lg font-semibold px-2 border border-transparent'>{nomeCliente}</h1>
+                <span className='min-w-65 text-gray-500 text-sm font-normal px-2 border border-transparent'>{contactoCliente}</span>
               </>
             )}
           </div>
+
           <div className='flex w-full justify-end items-center'>
             {isEditing ? (
               <IoCheckmarkOutline
@@ -122,26 +381,79 @@ function RegistarPedido() {
         </div>
 
         {/* Resumo do Pedido */}
-        <div className='bg-gray-500 w-full h-200 p-4'></div>
+        <div className='w-full h-200 p-4 overflow-y-auto bg-white rounded-lg'>
+          <h2 className="font-semibold text-lg text-[#032221] mb-2">Resumo do Pedido</h2>
+          
+          {Object.values(itensSelecionados).length === 0 ? (
+            <p className="text-gray-500 text-center py-6">Nenhum item selecionado</p>
+          ) : (
+            <div className="space-y-3">
+              {Object.values(itensSelecionados).map(item => (
+                <div key={item.id} className="flex justify-between items-start py-2 border-b border-gray-100">
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-medium text-[#032221]">{item.nome}</h3>
+                      <button 
+                        onClick={() => removerItem(item.id)}
+                        className="text-gray-400 hover:text-gray-600 p-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <div className="flex items-center bg-[rgba(3,98,76,0.05)] rounded-lg">
+                        <button 
+                          onClick={() => diminuirQuantidade(item.id)}
+                          className="w-6 h-6 flex items-center justify-center text-[#03624c] font-bold text-lg"
+                        >
+                          -
+                        </button>
+                        <span className="px-2 text-sm font-medium text-[#032221]">
+                          {item.quantidade || 0}
+                        </span>
+                        <button 
+                          onClick={() => aumentarQuantidade(item.id)}
+                          className="w-6 h-6 flex items-center justify-center text-[#03624c] font-bold text-lg"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs text-gray-500">{item.quantidade}x €{item.preco.toFixed(2)}</span>
+                        <span className="font-medium text-[#17876d]">€{(item.preco * (item.quantidade || 1)).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Notas */}
-        <div className='bg-gray-500 w-full h-30 p-4'></div>
+        <div className='w-full h-30 p-4 bg-white rounded-lg'>
+          <h2 className="font-semibold text-[#032221] mb-1">Notas</h2>
+          <textarea 
+            className="w-full h-20 p-2 border border-gray-200 rounded-md text-gray-700 text-sm focus:outline-none focus:ring-1 focus:ring-[#03624c]"
+            placeholder="Adicione notas sobre o pedido..."
+          ></textarea>
+        </div>
 
-        {/* Total a Pagar */}
+        {/* Total a Pagar - CORRIGIDO: Utiliza os valores calculados corretamente */}
         <div className='bg-[#F6F0F0] w-full h-30 py-4 px-6 rounded-lg flex flex-col justify-around'>
           <div>
             <span className='flex flex-row w-full justify-between text-base text-gray-600'>Sub Total
-              <span className='text-base'>63.00€</span>
+              <span className='text-base'>€{subtotal.toFixed(2)}</span>
             </span>
           </div>
           <div>
             <span className='flex flex-row w-full justify-between text-base text-gray-600 pb-1'>IVA
-              <span className='text-base'>7.00€</span>
+              <span className='text-base'>€{iva.toFixed(2)}</span>
             </span> 
           </div>
           <div>
             <span className='flex flex-row justify-between pt-2 border-t border-dashed w-full font-semibold text-lg'>Total a Pagar
-              <span className=' font-semibold text-lg'>70.00€</span>
+              <span className='font-semibold text-lg'>€{total.toFixed(2)}</span>
             </span>
           </div>
         </div>
@@ -150,7 +462,7 @@ function RegistarPedido() {
         <div className='w-full h-20'>
           <button
             /*onClick={handleClick}*/
-            className="w-full bg-[#03624c] text-[#f1f6f7] text-sm font-semibold py-4 rounded-lg hover:bg-[#078a6b] transition-all duration-500"
+            className="w-full bg-[#03624c] text-[#f1f6f7] text-sm font-semibold py-4 rounded-lg hover:bg-[#044a39] transition-all duration-500"
           >
             Efetuar Pedido
           </button>
@@ -160,4 +472,4 @@ function RegistarPedido() {
   );
 }
 
-export default VerificacaoDePermissoes(RegistarPedido, ['Administrador', 'Funcionario de Banca']); 
+export default VerificacaoDePermissoes(RegistarPedido, ['Administrador', 'Funcionario de Banca']);
