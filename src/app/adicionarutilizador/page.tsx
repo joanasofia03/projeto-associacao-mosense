@@ -13,6 +13,8 @@ function AdicionarUtilizador() {
   const [tipo, setTipo] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
+  const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,24 +121,25 @@ function AdicionarUtilizador() {
             />
           </div>
 
-          <div>
-            <label className="block mb-2 text-sm font-medium">Tipo de Utilizador</label>
-            <div className="flex justify-between gap-2">
-              {['Administrador', 'Funcionario de Banca', 'Cliente'].map((opcao) => (
-                <button
-                  key={opcao}
-                  type="button"
-                  onClick={() => setTipo(opcao)}
-                  className={`flex-1 px-3 py-1 text-sm rounded-full border transition-all
-                    ${tipo === opcao
-                      ? 'bg-[#032221] text-white border-[#032221]'
-                      : 'bg-white text-[#032221] border-gray-300 hover:bg-gray-100'}`}
-                >
-                  {opcao}
-                </button>
-              ))}
-            </div>
-          </div>
+          <div className="bg-[rgba(229,231,235,0.5)] flex w-full rounded-3xl border border-[rgba(209,213,219,0.3)]">
+  {['Administrador', 'Funcionario de Banca', 'Cliente'].map((opcao, index) => (
+    <button
+      key={opcao}
+      type="button"
+      onClick={() => {
+        setOpcaoSelecionada(opcao);
+        setTipo(opcao);
+      }}
+      aria-pressed={opcaoSelecionada === opcao}
+      className={`flex-1 text-sm font-semibold py-3 rounded-3xl transition-all duration-300
+        ${opcaoSelecionada === opcao ? 'bg-[#03624c] text-[#f1f6f7]' : 'text-[#032221] bg-transparent'}`}
+    >
+      {opcao}
+    </button>
+  ))}
+</div>
+
+          
 
           <p className="text-sm mt-2">
             Ao criar uma conta está automaticamente a concordar com os{' '}

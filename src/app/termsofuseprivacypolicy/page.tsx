@@ -25,28 +25,21 @@ export default function TermosPage() {
                   </Link>.
                 </p>
               </section>
-        <div className="flex justify-center gap-4 mb-8">
-          <button
-            onClick={() => setActiveTab('privacidade')}
-            className={`px-4 py-2 rounded-full transition-colors ${
-              activeTab === 'privacidade'
-                ? 'bg-[#032221] text-white'
-                : 'bg-gray-200 text-[#032221] hover:bg-gray-300'
-            }`}
-          >
-            Política de Privacidade
-          </button>
-          <button
-            onClick={() => setActiveTab('termos')}
-            className={`px-4 py-2 rounded-full transition-colors ${
-              activeTab === 'termos'
-                ? 'bg-[#032221] text-white'
-                : 'bg-gray-200 text-[#032221] hover:bg-gray-300'
-            }`}
-          >
-            Termos de Uso
-          </button>
-        </div>
+        <div className="flex justify-center w-full mb-8">
+  <div className="bg-[rgba(229,231,235,0.5)] flex w-full max-w-md rounded-3xl border border-[rgba(209,213,219,0.3)]">
+    {(['privacidade', 'termos'] as const).map((tab) => (
+      <button
+        key={tab}
+        onClick={() => setActiveTab(tab)}
+        className={`flex-1 text-sm font-semibold py-3 rounded-3xl transition-all duration-300
+          ${activeTab === tab ? 'bg-[#03624c] text-[#f1f6f7]' : 'text-[#032221] bg-transparent'}`}
+      >
+        {tab === 'privacidade' ? 'Política de Privacidade' : 'Termos de Uso'}
+      </button>
+    ))}
+  </div>
+</div>
+
 
         <div className="transition-all duration-500 ease-in-out">
           {activeTab === 'privacidade' ? (
