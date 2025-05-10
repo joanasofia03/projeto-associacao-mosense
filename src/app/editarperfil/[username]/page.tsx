@@ -13,6 +13,7 @@ export default function EditarPerfilCard() {
   const [tipo, setTipo] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
+  const [originalEmail, setOriginalEmail] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -25,6 +26,7 @@ export default function EditarPerfilCard() {
 
       setUserId(user.id);
       setEmail(user.email || '');
+      setOriginalEmail(user.email || '');
 
       const { data: perfil, error: perfilError } = await supabase
         .from('profiles')
@@ -68,17 +70,23 @@ export default function EditarPerfilCard() {
         return;
       }
 
-      const { error: emailError } = await supabase.auth.updateUser({
-        email: email,
-      });
+      if (email !== originalEmail) {
+  const { error: emailError } = await supabase.auth.updateUser(
+  { email },
+  { emailRedirectTo: 'http://localhost:3000/confirmar-email' }
+);
 
-      if (emailError) {
-        setErro('Erro ao atualizar email.');
-        console.error(emailError);
-        return;
-      }
+  if (emailError) {
+    setErro('Erro ao atualizar email.');
+    console.error(emailError);
+    return;
+  }
 
-      setSucesso('Perfil atualizado com sucesso.');
+  setSucesso('Perfil atualizado com sucesso. Por favor, verifique ambas as caixas de email para confirmar a alteração.');
+} else {
+  setSucesso('Perfil atualizado com sucesso.');
+}
+
       setIsEditing(false);
     } catch (err) {
       setErro('Erro ao atualizar perfil.');
