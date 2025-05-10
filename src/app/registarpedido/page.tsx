@@ -15,6 +15,7 @@ import { IoFastFoodOutline } from "react-icons/io5";
 import { LuDessert } from "react-icons/lu";
 import { RiDrinks2Line } from "react-icons/ri";
 import { BiDrink } from "react-icons/bi";
+import { GoGift } from "react-icons/go";
 
 type MenuItem = {
   id: number;
@@ -47,6 +48,7 @@ function RegistarPedido() {
     { nome: 'Sobremesas', id: 'Sobremesas', icon: LuDessert },
     { nome: 'Bebida', id: 'Bebida', icon: RiDrinks2Line },
     { nome: 'Álcool', id: 'Álcool', icon: BiDrink },
+    { nome: 'Brindes', id: 'Brindes', icon: GoGift },
   ];
 
   useEffect(() => {
@@ -54,7 +56,6 @@ function RegistarPedido() {
       const { data, error } = await supabase
         .from('itens')
         .select('*')
-        .eq('isMenu', true);
 
       if (error) {
         setErro('Erro ao carregar itens do menu.');
@@ -143,6 +144,8 @@ function RegistarPedido() {
     switch (tipo) {
       case 'Sopas':
         return <LuSoup className="text-[#032221]" size={15} />;
+      case 'Brindes':
+        return <GoGift className="text-[#032221]" size={15} />;
       case 'Bebida':
         return <RiDrinks2Line className="text-[#032221]" size={15} />;
       case 'Comida':
@@ -156,7 +159,7 @@ function RegistarPedido() {
     }
   };
 
-  // Cálculos para o resumo de pagamento - CORRIGIDO: correção dos valores de subtotal e IVA
+  //Cálculos para o pagamento (Subtotal, IVA e Total)
   const calcularTotais = () => {
     let subtotalSemIVA = 0;
     let totalIVA = 0;
@@ -203,7 +206,8 @@ function RegistarPedido() {
           />
         </div>
 
-        <div className='w-full h-60 grid grid-cols-6 gap-5'>
+        {/* Filtros */}
+        <div className='w-full h-60 grid grid-cols-7 gap-5'>
           {filtros.map((filtro) => {
             const Icone = filtro.icon;
             const isActive = filtroSelecionado === filtro.id;

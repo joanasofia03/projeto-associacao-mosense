@@ -115,14 +115,12 @@ problemas:
 
 -> Testar a impressão de informação na impressora térmica;
 
--> Ajustar navbar à resolução da tela;
+-> Ajustar navbar e restantas páginas à resolução da tela;
 
 -> Permitir a criação de novas contas - Clientes;
 
 -> Adicionar Eventos;
 
--> Fazer design da página "AdicionarPedido";
-
--> a navbar nao deve aparecer no not-found, por exemplo
+-> a navbar nao deve aparecer no not-found, por exemplo;
 
 -> Impedir que ao adicionar um novo utilizador a sessão atual seja encerrada e dê entrda na sessão do novo utilizador;

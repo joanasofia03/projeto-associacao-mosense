@@ -11,6 +11,7 @@ import { RiDrinks2Line } from "react-icons/ri";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { LuDessert } from "react-icons/lu";
 import { BiDrink } from "react-icons/bi";
+import { GoGift } from "react-icons/go";
 
 type MenuItem = {
   id: number;
@@ -62,6 +63,9 @@ export default function Menu() {
       case 'sopa':
       case 'sopas':
         return <LuSoup className="text-[#032221]" size={15} />;
+      case 'brindes':
+      case 'Brindes':
+        return <GoGift className="text-[#032221]" size={15} />;
       case 'bebida':
       case 'bebidas':
         return <RiDrinks2Line className="text-[#032221]" size={15} />;
