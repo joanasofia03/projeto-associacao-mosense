@@ -217,7 +217,7 @@ function RegistarPedido() {
                 key={filtro.id}
                 onClick={() => setFiltroSelecionado(filtro.id)}
                 className={`cursor-pointer w-full flex flex-col justify-between py-4 px-5 rounded-3xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]
-                  ${isActive ? 'bg-[rgba(3,98,76,0.1)]' : 'bg-[#f1f6f7]'}`}
+                  ${isActive ? 'bg-[rgba(3,98,76,0.08)]' : 'bg-[#f1f6f7]'}`}
               >
                 <Icone size={45} className={isActive ? 'text-[#032221]' : 'text-[#03624c]'} />
                 <div className='flex flex-col justify-between'>
@@ -366,7 +366,7 @@ function RegistarPedido() {
         </div>
 
         {/* Tipo de Pedido (No Local/Take-Away) */}
-        <div className='bg-[rgba(229,231,235,0.5)] w-full h-14 flex flex-row justify-around items-stretch rounded-3xl border border-[rgba(209,213,219,0.3)]'>
+        <div className='bg-[rgba(3,98,76,0.05)] w-full h-14 flex flex-row justify-around items-stretch rounded-3xl border border-[rgba(209,213,219,0.3)]'>
           {['Comer Aqui', 'Take Away', 'Entrega'].map((opcao) => (
             <h1
               key={opcao}
@@ -385,30 +385,30 @@ function RegistarPedido() {
         </div>
 
         {/* Resumo do Pedido */}
-        <div className='w-full h-200 p-4 overflow-y-auto bg-white rounded-lg'>
-          <h2 className="font-semibold text-lg text-[#032221] mb-2">Resumo do Pedido</h2>
+        <div className='w-full h-200 px-4 py-3 overflow-y-auto bg-[rgba(3,98,76,0.05)] rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
+          <h2 className="font-semibold text-lg text-[#032221] mb-2 pb-1 border-b border-[rgba(3,98,76,0.1)]">Resumo do Pedido</h2>
           
           {Object.values(itensSelecionados).length === 0 ? (
             <p className="text-gray-500 text-center py-6">Nenhum item selecionado</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-0">
               {Object.values(itensSelecionados).map(item => (
-                <div key={item.id} className="flex justify-between items-start py-2 border-b border-gray-100">
+                <div key={item.id} className="flex justify-between items-start pb-2 border-b border-[rgba(3,98,76,0.1)]">
                   <div className="flex-1">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-medium text-[#032221]">{item.nome}</h3>
+                      <h3 className="font-medium text-lg text-[#032221]">{item.nome}</h3>
                       <button 
                         onClick={() => removerItem(item.id)}
-                        className="text-gray-400 hover:text-gray-600 p-1"
+                        className="text-gray-600 hover:text-gray-600 p-1"
                       >
                         ✕
                       </button>
                     </div>
                     <div className="flex justify-between items-center mt-1">
-                      <div className="flex items-center bg-[rgba(3,98,76,0.05)] rounded-lg">
+                      <div className="flex items-center bg-[rgba(3,98,76,0.1)] rounded-lg">
                         <button 
                           onClick={() => diminuirQuantidade(item.id)}
-                          className="w-6 h-6 flex items-center justify-center text-[#03624c] font-bold text-lg"
+                          className="w-15 h-7 flex items-center justify-center text-[#032221] font-bold text-lg"
                         >
                           -
                         </button>
@@ -417,14 +417,14 @@ function RegistarPedido() {
                         </span>
                         <button 
                           onClick={() => aumentarQuantidade(item.id)}
-                          className="w-6 h-6 flex items-center justify-center text-[#03624c] font-bold text-lg"
+                          className="w-15 h-7 flex items-center justify-center text-[#032221] font-bold text-lg"
                         >
                           +
                         </button>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-xs text-gray-500">{item.quantidade}x €{item.preco.toFixed(2)}</span>
-                        <span className="font-medium text-[#17876d]">€{(item.preco * (item.quantidade || 1)).toFixed(2)}</span>
+                        <span className="text-xs text-gray-600">{item.quantidade}x €{item.preco.toFixed(2)}</span>
+                        <span className="font-semibold text-[#177560]">€{(item.preco * (item.quantidade || 1)).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -435,16 +435,15 @@ function RegistarPedido() {
         </div>
 
         {/* Notas */}
-        <div className='w-full h-30 p-4 bg-white rounded-lg'>
-          <h2 className="font-semibold text-[#032221] mb-1">Notas</h2>
+        <div className='w-full h-25 py-2 rounded-lg'>
           <textarea 
-            className="w-full h-20 p-2 border border-gray-200 rounded-md text-gray-700 text-sm focus:outline-none focus:ring-1 focus:ring-[#03624c]"
+            className="w-full h-full p-3 border border-[rgba(3,98,76,0.4)] rounded-md text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-[rgba(3,98,76,0.5)] shadow-[1px_1px_3px_rgba(3,34,33,0.2)]"
             placeholder="Adicione notas sobre o pedido..."
           ></textarea>
         </div>
 
-        {/* Total a Pagar - CORRIGIDO: Utiliza os valores calculados corretamente */}
-        <div className='bg-[#F6F0F0] w-full h-30 py-4 px-6 rounded-lg flex flex-col justify-around'>
+        {/* Total a Pagar */}
+        <div className='bg-[rgba(3,98,76,0.05)] w-full h-30 py-3 px-6 rounded-lg flex flex-col justify-around shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
           <div>
             <span className='flex flex-row w-full justify-between text-base text-gray-600'>Sub Total
               <span className='text-base'>€{subtotal.toFixed(2)}</span>
