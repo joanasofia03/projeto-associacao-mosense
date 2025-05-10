@@ -16,6 +16,7 @@ import { FaRegEye } from "react-icons/fa";
 import { CgArrowLeftO } from "react-icons/cg";
 import { IoIosLogOut } from "react-icons/io";
 import { TbProgressHelp } from "react-icons/tb";
+import { FaUserLarge } from "react-icons/fa6";
 
 export const Navigation = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -262,47 +263,43 @@ setUserId(session?.user.id);
         )}
       </div>
 
-{/* Footer */}
-<div className="border-t border-[rgba(114,120,133,0.1)] pt-3 pb-4 px-3 mt-auto">
-  {/* Ajuda visível sempre */}
-  <Link href="/help" className={`${linkClass} mb-3`}>
-    <TbProgressHelp size={iconSize} />
-    <span className={`transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
-      Ajuda
-    </span>
-  </Link>
+      {/* Footer */}
+      <div className="border-t border-[rgba(114,120,133,0.1)] pt-3 pb-4 px-3 mt-auto">
+        {/* Ajuda visível sempre */}
+        <Link href="/help" className={`${linkClass} mb-3`}>
+          <TbProgressHelp size={iconSize} />
+          <span className={`transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
+            Ajuda
+          </span>
+        </Link>
 
-{isLoggedIn && (
-  <>
-    <div
-      className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} px-2 py-2 mt-1 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer`}
-    >
-      <Link
-        href={`/editarperfil/${encodeURIComponent(userName || '')}`}
-        className={`flex items-center transition-all duration-500 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}
-      >
-        <Image src="/SimboloOsMosenses.png" alt="User Icon" width={30} height={30} className="rounded-full" />
-        <div className="ml-3 truncate">
-          <p className="text-xs font-semibold text-[#032221] truncate">{userName}</p>
-          <p className="text-xs text-[#032221] opacity-75 truncate">{userType}</p>
-        </div>
-      </Link>
+        {isLoggedIn && (
+          <>
+            <div
+              className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} px-2 py-2 mt-1 bg-gray-100 rounded-lg hover:bg-[rgba(3,98,76,0.1)] transition-colors cursor-pointer`}
+            >
+              <Link
+                href={`/editarperfil/${encodeURIComponent(userName || '')}`}
+                className={`flex items-center transition-all duration-500 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}
+              >
+                <FaUserLarge size={25} className='text-[#032221]'/>
+                <div className="ml-3 truncate">
+                  <p className="text-xs font-semibold text-[#032221] truncate">{userName}</p>
+                  <p className="text-xs text-[#032221] opacity-75 truncate">{userType}</p>
+                </div>
+              </Link>
 
-      <button
-        onClick={handleLogout}
-        className="p-1 text-[#032221] hover:text-[#dc3545] hover:bg-gray-200 rounded-full transition-all"
-        title="Terminar sessão"
-      >
-        <IoIosLogOut size={iconSize} />
-      </button>
-    </div>
-  </>
-)}
-
-</div>
-
-
-
+              <button
+                onClick={handleLogout}
+                className="p-1 text-[#032221] hover:text-[#dc3545] hover:bg-gray-200 rounded-full transition-all"
+                title="Terminar sessão"
+              >
+                <IoIosLogOut size={iconSize} />
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </nav>
   );
 };
