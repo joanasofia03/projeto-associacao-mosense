@@ -16,6 +16,7 @@ import { LuDessert } from "react-icons/lu";
 import { RiDrinks2Line } from "react-icons/ri";
 import { BiDrink } from "react-icons/bi";
 import { GoGift } from "react-icons/go";
+import { MdDeleteOutline } from "react-icons/md";
 
 type MenuItem = {
   id: number;
@@ -138,6 +139,11 @@ function RegistarPedido() {
       return newItems;
     });
   };
+  
+  // Função para limpar todos os itens do pedido
+  const limparTodosPedidos = () => {
+    setItensSelecionados({});
+  };
 
   // Função para obter o ícone conforme o tipo de item
   const getIconByType = (tipo: string) => {
@@ -207,7 +213,7 @@ function RegistarPedido() {
         </div>
 
         {/* Filtros */}
-        <div className='w-full h-60 grid grid-cols-7 gap-5'>
+        <div className='w-full h-50 grid grid-cols-7 gap-5'>
           {filtros.map((filtro) => {
             const Icone = filtro.icon;
             const isActive = filtroSelecionado === filtro.id;
@@ -221,7 +227,7 @@ function RegistarPedido() {
               >
                 <Icone size={45} className={isActive ? 'text-[#032221]' : 'text-[#03624c]'} />
                 <div className='flex flex-col justify-between'>
-                  <h1 className={`font-semibold text-lg ${isActive ? 'text-[#032221]' : 'text-[#03624c]'}`}>
+                  <h1 className={`font-semibold text-lg truncate ${isActive ? 'text-[#032221]' : 'text-[#03624c]'}`}>
                     {filtro.nome}
                   </h1>
                   <span className={`font-normal text-sm ${isActive ? 'text-[#032221]' : 'text-gray-500'}`}>
@@ -386,7 +392,14 @@ function RegistarPedido() {
 
         {/* Resumo do Pedido */}
         <div className='w-full h-200 px-4 py-3 overflow-y-auto bg-[rgba(3,98,76,0.05)] rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
-          <h2 className="font-semibold text-lg text-[#032221] mb-2 pb-1 border-b border-[rgba(3,98,76,0.1)]">Resumo do Pedido</h2>
+          <div className='flex flex-row justify-between mb-2 pb-1 border-b border-[rgba(3,98,76,0.1)] items-center'>
+            <h2 className="font-semibold text-lg text-[#032221]">Resumo do Pedido</h2>
+            <MdDeleteOutline 
+              size={20} 
+              className='text-xs text-gray-600 cursor-pointer hover:text-red-500 transition-colors'
+              onClick={limparTodosPedidos}
+            />
+          </div>
           
           {Object.values(itensSelecionados).length === 0 ? (
             <p className="text-gray-500 text-center py-6">Nenhum item selecionado</p>
