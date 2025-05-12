@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
+//Import de Icons
+import { GoSearch } from "react-icons/go";
+import { PiBellRingingLight } from "react-icons/pi";
+
 function VerEstatisticas() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [ordem, setOrdem] = useState<'data' | 'cliente'>('data');
@@ -18,6 +22,20 @@ function VerEstatisticas() {
   const [itensDoPedido, setItensDoPedido] = useState<any[]>([]);
   const [numeroDiarioSelecionado, setNumeroDiarioSelecionado] = useState<string | null>(null);
   const [notaSelecionada, setNotaSelecionada] = useState<string | null>(null);
+  const [dataAtual, setDataAtual] = useState('');
+
+  useEffect(() => { //Função da exibição da data atual;
+    const hoje = new Date();
+    const dataFormatada = hoje.toLocaleDateString('pt-PT', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const capitalizada = dataFormatada.replace(/\b\p{L}/gu, (letra) => letra.toUpperCase());
+    setDataAtual(capitalizada);
+  }, []);
 
   const fetchPedidos = async () => {
     let query = supabase
@@ -117,131 +135,73 @@ function VerEstatisticas() {
   const estadosValidade = ['Todos', 'Confirmado', 'Anulado'];
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[#eaf2e9]">
-      <div className="max-w-6xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-6">Estatísticas dos Pedidos</h1>
-
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <div className="flex gap-4 flex-wrap">
-            <label>
-              Ordenar por:{' '}
-              <select
-                value={ordem}
-                onChange={(e) => setOrdem(e.target.value as 'data' | 'cliente')}
-                className="border rounded px-2 py-1 ml-1"
-              >
-                <option value="data">Data (mais recente)</option>
-                <option value="cliente">Cliente</option>
-              </select>
-            </label>
-            <label>
-              Estado Validade:{' '}
-              <select
-                value={filtroValidade}
-                onChange={(e) => setFiltroValidade(e.target.value)}
-                className="border rounded px-2 py-1 ml-1"
-              >
-                {estadosValidade.map((estado) => (
-                  <option key={estado} value={estado}>
-                    {estado}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="text-sm text-gray-700">
-            <p><strong>Total Pedidos:</strong> {totais.total}</p>
-            <p><strong>Total Faturado:</strong> {totais.totalFaturado.toFixed(2)} €</p>
-          </div>
+    <main className="w-full h-full px-6 py-6 bg-[#eaf2e9] flex flex-col">
+      {/* Primeira linha */}
+      <div className='w-full min-h-12 flex flex-1 flex-row justify-between items-center gap-2'>
+        {/* Título da Página */}
+        <div className='min-w-116 min-h-15 flex items-center justify-start pl-2'>
+          <h1 className='font-bold text-2xl text-[#032221]'>Histórico & Estatísticas de Pedidos</h1>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <h2 className="font-semibold text-gray-800 mb-2">Contagem por Estado de Validade</h2>
-            <ul className="text-sm">
-              {Object.entries(totais.porEstadoValidade).map(([estado, count]) => (
-                <li key={estado}>
-                  {estado}: <strong>{count}</strong>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {/* Search Bard */}
+        <div className='h-10 p-4 mr-2 flex justify-between gap-1 items-center bg-[#f1f6f7] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
+          <GoSearch size={20}/>
+            <input
+              type="text"
+              placeholder="Pesquisar..."
+              className="w-full p-2 focus:outline-none text-lg text-gray-500 transition-all duration-300 ease-in-out"
+            />
         </div>
 
-        <table className="w-full table-auto border-collapse text-sm">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="p-2">Nº</th>
-              <th className="p-2">Cliente</th>
-              <th className="p-2">Data</th>
-              <th className="p-2">Validade</th>
-              <th className="p-2">Total (€)</th>
-              <th className="p-2">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pedidos.map((pedido) => {
-              const totalPedido = pedido.pedidos_itens?.reduce((s: number, item: any) => {
-                return s + (item.itens?.preco || 0);
-              }, 0) || 0;
-
-              return (
-                <tr key={pedido.id} className="border-t">
-                  <td className="p-2">{pedido.numero_diario}</td>
-                  <td className="p-2">{pedido.nome_cliente}</td>
-                  <td className="p-2">{new Date(pedido.criado_em).toLocaleString()}</td>
-                  <td className="p-2">{pedido.estado_validade}</td>
-                  <td className="p-2">{totalPedido.toFixed(2)} €</td>
-                  <td className="p-2">
-                    <button
-                      onClick={() => fetchItensDoPedido(pedido.id, pedido.numero_diario)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs"
-                    >
-                      Ver Detalhes
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        {/* Data Atual */}
+        <div className='min-w-110 min-h-15 flex items-center justify-center'>
+          <h1 className='font-light text-2xl text-[#032221]'>{dataAtual}</h1>
+        </div>
       </div>
 
-      {mostrarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-            <h2 className="text-xl font-semibold mb-2">
-              Itens do Pedido Nº {numeroDiarioSelecionado}
-            </h2>
-            {notaSelecionada && (
-              <p className="text-gray-700 mb-4">
-                <strong>Nota:</strong> {notaSelecionada}
-              </p>
-            )}
-            <button
-              onClick={() => setMostrarModal(false)}
-              className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl"
-            >
-              &times;
-            </button>
+      {/* Filtro e Estatisticas Globais */}
+      <div className='flex w-full h-full gap-4 mt-2'>
+        {/* Coluna 1 - Filtros e Histórico de Pedidos */}
+        <div className='w-full h-full bg-gray-500'>
+          {/* Filtros */}
+          <div></div>
 
-            {itensDoPedido.length === 0 ? (
-              <p>Sem itens para mostrar.</p>
-            ) : (
-              <ul className="space-y-2">
-                {itensDoPedido.map((item) => (
-                  <li key={item.id} className="border p-2 rounded">
-                    <p><strong>Item:</strong> {item.itens?.nome || `ID ${item.item_id}`}</p>
-                    <p><strong>Quantidade:</strong> {item.quantidade}</p>
-                    <p><strong>Para levantar depois:</strong> {item.para_levantar_depois ? 'Sim' : 'Não'}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
+          {/* Histórico Pedidos */}
+          <div></div>
+        </div>
+
+        {/* Coluna 2 - Estatisticas  */}
+        <div className='min-w-110 h-full flex flex-1 flex-col gap-4'>
+
+          {/* Estatisticas dos Pedidos */}
+          <div className='w-full h-40 flex flex-row bg-[#032221] rounded-xl gapb-4'>
+            {/* Total de Pedido */}
+            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center gap-2'>
+              <h1 className='text-[#f1f6f7] font-normal text-xl'>Total de Pedidos</h1>
+              <h1 className='text-[#f1f6f7] font-bold text-4xl'>160</h1>
+            </div>
+            {/* Total Faturado */}
+            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center gap-2'>
+              <h1 className='text-[#f1f6f7] font-normal text-xl'>Total Faturado</h1>
+              <h1 className='text-[#f1f6f7] font-bold text-4xl'>1.500€</h1>
+            </div>
+          </div>
+
+          {/* Coluna 2 - Pratos Populares  */}
+          <div className='w-full h-full bg-[#f1f6f7] rounded-2xl flex flex-col gap-2'>
+            {/* Título */}
+            <div className='w-full h-20 bg-gray-500'></div>
+
+            {/* Rank & Nome */}
+            <div className='w-full h-10 bg-gray-500'></div>
+
+            {/* Exibição de Itens */}
+            <div className='w-full h-full bg-gray-500'></div>
           </div>
         </div>
-      )}
+      </div>
+
+  
     </main>
   );
 }
