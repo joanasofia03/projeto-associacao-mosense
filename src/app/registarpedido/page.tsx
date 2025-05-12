@@ -33,14 +33,17 @@ function RegistarPedido() {
   const [itensFiltrados, setItensFiltrados] = useState<MenuItem[]>([]);
   const [itensSelecionados, setItensSelecionados] = useState<Record<number, MenuItem>>({});
   const [erro, setErro] = useState<string | null>(null);
-  const [nomeCliente, setNomeCliente] = useState("Nome & Sobrenome");
-  const [contactoCliente, setContactoCliente] = useState("Contacto");
+  const [nomeCliente, setNomeCliente] = useState('');
+  const [contactoCliente, setContactoCliente] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [campoEditavel, setCampoEditavel] = useState<"nome" | "contacto" | null>(null);
   const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
   const [filtroSelecionado, setFiltroSelecionado] = useState<string | null>("todos");
   const [contagemPorTipo, setContagemPorTipo] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [eventoEmExecucao, setEventoEmExecucao] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [notas, setNotas] = useState<string>('');
 
   const filtros = [ //Organização dos filtros
     { nome: 'Todos os itens', id: 'todos', icon: PiSquaresFour },
@@ -51,6 +54,18 @@ function RegistarPedido() {
     { nome: 'Álcool', id: 'Álcool', icon: BiDrink },
     { nome: 'Brindes', id: 'Brindes', icon: GoGift },
   ];
+
+  const handleNotasChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNotas(event.target.value);
+  };
+
+  const handleNomeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNomeCliente(event.target.value);
+  };
+
+  const handleContactoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setContactoCliente(event.target.value);
+  };
 
   useEffect(() => {
     const fetchItens = async () => {
@@ -101,6 +116,35 @@ function RegistarPedido() {
 
     setItensFiltrados(itensFiltrados);
   }, [filtroSelecionado, searchQuery, itensMenu]);
+
+ useEffect(() => {
+    const fetchEventoEmExecucao = async () => {
+      const { data, error } = await supabase
+        .from('eventos')
+        .select('*')
+        .eq('em_execucao', true)
+        .single();
+
+      if (error) {
+        setErro("Erro ao buscar evento");
+      } else {
+        setEventoEmExecucao(data);
+      }
+    };
+
+    const fetchUserId = async () => {
+      const session = await supabase.auth.getSession();
+      const user = session.data.session?.user;
+      if (user) {
+        setUserId(user.id);
+      } else {
+        setErro('Utilizador não autenticado');
+      }
+    };
+
+    fetchEventoEmExecucao();
+    fetchUserId();
+  }, []);
 
   // Funções para manipular a quantidade dos itens - CORRIGIDO: removida a duplicação
   const adicionarItem = (item: MenuItem) => {
@@ -195,6 +239,30 @@ function RegistarPedido() {
   };
 
   const { subtotal, iva, total } = calcularTotais();
+
+  const efetuarPedido = async () => {
+    if (Object.keys(itensSelecionados).length === 0) {
+      setErro('Nenhum item selecionado.');
+      return;
+    }
+    
+  const novoPedido = {
+    nome_cliente: nomeCliente,
+    contacto: contactoCliente || null,
+    nota: notas || null,
+    tipo_de_pedido: opcaoSelecionada || 'Comer Aqui',
+    registado_por: userId,
+    estado_validade: 'Confirmado',
+    id_evento: 3 // mudar
+  };
+
+  const { data, error } = await supabase
+    .from('pedidos')
+    .insert([novoPedido]);
+
+  if (error) {
+    console.log(error.message);
+  }}
 
   return (
     <div className='flex flex-row w-full h-full'>
@@ -330,29 +398,36 @@ function RegistarPedido() {
       <div className='flex flex-col justify-between gap-4 w-[400px] pt-3 px-3 pb-4 h-full bg-[#f1f6f7]'>
         {/* Nome */}
         <div className='w-full h-20 p-2 flex flex-1 flex-row justify-between'>
-          <div className='flex flex-col w-full justify-start'>
-            {isEditing ? (
-              <>
-                <input
-                  type="text"
-                  value={nomeCliente}
-                  onChange={(e) => setNomeCliente(e.target.value)}
-                  className='text-[#032221] min-w-65 text-lg font-semibold px-2 border border border-transparent bg-[rgba(3,98,76,0.1)] rounded-t-lg'
-                />
-                <input
-                  type="text"
-                  value={contactoCliente}
-                  onChange={(e) => setContactoCliente(e.target.value)}
-                  className='text-gray-500 min-w-65 text-sm font-normal px-2 border border border-transparent bg-[rgba(3,98,76,0.1)] rounded-b-lg'
-                />
-              </>
-            ) : (
-              <>
-                <h1 className='min-w-65 text-[#032221] text-lg font-semibold px-2 border border-transparent'>{nomeCliente}</h1>
-                <span className='min-w-65 text-gray-500 text-sm font-normal px-2 border border-transparent'>{contactoCliente}</span>
-              </>
-            )}
-          </div>
+          <div className="flex flex-col w-full justify-start">
+  {isEditing ? (
+    <>
+      <input
+        type="text"
+        placeholder="Nome & Sobrenome"
+        value={nomeCliente}
+        onChange={handleNomeChange}
+        className="text-[#032221] min-w-65 text-lg font-semibold px-2 border border-transparent bg-[rgba(3,98,76,0.1)] rounded-t-lg focus:outline-none focus:ring-2 focus:ring-[#044a39]"
+      />
+      <input
+        type="text"
+        placeholder="Contacto"
+        value={contactoCliente}
+        onChange={handleContactoChange}
+        className="text-[#032221] min-w-65 text-sm font-normal px-2 border border-transparent bg-[rgba(3,98,76,0.1)] rounded-b-lg focus:outline-none focus:ring-2 focus:ring-[#044a39]"
+      />
+    </>
+  ) : (
+    <>
+      <h1 className="min-w-65 text-[#032221] text-lg font-semibold px-2 border border-transparent">
+        {nomeCliente || "Nome & Sobrenome"}
+      </h1>
+      <span className="min-w-65 text-gray-500 text-sm font-normal px-2 border border-transparent">
+        {contactoCliente || "Contacto"}
+      </span>
+    </>
+  )}
+</div>
+
 
           <div className='flex w-full justify-end items-center'>
             {isEditing ? (
@@ -448,12 +523,14 @@ function RegistarPedido() {
         </div>
 
         {/* Notas */}
-        <div className='w-full h-25 py-2 rounded-lg'>
-          <textarea 
-            className="w-full h-full p-3 border border-[rgba(3,98,76,0.4)] rounded-md text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-[rgba(3,98,76,0.5)] shadow-[1px_1px_3px_rgba(3,34,33,0.2)]"
-            placeholder="Adicione notas sobre o pedido..."
-          ></textarea>
-        </div>
+      <div className="w-full h-25 py-2 rounded-lg">
+        <textarea
+          className="w-full h-full p-3 border border-[rgba(3,98,76,0.4)] rounded-md text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-[rgba(3,98,76,0.5)] shadow-[1px_1px_3px_rgba(3,34,33,0.2)]"
+          placeholder="Adicione notas sobre o pedido..."
+          value={notas}
+          onChange={handleNotasChange}
+        />
+      </div>
 
         {/* Total a Pagar */}
         <div className='bg-[rgba(3,98,76,0.05)] w-full h-30 py-3 px-6 rounded-lg flex flex-col justify-around shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
@@ -478,6 +555,7 @@ function RegistarPedido() {
         <div className='w-full h-20'>
           <button
             /*onClick={handleClick}*/
+            onClick={efetuarPedido}
             className="w-full bg-[#03624c] text-[#f1f6f7] text-sm font-semibold py-4 rounded-lg hover:bg-[#044a39] transition-all duration-500"
           >
             Efetuar Pedido
