@@ -6,7 +6,6 @@ import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
 //Import de Icons
 import { GoSearch } from "react-icons/go";
-import { PiBellRingingLight } from "react-icons/pi";
 
 function VerEstatisticas() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -24,7 +23,7 @@ function VerEstatisticas() {
   const [notaSelecionada, setNotaSelecionada] = useState<string | null>(null);
   const [dataAtual, setDataAtual] = useState('');
 
-  useEffect(() => { //Função da exibição da data atual;
+  useEffect(() => {
     const hoje = new Date();
     const dataFormatada = hoje.toLocaleDateString('pt-PT', {
       weekday: 'long',
@@ -33,9 +32,12 @@ function VerEstatisticas() {
       year: 'numeric',
     });
 
-    const capitalizada = dataFormatada.replace(/\b\p{L}/gu, (letra) => letra.toUpperCase());
-    setDataAtual(capitalizada);
+    const primeiraLetraMaiuscula =
+      dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+
+    setDataAtual(primeiraLetraMaiuscula);
   }, []);
+
 
   const fetchPedidos = async () => {
     let query = supabase
@@ -188,15 +190,48 @@ function VerEstatisticas() {
           </div>
 
           {/* Coluna 2 - Pratos Populares  */}
-          <div className='w-full h-full bg-[#f1f6f7] rounded-2xl flex flex-col gap-2'>
+          <div className='w-full h-full bg-[#f1f6f7] rounded-2xl flex flex-col gapt-2 shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
             {/* Título */}
-            <div className='w-full h-20 bg-gray-500'></div>
+            <div className='w-full h-10 flex flex-row justify-between items-center px-3 py-4'>
+              <h1 className='font-semibold text-2xl text-[#032221]'>Pratos Populares</h1>
+              <span className='font-normal text-base text-[#03624c]'>Ver Todos</span>
+            </div>
 
             {/* Rank & Nome */}
-            <div className='w-full h-10 bg-gray-500'></div>
+            <div className='w-64 h-10 flex flex-row justify-between items-center px-3'>
+              <span className='font-light text-base text-gray-600'>Posição</span>
+              <span className='font-light text-base text-gray-600'>Nome</span>
+            </div>
 
             {/* Exibição de Itens */}
-            <div className='w-full h-full bg-gray-500'></div>
+            <div className='w-full h-full grid grid-rows-8 gap-2 px-2'>
+              <div className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)]'>
+                <div className='w-30 h-full flex items-center justify-start pl-5'>
+                  <span className='font-semibold text-2xl text-[#032221]'>01</span>
+                </div>
+                <div className='w-35 h-full flex items-center justify-center'>
+                  <img src="/CaldoVerde.jpg" alt="Teste" width={120} height={40}  className='rounded-full'/>
+                </div>
+                <div className='w-full h-full flex flex-col items-start justify-center pl-7'>
+                  <h1 className='font-semibold text-lg text-[#032221]'>Título do item</h1>
+                  <span className='font-light text-base text-gray-600'>Pedidos:</span>
+                </div>
+              </div>
+
+              <div className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)]'>
+                <div className='w-30 h-full flex items-center justify-start pl-5'>
+                  <span className='font-semibold text-2xl text-[#032221]'>01</span>
+                </div>
+                <div className='w-35 h-full flex items-center justify-center'>
+                  <img src="/CaldoVerde.jpg" alt="Teste" width={120} height={40}  className='rounded-full'/>
+                </div>
+                <div className='w-full h-full flex flex-col items-start justify-center pl-7'>
+                  <h1 className='font-semibold text-lg text-[#032221]'>Título do item</h1>
+                  <span className='font-light text-base text-gray-600'>Pedidos:</span>
+                </div>
+              </div>
+            
+            </div>
           </div>
         </div>
       </div>
