@@ -22,7 +22,19 @@ function VerEstatisticas() {
   const [numeroDiarioSelecionado, setNumeroDiarioSelecionado] = useState<string | null>(null);
   const [notaSelecionada, setNotaSelecionada] = useState<string | null>(null);
   const [dataAtual, setDataAtual] = useState('');
+  const [filtroAtivo, setFiltroAtivo] = useState("Todos");
+  const [eventoSelecionado, setEventoSelecionado] = useState("Festa do Imigrante");
 
+  //Filtros 
+  const filtros = ["Todos", "Confirmado", "Anulado"];
+  const eventos = [
+    "Festa do Imigrante",
+    "Noite de Verão",
+    "São João das Mós",
+    "Reveillon na Aldeia",
+  ];
+
+  //Função da Data Atual
   useEffect(() => {
     const hoje = new Date();
     const dataFormatada = hoje.toLocaleDateString('pt-PT', {
@@ -146,7 +158,7 @@ function VerEstatisticas() {
         </div>
 
         {/* Search Bard */}
-        <div className='h-10 p-4 mr-2 flex justify-between gap-1 items-center bg-[#f1f6f7] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
+        <div className='h-10 p-4 mr-2 flex justify-between gap-1 items-center bg-[#FFFDF6] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
           <GoSearch size={20}/>
             <input
               type="text"
@@ -164,12 +176,64 @@ function VerEstatisticas() {
       {/* Filtro e Estatisticas Globais */}
       <div className='flex w-full h-full gap-4 mt-2'>
         {/* Coluna 1 - Filtros e Histórico de Pedidos */}
-        <div className='w-full h-full bg-gray-500'>
+        <div className='w-full h-full flex flex-col gap-2'>
           {/* Filtros */}
-          <div></div>
+          <div className='w-full h-12 flex flex-row justify-between items-center px-2 gap-4'>
+            <div className='flex flex-row w-110 h-full justify-between items-center'>
+            {filtros.map((filtro) => (
+              <button
+                key={filtro}
+                onClick={() => setFiltroAtivo(filtro)}
+                className={`w-35 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 shadow-[1px_1px_3px_rgba(3,34,33,0.2)]
+                  ${
+                    filtroAtivo === filtro
+                      ? 'bg-[#03624c] text-[#FFFDF6]'
+                      : 'bg-[#FFFDF6] text-[#032221] hover:bg-[#dce6e7]'
+                  }`}
+              >
+                {filtro}
+              </button>
+            ))}
+            </div>
+
+            <div className="relative">
+              <label className="mr-2 text-sm font-semibold text-[#032221]">Selecionar Evento:</label>
+              <select
+                value={eventoSelecionado}
+                onChange={(e) => setEventoSelecionado(e.target.value)}
+                className="bg-[#032221] text-[#DDEB9D] font-semibold rounded-lg px-3 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)]"
+              >
+                {eventos.map((evento) => (
+                  <option key={evento} value={evento}>
+                    {evento}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           {/* Histórico Pedidos */}
-          <div></div>
+          <div className='w-full h-full grid grid-cols-4 gap-4 px-2'>
+            <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
+                {/* Nome, Nº e Estado */}
+                <div></div>
+
+                {/* Data&Hora e Evento */}
+                <div></div>
+
+                {/* Display de Itens, Quantidade e Preço */}
+                <div></div>
+
+                {/* Total Faturado */}
+                <div></div>
+
+                {/* Botão Ver Destalhes */}
+                <div></div>
+            </div>
+            <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'></div>
+            <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'></div>
+            <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'></div>
+          </div>
         </div>
 
         {/* Coluna 2 - Estatisticas  */}
@@ -179,20 +243,20 @@ function VerEstatisticas() {
           <div className='w-full h-40 flex flex-row bg-[#032221] rounded-xl gapb-4'>
             {/* Total de Pedido */}
             <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center'>
-              <h1 className='text-[#f1f6f7] font-normal text-xl'>Total de Pedidos</h1>
+              <h1 className='text-[#FFFDF6] font-normal text-xl'>Total de Pedidos</h1>
               <span className='text-[#DDEB9D] font-extralight text-xs'>* Festa do Imigrante</span>
-              <h1 className='text-[#f1f6f7] font-bold text-4xl py-2'>160</h1>
+              <h1 className='text-[#FFFDF6] font-bold text-4xl py-2'>160</h1>
             </div>
             {/* Total Faturado */}
             <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center'>
-              <h1 className='text-[#f1f6f7] font-normal text-xl'>Total Faturado</h1>
+              <h1 className='text-[#FFFDF6] font-normal text-xl'>Total Faturado</h1>
               <span className='text-[#DDEB9D] font-extralight text-xs'>* Festa do Imigrante</span>
-              <h1 className='text-[#f1f6f7] font-bold text-4xl py-2'>1.500€</h1>
+              <h1 className='text-[#FFFDF6] font-bold text-4xl py-2'>1.500€</h1>
             </div>
           </div>
 
           {/* Coluna 2 - Pratos Populares  */}
-          <div className='w-full h-full bg-[#f1f6f7] rounded-2xl flex flex-col gapt-2 shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
+          <div className='w-full h-full bg-[#FFFDF6] rounded-2xl flex flex-col gapt-2 shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
             {/* Título */}
             <div className='w-full h-10 flex flex-row justify-between items-center px-3 py-4'>
               <h1 className='font-semibold text-2xl text-[#032221]'>Pratos Populares</h1>

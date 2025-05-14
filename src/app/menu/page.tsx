@@ -88,7 +88,7 @@ export default function Menu() {
   return (
     <main className='flex flex-col justify-start items-center w-full h-full px-10 py-5 gap-5 overflow-y-scroll bg-[#eaf2e9]'>
       {/* Barra de Pesquisa */}
-      <div className='flex justify-between gap-1 px-4 items-center bg-[#f1f6f7] w-full min-h-10 rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
+      <div className='flex justify-between gap-1 px-4 items-center bg-[#FFFDF6] w-full min-h-10 rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
         <GoSearch size={20}/>
         <input
           type="text"
@@ -103,7 +103,7 @@ export default function Menu() {
       <div className='grid grid-cols-4 gap-4 w-full h-full max-h-10'>
         {Object.entries(groupedMenuItems).map(([tipo, items]) =>
           items.map((item) => (
-            <div key={item.id} className="flex flex-col justify-start bg-[#f1f6f7] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
+            <div key={item.id} className="flex flex-col justify-start bg-[#FFFDF6] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
               {/* Imagem (mantida estática) */}
               <div className="relative w-full h-42 rounded-2xl overflow-hidden">
                 {item.imagem_url ? (

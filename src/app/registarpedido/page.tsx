@@ -269,7 +269,7 @@ function RegistarPedido() {
       {/* Coluna 1 - Lado Esquerdo */}
       <div className="flex flex-col justify-between gap-4 flex-1 pt-1 pb-4 px-6 min-w-150 h-full bg-[#eaf2e9] transition-all duration-500">
         {/* Barra de Pesquisa */}
-        <div className='h-10 p-4 mt-4 flex justify-between gap-1 items-center bg-[#f1f6f7] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
+        <div className='h-10 p-4 mt-4 flex justify-between gap-1 items-center bg-[#FFFDF6] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
           <GoSearch size={20}/>
           <input
             type="text"
@@ -291,7 +291,7 @@ function RegistarPedido() {
                 key={filtro.id}
                 onClick={() => setFiltroSelecionado(filtro.id)}
                 className={`cursor-pointer w-full flex flex-col justify-between py-4 px-5 rounded-3xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]
-                  ${isActive ? 'bg-[rgba(3,98,76,0.08)]' : 'bg-[#f1f6f7]'}`}
+                  ${isActive ? 'bg-[rgba(3,98,76,0.08)]' : 'bg-[#FFFDF6]'}`}
               >
                 <Icone size={45} className={isActive ? 'text-[#032221]' : 'text-[#03624c]'} />
                 <div className='flex flex-col justify-between'>
@@ -315,7 +315,7 @@ function RegistarPedido() {
             {itensFiltrados.map((item) => (
                               <div 
                 key={item.id} 
-                className={`flex flex-col justify-start bg-[#f1f6f7] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] cursor-pointer ${itensSelecionados[item.id] ? 'ring-1 ring-[#03624c] ring-inset' : ''}`}
+                className={`flex flex-col justify-start bg-[#FFFDF6] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] cursor-pointer ${itensSelecionados[item.id] ? 'ring-1 ring-[#03624c] ring-inset' : ''}`}
                 onClick={() => !itensSelecionados[item.id] && adicionarItem(item)}
               >
                 {/* Imagem do item */}
@@ -395,7 +395,7 @@ function RegistarPedido() {
       </div>
       
       {/* Coluna 2 - Lado Direito */}
-      <div className='flex flex-col justify-between gap-4 w-[400px] pt-3 px-3 pb-4 h-full bg-[#f1f6f7]'>
+      <div className='flex flex-col justify-between gap-4 w-[400px] pt-3 px-3 pb-4 h-full bg-[#FFFDF6]'>
         {/* Nome */}
         <div className='w-full h-20 p-2 flex flex-1 flex-row justify-between'>
           <div className="flex flex-col w-full justify-start">
@@ -433,7 +433,7 @@ function RegistarPedido() {
             {isEditing ? (
               <IoCheckmarkOutline
                 size={40}
-                className='bg-[#03624c] text-[#f1f6f7] p-2 font-bold rounded-xl cursor-pointer'
+                className='bg-[#03624c] text-[#FFFDF6] p-2 font-bold rounded-xl cursor-pointer'
                 onClick={() => setIsEditing(false)}
               />
             ) : (
@@ -456,7 +456,7 @@ function RegistarPedido() {
                 rounded-3xl
                 ${
                   opcaoSelecionada === opcao
-                    ? 'bg-[#03624c] text-[#f1f6f7] h-14'
+                    ? 'bg-[#03624c] text-[#FFFDF6] h-14'
                     : 'bg-transparent text-[#032221] h-14'
                 }`}
             >
@@ -556,7 +556,7 @@ function RegistarPedido() {
           <button
             /*onClick={handleClick}*/
             onClick={efetuarPedido}
-            className="w-full bg-[#03624c] text-[#f1f6f7] text-sm font-semibold py-4 rounded-lg hover:bg-[#044a39] transition-all duration-500"
+            className="w-full bg-[#03624c] text-[#FFFDF6] text-sm font-semibold py-4 rounded-lg hover:bg-[#044a39] transition-all duration-500"
           >
             Efetuar Pedido
           </button>

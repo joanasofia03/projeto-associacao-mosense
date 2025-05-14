@@ -161,7 +161,7 @@ setUserId(session?.user.id);
   );
 
   return (
-    <nav className={`flex flex-col justify-between sticky top-0 left-0 h-screen bg-[#f1f6f7] transition-all duration-500 ${isExpanded ? 'w-75' : 'w-20'} shadow-md z-10`}>
+    <nav className={`flex flex-col justify-between sticky top-0 left-0 h-screen bg-[#FFFDF6] transition-all duration-500 ${isExpanded ? 'w-75' : 'w-20'} shadow-md z-10`}>
       {/* Header */}
       <div className="px-4 py-6 border-b border-[rgba(114,120,133,0.1)]">
         <div className="flex items-center justify-between">
