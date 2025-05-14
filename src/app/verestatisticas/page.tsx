@@ -178,14 +178,16 @@ function VerEstatisticas() {
           {/* Estatisticas dos Pedidos */}
           <div className='w-full h-40 flex flex-row bg-[#032221] rounded-xl gapb-4'>
             {/* Total de Pedido */}
-            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center gap-2'>
+            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center'>
               <h1 className='text-[#f1f6f7] font-normal text-xl'>Total de Pedidos</h1>
-              <h1 className='text-[#f1f6f7] font-bold text-4xl'>160</h1>
+              <span className='text-[#DDEB9D] font-extralight text-xs'>* Festa do Imigrante</span>
+              <h1 className='text-[#f1f6f7] font-bold text-4xl py-2'>160</h1>
             </div>
             {/* Total Faturado */}
-            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center gap-2'>
+            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center'>
               <h1 className='text-[#f1f6f7] font-normal text-xl'>Total Faturado</h1>
-              <h1 className='text-[#f1f6f7] font-bold text-4xl'>1.500€</h1>
+              <span className='text-[#DDEB9D] font-extralight text-xs'>* Festa do Imigrante</span>
+              <h1 className='text-[#f1f6f7] font-bold text-4xl py-2'>1.500€</h1>
             </div>
           </div>
 
