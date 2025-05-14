@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import Image from 'next/image';
+import Toast from '../components/toast';
 
 //Import de Icons
 import { GoSearch } from "react-icons/go";
@@ -44,6 +45,7 @@ function RegistarPedido() {
   const [eventoEmExecucao, setEventoEmExecucao] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [notas, setNotas] = useState<string>('');
+  const [toastVisible, setToastVisible] = useState(false);
 
   const filtros = [ //Organização dos filtros
     { nome: 'Todos os itens', id: 'todos', icon: PiSquaresFour },
@@ -246,52 +248,52 @@ function RegistarPedido() {
       return;
     }
     
-  const novoPedido = {
-    nome_cliente: nomeCliente,
-    contacto: contactoCliente || null,
-    nota: notas || null,
-    tipo_de_pedido: opcaoSelecionada || 'Comer Aqui',
-    registado_por: userId,
-    estado_validade: 'Confirmado',
-    id_evento: 3 // mudar
-  };
+    const novoPedido = {
+      nome_cliente: nomeCliente,
+      contacto: contactoCliente || null,
+      nota: notas || null,
+      tipo_de_pedido: opcaoSelecionada || 'Comer Aqui',
+      registado_por: userId,
+      estado_validade: 'Confirmado',
+      id_evento: 3 // mudar
+    };
 
-  const { data: pedidoInserido, error: erroPedido } = await supabase
-    .from('pedidos')
-    .insert([novoPedido])
-    .select()
-    .single();
+    const { data: pedidoInserido, error: erroPedido } = await supabase
+      .from('pedidos')
+      .insert([novoPedido])
+      .select()
+      .single();
 
-  if (erroPedido) {
-    console.error(erroPedido.message);
-    setErro('Erro ao registrar o pedido.');
-    return;
+    if (erroPedido) {
+      console.error(erroPedido.message);
+      setErro('Erro ao registrar o pedido.');
+      return;
+    }
+
+    const itensPedido = Object.values(itensSelecionados).map(item => ({
+      pedido_id: pedidoInserido.id,
+      item_id: item.id,
+      quantidade: item.quantidade,
+    }));
+
+    const { error: erroItens } = await supabase
+      .from('pedidos_itens')
+      .insert(itensPedido);
+
+    if (erroItens) {
+      console.error(erroItens.message);
+      setErro('Erro ao registrar itens do pedido.');
+      return;
+    }
+
+    setToastVisible(true);
+    limparTodosPedidos();
+    setNomeCliente('');
+    setContactoCliente('');
+    setNotas('');
+    setOpcaoSelecionada(null);
+
   }
-
-  const itensPedido = Object.values(itensSelecionados).map(item => ({
-    pedido_id: pedidoInserido.id,
-    item_id: item.id,
-    quantidade: item.quantidade,
-  }));
-
-  const { error: erroItens } = await supabase
-    .from('pedidos_itens')
-    .insert(itensPedido);
-
-  if (erroItens) {
-    console.error(erroItens.message);
-    setErro('Erro ao registrar itens do pedido.');
-    return;
-  }
-
-  alert('Pedido registrado com sucesso!');
-  limparTodosPedidos();
-  setNomeCliente('');
-  setContactoCliente('');
-  setNotas('');
-  setOpcaoSelecionada(null);
-
-}
 
   return (
     <div className='flex flex-row w-full h-full'>
@@ -582,12 +584,17 @@ function RegistarPedido() {
         {/* Botão de Place Order */}
         <div className='w-full h-20'>
           <button
-            /*onClick={handleClick}*/
             onClick={efetuarPedido}
             className="w-full bg-[#032221] text-[#FFFDF6] text-sm font-semibold py-4 rounded-lg hover:bg-[#052e2d] transition-transform duration-300 hover:scale-103 cursor-pointer" 
           >
             Efetuar Pedido
           </button>
+
+           <Toast
+            message="Pedido registrado com sucesso!"
+            visible={toastVisible}
+            onClose={() => setToastVisible(false)}
+            />
         </div>
       </div>
     </div>
