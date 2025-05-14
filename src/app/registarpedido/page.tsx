@@ -256,13 +256,42 @@ function RegistarPedido() {
     id_evento: 3 // mudar
   };
 
-  const { data, error } = await supabase
+  const { data: pedidoInserido, error: erroPedido } = await supabase
     .from('pedidos')
-    .insert([novoPedido]);
+    .insert([novoPedido])
+    .select()
+    .single();
 
-  if (error) {
-    console.log(error.message);
-  }}
+  if (erroPedido) {
+    console.error(erroPedido.message);
+    setErro('Erro ao registrar o pedido.');
+    return;
+  }
+
+  const itensPedido = Object.values(itensSelecionados).map(item => ({
+    pedido_id: pedidoInserido.id,
+    item_id: item.id,
+    quantidade: item.quantidade,
+  }));
+
+  const { error: erroItens } = await supabase
+    .from('pedidos_itens')
+    .insert(itensPedido);
+
+  if (erroItens) {
+    console.error(erroItens.message);
+    setErro('Erro ao registrar itens do pedido.');
+    return;
+  }
+
+  alert('Pedido registrado com sucesso!');
+  limparTodosPedidos();
+  setNomeCliente('');
+  setContactoCliente('');
+  setNotas('');
+  setOpcaoSelecionada(null);
+
+}
 
   return (
     <div className='flex flex-row w-full h-full'>
