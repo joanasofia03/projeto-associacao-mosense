@@ -115,8 +115,8 @@ setUserId(session?.user.id);
   
   //Classes para os links com alinhamento consistente
   const linkClass = isExpanded 
-    ? "flex items-center gap-3 w-full px-4 py-3 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] rounded-lg transition-all duration-200" 
-    : "flex justify-center items-center w-full px-4 py-3 text-[#032221] hover:text-[#f1f6f7] hover:bg-[#032221] rounded-lg transition-all duration-200";
+    ? "flex items-center gap-3 w-full px-4 py-3 text-[#032221] hover:text-[#FFFDF6] hover:bg-[#032221] rounded-lg transition-all duration-200 hover:-translate-y-[2px]" 
+    : "flex justify-center items-center w-full px-4 py-3 text-[#032221] hover:text-[#FFFDF6] hover:bg-[#032221] rounded-lg transition-all duration-200 hover:-translate-y-[2px]";
 
   //Menu item com notificação opcional
   const MenuItem = ({ 

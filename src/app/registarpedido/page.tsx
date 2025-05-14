@@ -290,15 +290,15 @@ function RegistarPedido() {
               <div
                 key={filtro.id}
                 onClick={() => setFiltroSelecionado(filtro.id)}
-                className={`cursor-pointer w-full flex flex-col justify-between py-4 px-5 rounded-3xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]
-                  ${isActive ? 'bg-[rgba(3,98,76,0.08)]' : 'bg-[#FFFDF6]'}`}
+                className={`cursor-pointer w-full flex flex-col justify-between py-4 px-5 rounded-3xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] transition-transform duration-300 hover:-translate-y-1
+                  ${isActive ? 'bg-[#032221]' : 'bg-[#FFFDF6] hover:bg-[rgba(220,230,231,0.5)]'}`}
               >
-                <Icone size={45} className={isActive ? 'text-[#032221]' : 'text-[#03624c]'} />
+                <Icone size={45} className={isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'} />
                 <div className='flex flex-col justify-between'>
-                  <h1 className={`font-semibold text-lg truncate ${isActive ? 'text-[#032221]' : 'text-[#03624c]'}`}>
+                  <h1 className={`font-semibold text-lg truncate ${isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'}`}>
                     {filtro.nome}
                   </h1>
-                  <span className={`font-normal text-sm ${isActive ? 'text-[#032221]' : 'text-gray-500'}`}>
+                  <span className={`font-normal text-xs ${isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'}`}>
                       {filtro.id === 'todos'
                         ? `${contagemPorTipo["Todos"] || 0} itens`
                         : `${contagemPorTipo[filtro.id] || 0} itens`}
@@ -345,7 +345,7 @@ function RegistarPedido() {
 
                 {/* Preço e Categoria */}
                 <div className="flex flex-row justify-between items-center">
-                  <span className='text-[#17876d] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
+                  <span className='text-[#399918] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
                   <span className='flex flex-row items-center justify-center text-black font-normal text-base gap-2 text-gray-500'>
                     {getIconByType(item.tipo)}
                     <span className="relative top-[1px]">{item.tipo}</span>
@@ -354,13 +354,13 @@ function RegistarPedido() {
 
                 {/* Botão de Adicionar ou Controles de Quantidade */}
                 {itensSelecionados[item.id] ? (
-                  <div className="mt-2 flex items-center justify-between bg-[rgba(3,98,76,0.1)] rounded-lg p-2">
+                  <div className="mt-2 flex items-center justify-between bg-[rgba(3,98,76,0.15)] rounded-lg p-2">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
                         diminuirQuantidade(item.id);
                       }}
-                      className="w-8 h-8 flex items-center justify-center bg-[#03624c] text-white rounded-full font-bold text-xl"
+                      className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl"
                     >
                       -
                     </button>
@@ -372,7 +372,7 @@ function RegistarPedido() {
                         e.stopPropagation();
                         aumentarQuantidade(item.id);
                       }}
-                      className="w-8 h-8 flex items-center justify-center bg-[#03624c] text-white rounded-full font-bold text-xl"
+                      className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl transition-transform duration-300 hover:scale-103 cursor-pointer"
                     >
                       +
                     </button>
@@ -383,7 +383,7 @@ function RegistarPedido() {
                       e.stopPropagation();
                       adicionarItem(item);
                     }}
-                    className="mt-2 w-full py-2 bg-[#03624c] text-white rounded-lg font-medium hover:bg-[#044a39] transition-colors"
+                    className="mt-2 w-full py-2 bg-[#032221] text-[#FFFDF6] rounded-lg font-medium hover:bg-[#052e2d] transition-transform duration-300 hover:scale-105 cursor-pointer"
                   >
                     Adicionar ao pedido
                   </button>
@@ -399,35 +399,34 @@ function RegistarPedido() {
         {/* Nome */}
         <div className='w-full h-20 p-2 flex flex-1 flex-row justify-between'>
           <div className="flex flex-col w-full justify-start">
-  {isEditing ? (
-    <>
-      <input
-        type="text"
-        placeholder="Nome & Sobrenome"
-        value={nomeCliente}
-        onChange={handleNomeChange}
-        className="text-[#032221] min-w-65 text-lg font-semibold px-2 border border-transparent bg-[rgba(3,98,76,0.1)] rounded-t-lg focus:outline-none focus:ring-2 focus:ring-[#044a39]"
-      />
-      <input
-        type="text"
-        placeholder="Contacto"
-        value={contactoCliente}
-        onChange={handleContactoChange}
-        className="text-[#032221] min-w-65 text-sm font-normal px-2 border border-transparent bg-[rgba(3,98,76,0.1)] rounded-b-lg focus:outline-none focus:ring-2 focus:ring-[#044a39]"
-      />
-    </>
-  ) : (
-    <>
-      <h1 className="min-w-65 text-[#032221] text-lg font-semibold px-2 border border-transparent">
-        {nomeCliente || "Nome & Sobrenome"}
-      </h1>
-      <span className="min-w-65 text-gray-500 text-sm font-normal px-2 border border-transparent">
-        {contactoCliente || "Contacto"}
-      </span>
-    </>
-  )}
-</div>
-
+            {isEditing ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="Nome & Sobrenome"
+                  value={nomeCliente}
+                  onChange={handleNomeChange}
+                  className="text-[#032221] min-w-65 text-lg font-semibold px-2 border border-transparent bg-[rgba(3,98,76,0.05)] rounded-t-lg focus:outline-none focus:ring-2 focus:ring-[#044a39]"
+                />
+                <input
+                  type="text"
+                  placeholder="Contacto"
+                  value={contactoCliente}
+                  onChange={handleContactoChange}
+                  className="text-[#032221] min-w-65 text-sm font-normal px-2 border border-transparent bg-[rgba(3,98,76,0.05)] rounded-b-lg focus:outline-none focus:ring-2 focus:ring-[#044a39]"
+                />
+              </>
+            ) : (
+              <>
+                <h1 className="min-w-65 text-[#032221] text-lg font-semibold px-2 border border-transparent">
+                  {nomeCliente || "Nome & Sobrenome"}
+                </h1>
+                <span className="min-w-65 text-gray-500 text-sm font-normal px-2 border border-transparent">
+                  {contactoCliente || "Contacto"}
+                </span>
+              </>
+            )}
+          </div>
 
           <div className='flex w-full justify-end items-center'>
             {isEditing ? (
@@ -452,12 +451,12 @@ function RegistarPedido() {
             <h1
               key={opcao}
               onClick={() => setOpcaoSelecionada(opcao)}
-              className={`text-sm font-bold flex-1 flex items-center justify-center cursor-pointer transition-all duration-300
+              className={`text-sm font-bold flex-1 flex items-center justify-center cursor-pointer transition-transform duration-300 hover:-translate-y-1
                 rounded-3xl
                 ${
                   opcaoSelecionada === opcao
-                    ? 'bg-[#03624c] text-[#FFFDF6] h-14'
-                    : 'bg-transparent text-[#032221] h-14'
+                    ? 'bg-[#032221] text-[#FFFDF6] h-14'
+                    : 'bg-transparent text-[#032221] h-14 hover:bg-[rgba(220,230,231,0.5)]'
                 }`}
             >
               {opcao}
@@ -512,7 +511,7 @@ function RegistarPedido() {
                       </div>
                       <div className="flex flex-col items-end">
                         <span className="text-xs text-gray-600">{item.quantidade}x €{item.preco.toFixed(2)}</span>
-                        <span className="font-semibold text-[#177560]">€{(item.preco * (item.quantidade || 1)).toFixed(2)}</span>
+                        <span className="font-semibold text-[#399918]">€{(item.preco * (item.quantidade || 1)).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -556,7 +555,7 @@ function RegistarPedido() {
           <button
             /*onClick={handleClick}*/
             onClick={efetuarPedido}
-            className="w-full bg-[#03624c] text-[#FFFDF6] text-sm font-semibold py-4 rounded-lg hover:bg-[#044a39] transition-all duration-500"
+            className="w-full bg-[#032221] text-[#FFFDF6] text-sm font-semibold py-4 rounded-lg hover:bg-[#052e2d] transition-transform duration-300 hover:scale-103 cursor-pointer" 
           >
             Efetuar Pedido
           </button>

@@ -131,7 +131,7 @@ export default function Menu() {
 
               {/* Preço e Categoria */}
               <div className="flex flex-row justify-between items-center">
-                <span className='text-[#17876d] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
+                <span className='text-[#399918] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
                 <span className='flex flex-row items-center justify-center text-black font-normal text-base gap-2 text-gray-500'>
                   {getIconByType(item.tipo)}
                   <span className="relative top-[1px]">{item.tipo}</span>

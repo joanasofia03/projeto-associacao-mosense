@@ -8,7 +8,7 @@ export default function Home() {
   const iconSize = 18;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f6faf5]">
+    <div className="flex flex-col min-h-screen bg-[#eaf2e9]">
       <Head>
         <title>Next App</title>
         <link rel="icon" href="/favicon.ico" />
@@ -20,7 +20,7 @@ export default function Home() {
           Um sistema informático de apoio à organização de festas e eventos, gerido pela atual comissão de festas.
         </h1>
         <h1 className="text-sm text-[#032221] text-center">
-            <Link href="/termsofuseprivacypolicy" className="underline text-[#064e3b] hover:text-[#043d2c]">
+            <Link href="/termsofuseprivacypolicy" className="underline text-[#2d7a12] hover:text-[#21590d]">
               Termos de Utilização e Política de Privacidade
             </Link>
           </h1>

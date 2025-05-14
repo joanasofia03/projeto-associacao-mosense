@@ -6,6 +6,7 @@ import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
 //Import de Icons
 import { GoSearch } from "react-icons/go";
+import { IoCheckmarkDoneSharp } from "react-icons/io5";
 
 function VerEstatisticas() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -158,7 +159,7 @@ function VerEstatisticas() {
         </div>
 
         {/* Search Bard */}
-        <div className='h-10 p-4 mr-2 flex justify-between gap-1 items-center bg-[#FFFDF6] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
+        <div className='h-10 p-4 mr-4 flex justify-between gap-1 items-center bg-[#FFFDF6] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
           <GoSearch size={20}/>
             <input
               type="text"
@@ -184,10 +185,10 @@ function VerEstatisticas() {
               <button
                 key={filtro}
                 onClick={() => setFiltroAtivo(filtro)}
-                className={`w-35 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 shadow-[1px_1px_3px_rgba(3,34,33,0.2)]
+                className={`w-35 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer
                   ${
                     filtroAtivo === filtro
-                      ? 'bg-[#03624c] text-[#FFFDF6]'
+                      ? 'bg-[#032221] text-[#FFFDF6]'
                       : 'bg-[#FFFDF6] text-[#032221] hover:bg-[#dce6e7]'
                   }`}
               >
@@ -201,7 +202,7 @@ function VerEstatisticas() {
               <select
                 value={eventoSelecionado}
                 onChange={(e) => setEventoSelecionado(e.target.value)}
-                className="bg-[#032221] text-[#DDEB9D] font-semibold rounded-lg px-3 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)]"
+                className="bg-[#032221] text-[#FFFDF6] font-semibold rounded-lg px-3 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)]"
               >
                 {eventos.map((evento) => (
                   <option key={evento} value={evento}>
@@ -213,26 +214,58 @@ function VerEstatisticas() {
           </div>
 
           {/* Histórico Pedidos */}
-          <div className='w-full h-full grid grid-cols-4 gap-4 px-2'>
-            <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
-                {/* Nome, Nº e Estado */}
-                <div></div>
+          <div className='w-full h-full grid grid-cols-3 gap-4 px-2'>
+            <div className='w-full h-90 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
+              {/* Nome, Nº e Estado */}
+              <div className='flex flex-row justify-between items-start w-full h-20 px-3 py-4'>
+                <div className='bg-[#032221] rounded-lg p-3'>
+                  <span className='text-[#FFFDF6] font-semibold text-lg'>123</span>
+                </div>
+                <div className='flex flex-col justify-start items-start w-190 h-full px-3'>
+                  <h1 className='text-[#032221] font-semibold text-lg'>David Moutinho</h1>
+                  <span className='font-medium text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>933793188 / Comer Aqui</span>
+                </div>
+                <div className='flex flex-1 flex-row justify-center content-center items-center w-full h-7 gap-1 bg-[#DDEB9D] py-1 px-2 rounded-lg'>
+                  <IoCheckmarkDoneSharp size={12} className='text-[#032221] font-semibold text-xs'/>
+                  <span className='text-[#032221] font-medium text-xs'>Confirmado</span>
+                </div>
+              </div>
 
-                {/* Data&Hora e Evento */}
-                <div></div>
+              {/* Data&Hora e Evento */}
+              <div className='w-full h-6 flex flex-row justify-between items-center px-3 pb-2 border-b-1 border-[rgba(32,41,55,0.1)]'>
+                <span className='font-normal text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Quarta-Feira, 10 Agosto, 2025</span>
+                <span className='font-normal text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>12:30</span>
+              </div>
 
-                {/* Display de Itens, Quantidade e Preço */}
-                <div></div>
+              {/* Display de Itens, Quantidade e Preço */}
+              <div className='w-full h-full flex flex-col justify-between items-start px-3 pt-2 border-b-1 border-[rgba(32,41,55,0.1)]'>
+                <div className=' w-full h-5 flex flex-row justify-between items-start'>
+                  <span className='font-normal text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Itens</span>
+                  <span className='font-normal text-xs ml-20' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Qty</span>
+                  <span className='font-normal text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Preço</span>
+                </div>
+                <div className=' w-full h-full grid grid-rows-4'>
+                  <div className='w-full h-full flex flex-row justify-between items-center'>
+                    <span className='text-[#032221] font-medium text-sm'>Caldo Verde</span>
+                    <span className='text-[#032221] font-medium text-sm ml-7'>1</span>
+                    <span className='text-[#032221] font-medium text-sm'>1.50€</span>
+                  </div>
+                </div>
+              </div>
 
-                {/* Total Faturado */}
-                <div></div>
+              {/* Total Faturado */}
+              <div className='w-full h-10 flex flex-row justify-between items-start px-3 pt-2'>
+                <h1 className='text-[#032221] font-semibold text-lg'>Total</h1>
+                <h1 className='text-[#032221] font-semibold text-lg'>72.45€</h1>
+              </div>
 
-                {/* Botão Ver Destalhes */}
-                <div></div>
+              {/* Botão Ver Destalhes */}
+              <div className='w-full px-3 pb-4 pt-1'>
+                <h1 className='bg-[#032221] text-[#FFFDF6] rounded-lg w-full flex justify-center items-center py-2 cursor-pointer hover:bg-[#052e2d] transition-transform duration-300 hover:scale-105'>Ver Detalhes</h1>
+              </div>
             </div>
-            <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'></div>
-            <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'></div>
-            <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'></div>
+            <div className='w-full h-90 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'></div>
+            <div className='w-full h-90 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'></div>
           </div>
         </div>
 
@@ -256,11 +289,11 @@ function VerEstatisticas() {
           </div>
 
           {/* Coluna 2 - Pratos Populares  */}
-          <div className='w-full h-full bg-[#FFFDF6] rounded-2xl flex flex-col gapt-2 shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
+          <div className='w-full h-full bg-[#FFFDF6] rounded-2xl flex flex-col gapt-2 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] pt-2'>
             {/* Título */}
             <div className='w-full h-10 flex flex-row justify-between items-center px-3 py-4'>
               <h1 className='font-semibold text-2xl text-[#032221]'>Pratos Populares</h1>
-              <span className='font-normal text-base text-[#03624c]'>Ver Todos</span>
+              <span className='font-normal text-sm text-[#399918] cursor-pointer'>Ver Todos</span>
             </div>
 
             {/* Rank & Nome */}
