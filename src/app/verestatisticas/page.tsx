@@ -21,7 +21,7 @@ function VerEstatisticas() {
   const [itensDoPedido, setItensDoPedido] = useState<any[]>([]);
   const [dataAtual, setDataAtual] = useState('');
   const [filtroAtivo, setFiltroAtivo] = useState("Todos");
-  const [eventoSelecionado, setEventoSelecionado] = useState('');
+  const [idEventoSelecionado, setIdEventoSelecionado] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [eventos, setEventos] = useState<any[]>([]); 
 
@@ -63,14 +63,14 @@ function VerEstatisticas() {
 
   useEffect(() => {
     const fetchPedidos = async () => {
-      if (!eventoSelecionado) {
+      if (!idEventoSelecionado) {
         return;
       }
 
       let query = supabase
         .from('pedidos')
         .select('*')
-        .eq('id_evento', eventoSelecionado);
+        .eq('id_evento', idEventoSelecionado);
 
       if (filtroValidade !== 'Todos') {
         query = query.eq('estado_validade', filtroValidade);
@@ -88,7 +88,7 @@ function VerEstatisticas() {
     };
 
     fetchPedidos();
-  }, [eventoSelecionado, filtroValidade]);
+  }, [idEventoSelecionado, filtroValidade]);
 
 
   const estadosValidade = ['Todos', 'Confirmado', 'Anulado'];
@@ -147,8 +147,8 @@ function VerEstatisticas() {
            <div className="relative">
             <label className="mr-2 text-sm font-semibold text-[#032221]">Selecionar Evento:</label>
             <select
-              value={eventoSelecionado}
-              onChange={(e) => setEventoSelecionado(e.target.value)}
+              value={idEventoSelecionado}
+              onChange={(e) => setIdEventoSelecionado(e.target.value)}
               className="bg-[#032221] text-[#FFFDF6] font-semibold rounded-lg px-3 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)]"
             >
               <option value="" disabled hidden>Selecione...</option>
