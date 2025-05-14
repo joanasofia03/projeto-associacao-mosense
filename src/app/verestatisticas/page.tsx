@@ -183,7 +183,7 @@ function VerEstatisticas() {
           </div>
 
           {/* Histórico Pedidos */}
-          <div className='w-full h-full grid grid-cols-3 gap-4 px-2'>
+          <div className='w-full h-full grid grid-cols-2 gap-4 px-2'>
             <div className='w-full h-90 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
               {/* Nome, Nº e Estado */}
               <div className='flex flex-row justify-between items-start w-full h-20 px-3 py-4'>

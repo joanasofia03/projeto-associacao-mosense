@@ -114,8 +114,12 @@ function AlterarItem() {
     }
   };
 
+  const sopas = items.filter((item) => item.tipo === 'Sopas');
   const comidas = items.filter((item) => item.tipo === 'Comida');
+  const sobremesas = items.filter((item) => item.tipo === 'Sobremesas');
   const bebidas = items.filter((item) => item.tipo === 'Bebida');
+  const álcool = items.filter((item) => item.tipo === 'Álcool');
+  const brindes = items.filter((item) => item.tipo === 'Brindes');
 
   const ItemList = ({ titulo, lista }: { titulo: string; lista: Item[] }) => (
     <div className="mb-10">
@@ -199,8 +203,8 @@ function AlterarItem() {
   );
 
   return (
-    <main className="h-full px-6 py-10 bg-gray-200 overflow-y-scroll">
-      <h1 className="text-3xl font-semibold mb-8 text-gray-800">Todos os Itens</h1>
+    <main className="h-full px-6 py-10 bg-[#eaf2e9] overflow-y-scroll">
+      <h1 className="text-3xl font-semibold mb-8 text-[#032221]">Todos os Itens</h1>
 
       {loading ? (
         <p>A carregar...</p>
@@ -208,8 +212,12 @@ function AlterarItem() {
         <p>Nenhum item encontrado.</p>
       ) : (
         <>
+          <ItemList titulo="Sopas" lista={sopas} />
           <ItemList titulo="Comidas" lista={comidas} />
+          <ItemList titulo="Sobremesas" lista={sobremesas} />
           <ItemList titulo="Bebidas" lista={bebidas} />
+          <ItemList titulo="Álcool" lista={álcool} />
+          <ItemList titulo="Brindes" lista={brindes} />
         </>
       )}
     </main>
