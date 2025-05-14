@@ -10,7 +10,6 @@ import { IoCheckmarkDoneSharp } from "react-icons/io5";
 
 function VerEstatisticas() {
   const [pedidos, setPedidos] = useState<any[]>([]);
-  const [ordem, setOrdem] = useState<'data' | 'cliente'>('data');
   const [filtroValidade, setFiltroValidade] = useState<string>('Todos');
   const [totais, setTotais] = useState({
     total: 0,
@@ -20,11 +19,9 @@ function VerEstatisticas() {
 
   const [mostrarModal, setMostrarModal] = useState(false);
   const [itensDoPedido, setItensDoPedido] = useState<any[]>([]);
-  const [numeroDiarioSelecionado, setNumeroDiarioSelecionado] = useState<string | null>(null);
-  const [notaSelecionada, setNotaSelecionada] = useState<string | null>(null);
   const [dataAtual, setDataAtual] = useState('');
   const [filtroAtivo, setFiltroAtivo] = useState("Todos");
-  const [eventoSelecionado, setEventoSelecionado] = useState("Festa do Imigrante");
+  const [idEventoSelecionado, setIdEventoSelecionado] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [eventos, setEventos] = useState<any[]>([]); 
 
@@ -66,55 +63,33 @@ function VerEstatisticas() {
 
   useEffect(() => {
     const fetchPedidos = async () => {
-      const { data, error } = await supabase
+      if (!idEventoSelecionado) {
+        return;
+      }
+
+      let query = supabase
         .from('pedidos')
-        .select('*');
+        .select('*')
+        .eq('id_evento', idEventoSelecionado);
+
+      if (filtroValidade !== 'Todos') {
+        query = query.eq('estado_validade', filtroValidade);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         setErro("Erro ao procurar pedidos");
         console.error(error);
       } else {
-        setPedidos(data);
+        setPedidos(data || []);
+        console.log(data)
       }
     };
 
     fetchPedidos();
-  }, [ordem, filtroValidade]);
+  }, [idEventoSelecionado, filtroValidade]);
 
-  const fetchItensDoPedido = async (pedidoId: number, numeroDiario: string) => {
-    const { data: pedido, error: pedidoError } = await supabase
-      .from('pedidos')
-      .select('nota')
-      .eq('id', pedidoId)
-      .single();
-
-    if (pedidoError) {
-      console.error('Erro ao obter nota do pedido:', pedidoError);
-      return;
-    }
-
-    const { data: itens, error } = await supabase
-      .from('pedidos_itens')
-      .select(`
-        id, item_id, quantidade, para_levantar_depois,
-        itens (nome)
-      `)
-      .eq('pedido_id', pedidoId);
-
-    if (error) {
-      console.error('Erro ao carregar itens do pedido:', error);
-      return;
-    }
-
-    setItensDoPedido(itens);
-    setNumeroDiarioSelecionado(numeroDiario);
-    setNotaSelecionada(pedido.nota || null);
-    setMostrarModal(true);
-  };
-
-  // useEffect(() => {
-  //   fetchPedidos();
-  // }, [ordem, filtroValidade]);
 
   const estadosValidade = ['Todos', 'Confirmado', 'Anulado'];
 
@@ -153,7 +128,10 @@ function VerEstatisticas() {
             {filtros.map((filtro) => (
               <button
                 key={filtro}
-                onClick={() => setFiltroAtivo(filtro)}
+                onClick={() => {
+                  setFiltroValidade(filtro);
+                  setFiltroAtivo(filtro);
+                }}
                 className={`w-35 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer
                   ${
                     filtroAtivo === filtro
@@ -166,21 +144,22 @@ function VerEstatisticas() {
             ))}
             </div>
 
-            <div className="relative">
-              <label className="mr-2 text-sm font-semibold text-[#032221]">Selecionar Evento:</label>
-              <select
-                value={eventoSelecionado}
-                onChange={(e) => setEventoSelecionado(e.target.value)}
-                className="bg-[#032221] text-[#FFFDF6] font-semibold rounded-lg px-3 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)]"
-              >
-                {eventos.map((evento) => (
-                  <option key={evento.id} value={evento.nome}>
-                    {evento.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
+           <div className="relative">
+            <label className="mr-2 text-sm font-semibold text-[#032221]">Selecionar Evento:</label>
+            <select
+              value={idEventoSelecionado}
+              onChange={(e) => setIdEventoSelecionado(e.target.value)}
+              className="bg-[#032221] text-[#FFFDF6] font-semibold rounded-lg px-3 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)]"
+            >
+              <option value="" disabled hidden>Selecione...</option>
+              {eventos.map((evento) => (
+                <option key={evento.id} value={evento.id}>
+                  {evento.nome}
+                </option>
+              ))}
+            </select>
           </div>
+        </div> 
 
           {/* Histórico Pedidos */}
           <div className='w-full h-full grid grid-cols-2 gap-4 px-2'>
