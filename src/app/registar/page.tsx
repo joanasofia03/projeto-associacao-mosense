@@ -125,7 +125,7 @@ export default function SignUp() {
 
           <div className="text-sm text-[#032221] mt-2">
             Ao criar uma conta está automaticamente a concordar com os{' '}
-            <Link href="/termsofuseprivacypolicy" className="underline text-[#537D5D] hover:text-[#032221]">
+            <Link href="/termsofuseprivacypolicy" className="underline text-[#3F7D58] hover:text-[#032221]">
               Termos de Utilização e Política de Privacidade
             </Link>.
           </div>

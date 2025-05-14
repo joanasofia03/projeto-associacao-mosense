@@ -1,18 +1,27 @@
-// components/Toast.tsx
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-export default function Toast({ message, visible, onClose }: { message: string, visible: boolean, onClose: () => void }) {
+type ToastProps = {
+  message: string;
+  visible: boolean;
+  onClose: () => void;
+  type?: 'success' | 'error';
+};
+
+export default function Toast({ message, visible, onClose, type = 'success' }: ToastProps) {
   useEffect(() => {
     if (visible) {
-      const timer = setTimeout(onClose, 3000); // Fecha automaticamente após 3 segundos
+      const timer = setTimeout(onClose, 3000);
       return () => clearTimeout(timer);
     }
   }, [visible, onClose]);
 
   if (!visible) return null;
 
+  const backgroundColor = type === 'success' ? 'bg-[#A4B465]' : 'bg-[#D2665A]';
+  const textColor = 'text-white';
+
   return (
-    <div className="fixed top-0 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300">
+    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 ${backgroundColor} ${textColor}`}>
       {message}
     </div>
   );

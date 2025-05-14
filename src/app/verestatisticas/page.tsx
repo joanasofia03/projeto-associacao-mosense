@@ -25,15 +25,28 @@ function VerEstatisticas() {
   const [dataAtual, setDataAtual] = useState('');
   const [filtroAtivo, setFiltroAtivo] = useState("Todos");
   const [eventoSelecionado, setEventoSelecionado] = useState("Festa do Imigrante");
+  const [erro, setErro] = useState<string | null>(null);
+  const [eventos, setEventos] = useState<any[]>([]); 
 
   //Filtros 
   const filtros = ["Todos", "Confirmado", "Anulado"];
-  const eventos = [
-    "Festa do Imigrante",
-    "Noite de Verão",
-    "São João das Mós",
-    "Reveillon na Aldeia",
-  ];
+
+  useEffect(() => {
+    const fetchEventos = async () => {
+      const { data, error } = await supabase
+        .from('eventos')
+        .select('*');
+
+      if (error) {
+        setErro("Erro ao procurar evento");
+        console.error(error);
+      } else {
+        setEventos(data);
+      }
+    };
+
+    fetchEventos();
+  }, []);
 
   //Função da Data Atual
   useEffect(() => {
@@ -51,66 +64,22 @@ function VerEstatisticas() {
     setDataAtual(primeiraLetraMaiuscula);
   }, []);
 
+  useEffect(() => {
+    const fetchPedidos = async () => {
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select('*');
 
-  const fetchPedidos = async () => {
-    let query = supabase
-      .from('pedidos')
-      .select(`
-        id,
-        numero_diario,
-        nome_cliente,
-        criado_em,
-        estado_validade,
-        pedidos_itens (
-          item_id,
-          itens (
-            preco
-          )
-        )
-      `);
-
-    if (ordem === 'data') {
-      query = query.order('criado_em', { ascending: false });
-    } else {
-      query = query.order('nome_cliente', { ascending: true });
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Erro ao carregar pedidos:', error);
-      return;
-    }
-
-    const filtrados = data.filter((p) => {
-      const passaValidade =
-        filtroValidade === 'Todos' || p.estado_validade === filtroValidade;
-      return passaValidade;
-    });
-
-    const contagemValidade: Record<string, number> = {};
-    let totalFaturado = 0;
-
-    filtrados.forEach((p) => {
-      contagemValidade[p.estado_validade] =
-        (contagemValidade[p.estado_validade] || 0) + 1;
-
-      if (p.estado_validade === 'Confirmado') {
-        const soma = p.pedidos_itens?.reduce((s: number, item: any) => {
-          return s + (item.itens?.preco || 0);
-        }, 0);
-        totalFaturado += soma || 0;
+      if (error) {
+        setErro("Erro ao procurar pedidos");
+        console.error(error);
+      } else {
+        setPedidos(data);
       }
-    });
+    };
 
-    setTotais({
-      total: filtrados.length,
-      totalFaturado,
-      porEstadoValidade: contagemValidade,
-    });
-
-    setPedidos(filtrados);
-  };
+    fetchPedidos();
+  }, [ordem, filtroValidade]);
 
   const fetchItensDoPedido = async (pedidoId: number, numeroDiario: string) => {
     const { data: pedido, error: pedidoError } = await supabase
@@ -143,9 +112,9 @@ function VerEstatisticas() {
     setMostrarModal(true);
   };
 
-  useEffect(() => {
-    fetchPedidos();
-  }, [ordem, filtroValidade]);
+  // useEffect(() => {
+  //   fetchPedidos();
+  // }, [ordem, filtroValidade]);
 
   const estadosValidade = ['Todos', 'Confirmado', 'Anulado'];
 
@@ -205,8 +174,8 @@ function VerEstatisticas() {
                 className="bg-[#032221] text-[#FFFDF6] font-semibold rounded-lg px-3 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)]"
               >
                 {eventos.map((evento) => (
-                  <option key={evento} value={evento}>
-                    {evento}
+                  <option key={evento.id} value={evento.nome}>
+                    {evento.nome}
                   </option>
                 ))}
               </select>

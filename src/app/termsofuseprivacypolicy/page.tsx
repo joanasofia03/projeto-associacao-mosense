@@ -20,7 +20,7 @@ export default function TermosPage() {
                   Ao utilizar esta aplicação, o utilizador concorda em cumprir estes termos de utilização e a nossa política de privacidade.
                   Reservamo-nos o direito de alterar estes termos a qualquer momento. Sempre que houver alterações relevantes, notificaremos os utilizadores.
                   Para qualquer questão,{' '}
-                  <Link href="/" className="text-[#064e3b] underline hover:text-[#043d2c]">
+                  <Link href="/" className="text-[#3F7D58] underline hover:text-[#043d2c]">
                     contacte os desenvolvedores
                   </Link>.
                 </p>

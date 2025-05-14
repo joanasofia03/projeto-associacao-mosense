@@ -46,6 +46,8 @@ function RegistarPedido() {
   const [userId, setUserId] = useState<string | null>(null);
   const [notas, setNotas] = useState<string>('');
   const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   const filtros = [ //Organização dos filtros
     { nome: 'Todos os itens', id: 'todos', icon: PiSquaresFour },
@@ -77,6 +79,9 @@ function RegistarPedido() {
 
       if (error) {
         setErro('Erro ao carregar itens do menu.');
+        setToastMessage('Erro ao carregar itens do menu.');
+        setToastType('error');
+        setToastVisible(true);
       } else {
         setItensMenu(data || []);
         setItensFiltrados(data || []);
@@ -128,7 +133,10 @@ function RegistarPedido() {
         .single();
 
       if (error) {
-        setErro("Erro ao buscar evento");
+        setErro("Erro ao procurar evento");
+        setToastMessage('Erro ao procurar evento.');
+        setToastType('error');
+        setToastVisible(true);
       } else {
         setEventoEmExecucao(data);
       }
@@ -141,6 +149,9 @@ function RegistarPedido() {
         setUserId(user.id);
       } else {
         setErro('Utilizador não autenticado');
+        setToastMessage('Utilizador não autenticado.');
+        setToastType('error');
+        setToastVisible(true);
       }
     };
 
@@ -243,8 +254,19 @@ function RegistarPedido() {
   const { subtotal, iva, total } = calcularTotais();
 
   const efetuarPedido = async () => {
+    if (!nomeCliente.trim()) {
+      setErro('O nome do cliente é obrigatório.');
+      setToastMessage('O nome do cliente é obrigatório.');
+      setToastType('error');
+      setToastVisible(true);
+      return;
+    }
+
     if (Object.keys(itensSelecionados).length === 0) {
       setErro('Nenhum item selecionado.');
+      setToastMessage('Nenhum item selecionado.');
+      setToastType('error');
+      setToastVisible(true);
       return;
     }
     
@@ -267,6 +289,9 @@ function RegistarPedido() {
     if (erroPedido) {
       console.error(erroPedido.message);
       setErro('Erro ao registrar o pedido.');
+      setToastMessage('Erro ao registar pedido!');
+      setToastType('error');
+      setToastVisible(true);
       return;
     }
 
@@ -283,10 +308,16 @@ function RegistarPedido() {
     if (erroItens) {
       console.error(erroItens.message);
       setErro('Erro ao registrar itens do pedido.');
+      setToastMessage('Erro ao registar itens do pedido!');
+      setToastType('error');
+      setToastVisible(true);
       return;
     }
 
+    setToastMessage('Pedido registado com sucesso!');
+    setToastType('success');
     setToastVisible(true);
+
     limparTodosPedidos();
     setNomeCliente('');
     setContactoCliente('');
@@ -376,7 +407,7 @@ function RegistarPedido() {
 
                 {/* Preço e Categoria */}
                 <div className="flex flex-row justify-between items-center">
-                  <span className='text-[#537D5D] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
+                  <span className='text-[#3F7D58] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
                   <span className='flex flex-row items-center justify-center text-black font-normal text-base gap-2 text-gray-500'>
                     {getIconByType(item.tipo)}
                     <span className="relative top-[1px]">{item.tipo}</span>
@@ -542,7 +573,7 @@ function RegistarPedido() {
                       </div>
                       <div className="flex flex-col items-end">
                         <span className="text-xs text-gray-600">{item.quantidade}x €{item.preco.toFixed(2)}</span>
-                        <span className="font-semibold text-[#399918]">€{(item.preco * (item.quantidade || 1)).toFixed(2)}</span>
+                        <span className="font-semibold text-[#3F7D58]">€{(item.preco * (item.quantidade || 1)).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -591,8 +622,9 @@ function RegistarPedido() {
           </button>
 
            <Toast
-            message="Pedido registrado com sucesso!"
+            message={toastMessage}
             visible={toastVisible}
+            type={toastType}
             onClose={() => setToastVisible(false)}
             />
         </div>
