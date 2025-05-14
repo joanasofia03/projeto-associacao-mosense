@@ -69,7 +69,7 @@ export default function SignUp() {
               id="nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
               required
             />
           </div>
@@ -81,7 +81,7 @@ export default function SignUp() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
               required
             />
           </div>
@@ -93,7 +93,7 @@ export default function SignUp() {
               id="telemovel"
               value={telemovel}
               onChange={(e) => setTelemovel(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
               pattern="[0-9]*"
               inputMode="numeric"
             />
@@ -106,7 +106,7 @@ export default function SignUp() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
               required
             />
           </div>
@@ -118,25 +118,21 @@ export default function SignUp() {
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
               required
             />
           </div>
 
           <div className="text-sm text-[#032221] mt-2">
             Ao criar uma conta está automaticamente a concordar com os{' '}
-            <Link href="/termsofuseprivacypolicy" className="underline text-[#064e3b] hover:text-[#043d2c]">
+            <Link href="/termsofuseprivacypolicy" className="underline text-[#537D5D] hover:text-[#032221]">
               Termos de Utilização e Política de Privacidade
             </Link>.
           </div>
 
           <button
             type="submit"
-            className="w-full py-2 rounded flex items-center justify-center gap-2 hover:opacity-90"
-            style={{
-              backgroundColor: '#032221',
-              color: '#f1f7f6',
-            }}
+            className="w-full py-2 rounded flex items-center justify-center rounded-lg gap-2 bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d]"
           >
             Registar
             <FaUserPlus size={18} />

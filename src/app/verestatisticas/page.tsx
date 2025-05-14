@@ -261,7 +261,7 @@ function VerEstatisticas() {
 
               {/* Botão Ver Destalhes */}
               <div className='w-full px-3 pb-4 pt-1'>
-                <h1 className='bg-[#032221] text-[#FFFDF6] rounded-lg w-full flex justify-center items-center py-2 cursor-pointer hover:bg-[#052e2d] transition-transform duration-300 hover:scale-105'>Ver Detalhes</h1>
+                <h1 className='bg-[#032221] text-[#FFFDF6] rounded-lg w-full flex justify-center items-center py-2 cursor-pointer hover:bg-[#052e2d] transition-transform duration-300 hover:scale-103'>Ver Detalhes</h1>
               </div>
             </div>
             <div className='w-full h-90 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'></div>

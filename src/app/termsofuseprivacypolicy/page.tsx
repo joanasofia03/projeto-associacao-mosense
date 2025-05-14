@@ -31,8 +31,8 @@ export default function TermosPage() {
       <button
         key={tab}
         onClick={() => setActiveTab(tab)}
-        className={`flex-1 text-sm font-semibold py-3 rounded-3xl transition-all duration-300
-          ${activeTab === tab ? 'bg-[#03624c] text-[#f1f6f7]' : 'text-[#032221] bg-transparent'}`}
+        className={`flex-1 text-sm font-semibold py-3 rounded-3xl transition-all duration-300 cursor-pointer transition-transform duration-300 hover:-translate-y-1
+          ${activeTab === tab ? 'bg-[#032221] text-[#FFFDF6]' : 'text-[#032221] hover:bg-[#dce6e7]'}`}
       >
         {tab === 'privacidade' ? 'Política de Privacidade' : 'Termos de Uso'}
       </button>

@@ -252,13 +252,6 @@ setUserId(session?.user.id);
             >
               Iniciar Sessão
             </Link>
-
-            <Link 
-              href="/registar"
-              className="block w-full text-center px-4 py-2 my-5 rounded-md bg-[#03624c] text-[#f1f7f6] hover:opacity-90 transition-all duration-200"
-            >
-              Registar
-            </Link>
           </div>
         )}
       </div>

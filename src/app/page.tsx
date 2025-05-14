@@ -20,7 +20,7 @@ export default function Home() {
           Um sistema informático de apoio à organização de festas e eventos, gerido pela atual comissão de festas.
         </h1>
         <h1 className="text-sm text-[#032221] text-center">
-            <Link href="/termsofuseprivacypolicy" className="underline text-[#2d7a12] hover:text-[#21590d]">
+            <Link href="/termsofuseprivacypolicy" className="underline text-[#537D5D] hover:text-[#032221]">
               Termos de Utilização e Política de Privacidade
             </Link>
           </h1>

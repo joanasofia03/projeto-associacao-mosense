@@ -56,17 +56,13 @@ const handleReset = async (e: React.FormEvent) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-2 rounded flex items-center justify-center gap-2 hover:opacity-90"
-            style={{
-              backgroundColor: '#032221',
-              color: '#f1f7f6',
-            }}
+            className="w-full py-2 rounded flex items-center rounded-lg justify-center gap-2 bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d]"
           >
             Enviar link de recuperação
           </button>

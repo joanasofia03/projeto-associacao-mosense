@@ -159,7 +159,7 @@ function AdicionarUtilizador() {
 
           <p className="text-sm mt-2">
             Ao criar uma conta está automaticamente a concordar com os{' '}
-            <a href="/termsofuseprivacypolicy" className="underline text-[#2d7a12] hover:text-[#21590d]">
+            <a href="/termsofuseprivacypolicy" className="underline text-[#537D5D] hover:text-[#032221]">
               Termos de Utilização e Política de Privacidade
             </a>.
           </p>

@@ -96,7 +96,7 @@ export default function EditarPerfilCard() {
 
   return (
     <div className="flex justify-center items-center w-full min-h-screen bg-[#eaf2e9] p-4">
-      <div className="bg-[#f1f6f7] w-full max-w-md p-6 rounded-2xl shadow-lg flex flex-col gap-6">
+      <div className="bg-[#FFFDF6] w-full max-w-md p-6 rounded-2xl shadow-lg flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold text-[#032221]">Perfil</h1>
           {!isEditing && (
@@ -156,7 +156,7 @@ export default function EditarPerfilCard() {
 
           <div className="flex flex-col">
             <label className="text-sm text-gray-600">Tipo de Utilizador</label>
-            <span className="text-sm text-gray-400 bg-gray-100 rounded-lg p-2">{tipo || '—'}</span>
+            <span className="text-sm text-gray-400 bg-[rgba(3,98,76,0.05)] rounded-lg p-2">{tipo || '—'}</span>
           </div>
         </div>
 
@@ -170,7 +170,7 @@ export default function EditarPerfilCard() {
             </button>
             <button
               onClick={handleGuardar}
-              className="px-4 py-2 rounded-lg bg-[#03624c] text-white font-medium hover:bg-[#078a6b]"
+              className="px-4 py-2 rounded-lg bg-[#032221] text-[#FFFDF6] font-medium hover:bg-[#052e2d]"
             >
               Guardar
             </button>
