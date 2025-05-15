@@ -246,7 +246,7 @@ function AdicionarItem() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-[#032221] text-[#FFFDF6] rounded-lg hover:bg-[#052e2d] transition-transform duration-200 hover:scale-101 cursor-pointer flex-grow"
+                  className="px-4 py-2 bg-[rgba(3,98,76,0.2)] text-[#032221] rounded-lg transition-transform duration-200 hover:scale-101 cursor-pointer flex-grow"
                 >
                   {imagem ? 'Trocar Imagem' : 'Selecionar Imagem'}
                 </button>

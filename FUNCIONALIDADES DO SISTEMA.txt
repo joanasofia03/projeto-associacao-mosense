@@ -103,13 +103,9 @@ Cliente "1" -- "1..*" Pedido: faz >
 @enduml
 
 
-problemas:
+Problemas a resolver ainda:
 
 -> alterar o "anular pedido" para "alterar", mas na base de dados é anulado e é criado um novo;
-
--> acrescentar verificacao de datas (festas diferentes);
-
--> a caixa do nome em alterar item nao deixa escrever tudo seguido;
 
 -> especificar melhor os erros;
 
@@ -117,10 +113,12 @@ problemas:
 
 -> Ajustar navbar e restantas páginas à resolução da tela;
 
--> Permitir a criação de novas contas - Clientes;
-
--> Adicionar Eventos;
-
 -> a navbar nao deve aparecer no not-found, por exemplo;
 
--> Impedir que ao adicionar um novo utilizador a sessão atual seja encerrada e dê entrda na sessão do novo utilizador;
+MAJOR ALTERAÇÕES:
+-> ANULAR PEDIDO;
+-> EVENTOS;
+-> ALTERAR ITEM;
+-> VER ESTATÍSTICAS;
+-> IMPRIMIR PEDIDOS;
+-> RESPONSIVIDADE (ALTERAÇÕES DA RESOLUÇÃO);
