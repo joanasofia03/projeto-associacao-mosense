@@ -205,7 +205,7 @@ function AlterarItem() {
                         
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Menu:</span>
-                          <span className={`font-medium ${item.isMenu ? 'text-green-600' : 'text-red-600'}`}>
+                          <span className={`font-medium ${item.isMenu ? 'text-[#A4B465]' : 'text-[#D2665A]'}`}>
                             {item.isMenu ? 'Incluído' : 'Não incluído'}
                           </span>
                         </div>

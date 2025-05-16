@@ -69,23 +69,41 @@ function AdicionarItem() {
       let imagemUrl = null;
       if (imagem) {
         const imagemNome = `${Date.now()}-${imagem.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('imagens-itens')
-          .upload(imagemNome, imagem);
 
-        if (uploadError) {
-          setError('Erro ao fazer upload da imagem.');
-          console.error(uploadError);
-          setLoading(false);
-          return;
-        }
-        
-        // Obter URL pública
-        const { data: urlData } = supabase.storage
-          .from('imagens-itens')
-          .getPublicUrl(imagemNome);
-          
-        imagemUrl = urlData?.publicUrl || null;
+        console.log('Arquivo para upload:', imagem);
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+  .from('imagens')
+  .upload(imagemNome, imagem, {
+    contentType: imagem.type,
+  });
+
+if (uploadError) {
+  setError('Erro ao fazer upload da imagem.');
+  console.error('Erro no upload:', uploadError);
+  setLoading(false);
+  return;
+}
+
+// espera 1 segundo para garantir consistência eventual
+await new Promise(resolve => setTimeout(resolve, 1000));
+
+// gerar URL assinada
+const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+  .from('imagens')
+  .createSignedUrl(imagemNome, 60 * 60);
+
+if (signedUrlError) {
+  setError('Erro ao gerar URL temporária da imagem.');
+  console.error('Erro URL temporária:', signedUrlError);
+  setLoading(false);
+  return;
+}
+
+imagemUrl = signedUrlData?.signedUrl || null;
+
+
+        console.log("imageurl:", imagemUrl)
       }
 
       const { error: insertError } = await supabase.from('itens').insert([
