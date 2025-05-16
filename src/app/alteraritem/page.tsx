@@ -1,8 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
+import Toast from '../components/toast';
+
+//Import de icons
+import { RiDeleteBin6Line } from "react-icons/ri";
+import { MdOutlineEdit, MdKeyboardArrowDown } from "react-icons/md";
 
 type Item = {
   id: string;
@@ -11,6 +16,8 @@ type Item = {
   tipo: string;
   criado_em: string;
   isMenu: boolean;
+  IVA?: number;
+  imagem_url?: string | null;
 };
 
 function AlterarItem() {
@@ -19,16 +26,31 @@ function AlterarItem() {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Tudo');
+  const [imagem, setImagem] = useState<File | null>(null);
+  const [imagemPreview, setImagemPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  
+  // Toast
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   useEffect(() => {
     const fetchItems = async () => {
       const { data, error } = await supabase
         .from('itens')
-        .select('id, nome, preco, tipo, criado_em, isMenu')
+        .select('id, nome, preco, tipo, criado_em, isMenu, IVA, imagem_url')
         .order('criado_em', { ascending: false });
 
       if (error) {
         console.error('Erro ao buscar itens:', error);
+        showToast('Erro ao carregar os itens', 'error');
       } else {
         setItems(data || []);
       }
@@ -42,13 +64,50 @@ function AlterarItem() {
   const handleEditClick = (item: Item) => {
     setEditingItem({ ...item });
     setIsModalOpen(true);
+    
+    // Reset o estado da imagem
+    resetImagemInput();
+    
+    // Se o item tiver uma imagem, definir preview
+    if (item.imagem_url) {
+      setImagemPreview(item.imagem_url);
+    }
+  };
+
+  const handleImagemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImagem(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagemPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const resetImagemInput = () => {
+    setImagem(null);
+    setImagemPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
+    // Se estiver em modo de edição e o item tiver uma imagem_url, restaurar o preview
+    if (editingItem?.imagem_url) {
+      setImagemPreview(editingItem.imagem_url);
+    }
   };
 
   const handleSave = async () => {
-    if (!editingItem || !editingItem.nome || !editingItem.tipo) return;
+    if (!editingItem || !editingItem.nome || !editingItem.tipo) {
+      showToast('Preencha todos os campos obrigatórios', 'error');
+      return;
+    }
   
     const nomeTrimmed = editingItem.nome.trim();
-  
+    setToastVisible(false); // reset toast
+    
     try {
       const { data: existingItems, error: fetchError } = await supabase
         .from('itens')
@@ -58,13 +117,47 @@ function AlterarItem() {
   
       if (fetchError) {
         console.error('Erro ao verificar duplicação de nome:', fetchError);
+        showToast('Erro ao verificar duplicação de nome', 'error');
         return;
       }
   
       const isDuplicate = existingItems.some(item => item.id !== editingItem.id);
       if (isDuplicate) {
-        alert('Já existe outro item com o mesmo nome e tipo.');
+        showToast('Já existe outro item com o mesmo nome e tipo', 'error');
         return;
+      }
+      
+      // Upload da imagem se existir uma nova
+      let imagemUrl = editingItem.imagem_url || null;
+      if (imagem) {
+        const imagemNome = `${Date.now()}-${imagem.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('imagens')
+          .upload(imagemNome, imagem, {
+            contentType: imagem.type,
+          });
+
+        if (uploadError) {
+          showToast('Erro ao fazer upload da imagem', 'error');
+          console.error('Erro no upload:', uploadError);
+          return;
+        }
+
+        // Espera 1 segundo para garantir consistência eventual
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from('imagens')
+          .createSignedUrl(imagemNome, 60 * 60 * 24 * 365 * 5);
+
+        if (signedUrlError) {
+          showToast('Erro ao gerar URL temporária da imagem', 'error');
+          console.error('Erro URL temporária:', signedUrlError);
+          return;
+        }
+
+        imagemUrl = signedUrlData?.signedUrl || null;
       }
   
       const { error } = await supabase
@@ -74,21 +167,32 @@ function AlterarItem() {
           preco: editingItem.preco,
           tipo: editingItem.tipo,
           isMenu: editingItem.isMenu,
+          IVA: editingItem.IVA || 23,
+          imagem_url: imagemUrl,
         })
         .eq('id', editingItem.id);
   
       if (error) {
         console.error('Erro ao atualizar item:', error);
+        showToast('Erro ao atualizar item', 'error');
       } else {
         console.log('Item atualizado com sucesso!');
         setItems(items.map(item => 
-          item.id === editingItem.id ? { ...item, ...editingItem, nome: nomeTrimmed } : item
+          item.id === editingItem.id ? { 
+            ...item, 
+            ...editingItem, 
+            nome: nomeTrimmed,
+            imagem_url: imagemUrl
+          } : item
         ));
+        showToast('Item atualizado com sucesso!', 'success');
         setIsModalOpen(false);
         setEditingItem(null);
+        resetImagemInput();
       }
     } catch (err) {
       console.error('Erro ao guardar item:', err);
+      showToast('Erro desconhecido ao salvar o item', 'error');
     }
   };  
 
@@ -101,12 +205,15 @@ function AlterarItem() {
 
       if (error) {
         console.error('Erro ao excluir item:', error);
+        showToast('Erro ao excluir o item', 'error');
       } else {
         console.log('Item excluído com sucesso!');
         setItems(items.filter(item => item.id !== id));
+        showToast('Item excluído com sucesso!', 'success');
       }
     } catch (err) {
       console.error('Erro ao excluir item:', err);
+      showToast('Erro desconhecido ao excluir o item', 'error');
     }
   };
 
@@ -120,6 +227,8 @@ function AlterarItem() {
       setEditingItem({ ...editingItem, [name]: checked });
     } else if (name === 'preco') {
       setEditingItem({ ...editingItem, [name]: parseFloat(value) || 0 });
+    } else if (name === 'IVA') {
+      setEditingItem({ ...editingItem, [name]: parseInt(value) || 23 });
     } else {
       setEditingItem({ ...editingItem, [name]: value });
     }
@@ -171,7 +280,7 @@ function AlterarItem() {
             <p className="text-lg text-gray-600">Nenhum item encontrado para esta categoria.</p>
           </div>
         ) : (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
             {filteredItems.map((item) => {
               const dataFormatada = new Date(item.criado_em).toLocaleDateString();
               const horaFormatada = new Date(item.criado_em).toLocaleTimeString([], {
@@ -188,7 +297,7 @@ function AlterarItem() {
                     {/* Cabeçalho do card */}
                     <div className="text-[#032221] p-4 border-b-1 border-[rgba(32,41,55,0.1)]">
                       <div className="flex justify-between items-start">
-                        <h3 className="text-xl font-semibold truncate">{item.nome}</h3>
+                        <h3 className="text-xl text-[#032221] font-semibold truncate">{item.nome}</h3>
                         <span className="px-3 py-1 bg-[#DDEB9D] text-[#032221] text-xs font-medium rounded-full">
                           {item.tipo}
                         </span>
@@ -199,12 +308,19 @@ function AlterarItem() {
                     <div className="p-5 flex-grow">
                       <div className="space-y-3 mb-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Preço:</span>
-                          <span className="text-[#032221] font-bold">€{item.preco.toFixed(2)}</span>
+                          <span className="text-[#032221]">Preço:</span>
+                          <span className="text-[#032221] font-semibold">€{item.preco.toFixed(2)}</span>
                         </div>
                         
+                        {item.IVA !== undefined && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#032221]">IVA:</span>
+                            <span className="text-[#032221] font-semibold">{item.IVA}%</span>
+                          </div>
+                        )}
+                        
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Menu:</span>
+                          <span className="text-[#032221]">Menu:</span>
                           <span className={`font-medium ${item.isMenu ? 'text-[#A4B465]' : 'text-[#D2665A]'}`}>
                             {item.isMenu ? 'Incluído' : 'Não incluído'}
                           </span>
@@ -220,20 +336,16 @@ function AlterarItem() {
                       <div className="mt-4 grid grid-cols-2 gap-3">
                         <button
                           onClick={() => handleEditClick(item)}
-                          className="bg-[#DDEB9D] text-[#032221] py-2 px-4 rounded-md font-medium hover:bg-opacity-80 transition-colors flex items-center justify-center"
+                          className="bg-[#DDEB9D] text-[#032221] cursor-pointer py-2 px-4 rounded-md font-medium hover:bg-opacity-80 transition-colors flex items-center justify-center"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
+                          <MdOutlineEdit size='4' className="h-4 w-4 mr-1"/>
                           Editar
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="bg-red-50 text-red-600 py-2 px-4 rounded-md font-medium hover:bg-red-100 transition-colors flex items-center justify-center"
+                          className="bg-[rgba(210,102,90,0.1)] cursor-pointer text-[#D2665A] py-2 px-4 rounded-md font-medium hover:bg-[rgba(210,102,90,0.15)] transition-colors flex items-center justify-center"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
+                          <RiDeleteBin6Line size='4' className="h-4 w-4 mr-1"/>
                           Excluir
                         </button>
                       </div>
@@ -246,46 +358,60 @@ function AlterarItem() {
         )}
       </div>
 
-      {/* Modal de Edição */}
+      {/* Modal de Edição - Novo estilo baseado no AdicionarItem */}
       {isModalOpen && editingItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-[#eaf2e9] flex items-center justify-center z-50 p-4">
+          <div className="bg-[#FFFDF6] rounded-lg w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="bg-[#032221] text-[#FFFDF6] py-4 px-6 rounded-t-lg">
               <h3 className="text-xl font-semibold">Editar Item</h3>
             </div>
             
-            <div className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                  <input
-                    type="text"
-                    name="nome"
-                    value={editingItem.nome}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#DDEB9D] focus:border-[#DDEB9D]"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Preço (€)</label>
-                  <input
-                    type="number"
-                    name="preco"
-                    step="0.01"
-                    value={editingItem.preco}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#DDEB9D] focus:border-[#DDEB9D]"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+            <div className="p-6 space-y-4">
+              <div>
+                <label htmlFor="nome" className="block mb-1 text-sm font-medium text-[#032221]">
+                  Nome do Item
+                </label>
+                <input
+                  type="text"
+                  id="nome"
+                  name="nome"
+                  value={editingItem.nome}
+                  onChange={handleInputChange}
+                  className="w-full border border-[#032221] rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="preco" className="block mb-1 text-sm font-medium text-[#032221]">
+                  Preço (€)
+                </label>
+                <input
+                  type="number"
+                  id="preco"
+                  name="preco"
+                  value={editingItem.preco}
+                  onChange={handleInputChange}
+                  className="w-full border border-[#032221] rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
+                  required
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+              
+              {/* Dropdown Estilizado - Tipo */}
+              <div>
+                <label htmlFor="tipo" className="block mb-1 text-sm font-medium text-[#032221]">
+                  Tipo
+                </label>
+                <div className="relative">
                   <select
+                    id="tipo"
                     name="tipo"
                     value={editingItem.tipo}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#DDEB9D] focus:border-[#DDEB9D]"
+                    className="w-full border border-[#032221] rounded-lg px-3 py-2 appearance-none bg-transparent focus:outline-none focus:ring-1 focus:ring-[#032221]"
+                    required
                   >
                     {filterCategories.filter(cat => cat !== 'Tudo').map((category) => (
                       <option key={category} value={category}>
@@ -293,33 +419,116 @@ function AlterarItem() {
                       </option>
                     ))}
                   </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#032221]">
+                    <MdKeyboardArrowDown size={4} className='fill-current h-4 w-4' />
+                  </div>
                 </div>
-                
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="isMenu"
-                    name="isMenu"
-                    checked={editingItem.isMenu}
+              </div>
+              
+              {/* Taxa de IVA */}
+              <div>
+                <label htmlFor="IVA" className="block mb-1 text-sm font-medium text-[#032221]">
+                  IVA (%)
+                </label>
+                <div className="relative">
+                  <select
+                    id="IVA"
+                    name="IVA"
+                    value={editingItem.IVA || 23}
                     onChange={handleInputChange}
-                    className="h-4 w-4 text-[#032221] focus:ring-[#DDEB9D] border-gray-300 rounded"
-                  />
-                  <label htmlFor="isMenu" className="ml-2 block text-sm text-gray-700">
-                    Incluído no Menu
-                  </label>
+                    className="w-full border border-[#032221] rounded-lg px-3 py-2 appearance-none bg-transparent focus:outline-none focus:ring-1 focus:ring-[#032221]"
+                  >
+                    <option value="23">23% (Padrão)</option>
+                    <option value="13">13% (Intermédio)</option>
+                    <option value="6">6% (Reduzido)</option>
+                    <option value="0">0% (Isento)</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#032221]">
+                    <MdKeyboardArrowDown size={4} className='fill-current h-4 w-4' />
+                  </div>
                 </div>
+              </div>
+              
+              {/* Upload de Imagem */}
+              <div>
+                <label htmlFor="imagem" className="block mb-1 text-sm font-medium text-[#032221]">
+                  Imagem do Item
+                </label>
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    id="imagem"
+                    ref={fileInputRef}
+                    onChange={handleImagemChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 bg-[rgba(3,98,76,0.2)] text-[#032221] rounded-lg transition-transform duration-200 hover:scale-101 cursor-pointer flex-grow"
+                    >
+                      {imagem ? 'Trocar Imagem' : 'Selecionar Imagem'}
+                    </button>
+                    {(imagem || imagemPreview) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetImagemInput();
+                          if (editingItem) {
+                            setEditingItem({...editingItem, imagem_url: null});
+                          }
+                          setImagemPreview(null);
+                        }}
+                        className="px-4 py-2 bg-[#D2665A] text-white rounded-lg hover:bg-opacity-90 cursor-pointer transition-transform duration-200 hover:scale-101"
+                      >
+                        Remover
+                      </button>
+                    )}
+                  </div>
+                  {imagemPreview && (
+                    <div className="mt-2 border border-[#032221] rounded-lg p-2">
+                      <img
+                        src={imagemPreview}
+                        alt="Pré-visualização"
+                        className="w-full h-48 object-contain rounded"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {imagem ? imagem.name : 'Imagem atual'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isMenu"
+                  name="isMenu"
+                  checked={editingItem.isMenu}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 rounded border-[#032221] focus:ring-[#032221]"
+                />
+                <label htmlFor="isMenu" className="text-sm text-[#032221]">
+                  Este item faz parte de um menu?
+                </label>
               </div>
               
               <div className="mt-6 flex justify-end space-x-3">
                 <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    resetImagemInput();
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 cursor-pointer transition-transform duration-200 hover:scale-101"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-[#032221] text-white rounded-md hover:bg-opacity-90"
+                  className="px-4 py-2 bg-[#032221] text-white rounded-md hover:bg-opacity-90 cursor-pointer transition-transform duration-200 hover:scale-101"
                 >
                   Salvar Alterações
                 </button>
@@ -328,6 +537,14 @@ function AlterarItem() {
           </div>
         </div>
       )}
+
+      {/* Toast */}
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+        type={toastType}
+      />
 
       {/* Estilos global para remover a barra de rolagem visível */}
       <style jsx global>{`
