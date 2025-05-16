@@ -307,7 +307,7 @@ function AdicionarItem() {
           className="w-4 h-4 rounded border-[#032221] focus:ring-[#032221]"
         />
         <label htmlFor="isMenu" className="text-sm text-[#032221]">
-          Este item faz parte de um menu?
+          Incluír no menu?
         </label>
       </div>
 
