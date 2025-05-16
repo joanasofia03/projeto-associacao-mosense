@@ -105,7 +105,7 @@ Cliente "1" -- "1..*" Pedido: faz >
 
 Problemas a resolver ainda:
 
--> alterar o "anular pedido" para "alterar", mas na base de dados é anulado e é criado um novo;
+-> alterar o "anular pedido" para "alterar", mas na base de dados é anulado e é criado um novo; Falta a função Editar do Alterar/Anular Pedido;
 
 -> especificar melhor os erros;
 
@@ -115,8 +115,12 @@ Problemas a resolver ainda:
 
 -> a navbar nao deve aparecer no not-found, por exemplo;
 
+-> Ao excluir um item, fazer que a exclusão inclua a eliminação no bucket do supabase;
+
+-> O Total de Pedidos e o Valor Faturado está a mudar consoante os filtros de Confirmado ou Anulado, o objetivo é que fique com os valores do Confirmado sempre, independentemente do filtro atual;
+
 MAJOR ALTERAÇÕES:
--> ANULAR PEDIDO;
+-> ANULAR/ALTERAR PEDIDO;
 -> EVENTOS;
 -> ALTERAR ITEM;
 -> VER ESTATÍSTICAS;

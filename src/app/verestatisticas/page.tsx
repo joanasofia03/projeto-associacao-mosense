@@ -24,6 +24,8 @@ function VerEstatisticas() {
   const [totalPedidos, setTotalPedidos] = useState(0);
   const [totalFaturado, setTotalFaturado] = useState(0);
   const [termoPesquisa, setTermoPesquisa] = useState(''); // Novo estado para armazenar o termo de pesquisa
+  const [totalPedidosConfirmados, setTotalPedidosConfirmados] = useState(0);
+  const [totalFaturadoConfirmados, setTotalFaturadoConfirmados] = useState(0);
   const [eventos, setEventos] = useState<Array<{
     id: number;
     criando_em: string;
@@ -95,13 +97,13 @@ function VerEstatisticas() {
     setDataAtual(primeiraLetraMaiuscula);
   }, []);
 
-
   // Modificação no useEffect que busca os pedidos
   useEffect(() => {
     const fetchPedidos = async () => {
       if (!idEventoSelecionado) return;
 
       try {
+        // Buscar todos os pedidos para o evento selecionado (para exibição)
         let query = supabase
           .from('pedidos')
           .select('*')
@@ -120,17 +122,35 @@ function VerEstatisticas() {
           setPedidosOriginal(data || []); // Armazenar os dados originais
           setPedidos(data || []);
           
-          // Atualizar estatísticas
-          setTotalPedidos(data?.length || 0);
-          
-          // Importante: Resetar o total faturado para zero se não houver pedidos
-          if (!data || data.length === 0) {
-            setTotalFaturado(0);
-            setPedidosItens({});
+          // Buscar apenas os pedidos confirmados para estatísticas
+          const { data: confirmados, error: erroConfirmados } = await supabase
+            .from('pedidos')
+            .select('*')
+            .eq('id_evento', idEventoSelecionado)
+            .eq('estado_validade', 'Confirmado');
+            
+          if (erroConfirmados) {
+            setErro(`Erro ao buscar pedidos confirmados: ${erroConfirmados.message}`);
+            console.error('Erro na consulta de pedidos confirmados:', erroConfirmados);
           } else {
-            // Buscar os itens para cada pedido
+            // Atualizar estatísticas apenas com pedidos confirmados
+            setTotalPedidosConfirmados(confirmados?.length || 0);
+            
+            if (!confirmados || confirmados.length === 0) {
+              setTotalFaturadoConfirmados(0);
+            } else {
+              // Buscar os itens apenas para pedidos confirmados
+              const pedidosConfirmadosIds = confirmados.map(pedido => pedido.id);
+              fetchPedidosItensConfirmados(pedidosConfirmadosIds);
+            }
+          }
+          
+          // Importante: Buscar os itens para todos os pedidos (para exibição)
+          if (data && data.length > 0) {
             const pedidosIds = data.map(pedido => pedido.id);
             fetchPedidosItens(pedidosIds);
+          } else {
+            setPedidosItens({});
           }
         }
       } catch (err) {
@@ -141,6 +161,63 @@ function VerEstatisticas() {
 
     fetchPedidos();
   }, [idEventoSelecionado, filtroValidade]);
+
+  // Função para buscar itens dos pedidos confirmados (apenas para estatísticas)
+  const fetchPedidosItensConfirmados = async (pedidosConfirmadosIds: number[]) => {
+    if (!pedidosConfirmadosIds.length) return;
+    
+    try {
+      // Primeiro, buscar os pedidos_itens dos pedidos confirmados
+      const { data: pedidosItensData, error: pedidosItensError } = await supabase
+        .from('pedidos_itens')
+        .select('id, pedido_id, item_id, quantidade')
+        .in('pedido_id', pedidosConfirmadosIds);
+
+      if (pedidosItensError) {
+        setErro(`Erro ao buscar itens dos pedidos confirmados: ${pedidosItensError.message}`);
+        console.error('Erro na consulta de itens dos pedidos confirmados:', pedidosItensError);
+        return;
+      }
+      
+      // Obter todos os IDs de itens para buscar os detalhes
+      const itensIds = pedidosItensData?.map(item => item.item_id) || [];
+      
+      // Buscar detalhes dos itens
+      const { data: itensData, error: itensError } = await supabase
+        .from('itens')
+        .select('id, nome, preco')
+        .in('id', itensIds);
+        
+      if (itensError) {
+        setErro(`Erro ao buscar detalhes dos itens confirmados: ${itensError.message}`);
+        console.error('Erro na consulta de detalhes dos itens confirmados:', itensError);
+        return;
+      }
+      
+      // Criar um mapa dos itens para acesso rápido
+      const itensMap = new Map();
+      itensData?.forEach(item => {
+        itensMap.set(item.id, item);
+      });
+      
+      // Calcular o valor total faturado para pedidos confirmados
+      let valorTotalConfirmado = 0;
+      
+      pedidosItensData?.forEach(pedidoItem => {
+        const itemDetalhes = itensMap.get(pedidoItem.item_id);
+        
+        if (itemDetalhes) {
+          // Calcular valor total para pedidos confirmados
+          valorTotalConfirmado += (itemDetalhes.preco || 0) * pedidoItem.quantidade;
+        }
+      });
+      
+      setTotalFaturadoConfirmados(valorTotalConfirmado);
+    } catch (err) {
+      setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
+      console.error('Exceção ao buscar itens dos pedidos confirmados:', err);
+    }
+  };
 
   //Função para filtrar os pedidos pela pesquisa
   useEffect(() => {
@@ -459,7 +536,7 @@ function VerEstatisticas() {
           </div> 
 
           {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
-          <div className='w-full h-full grid grid-cols-2 gap-4 px-2 pb-8 pt-2 overflow-y-scroll'>
+          <div className='w-full h-full grid grid-cols-2 gap-4 px-2 overflow-y-scroll'>
             {pedidos.length > 0 ? (
               pedidos.map((pedido) => (
                 <CardPedido key={pedido.id} pedido={pedido} />
@@ -488,7 +565,7 @@ function VerEstatisticas() {
               <span className='text-[#DDEB9D] font-extralight text-xs'>
                 {nomeEventoSelecionado ? `* ${nomeEventoSelecionado}` : '* Selecione um evento'}
               </span>
-              <h1 className='text-[#FFFDF6] font-bold text-4xl py-2'>{totalPedidos}</h1>
+              <h1 className='text-[#FFFDF6] font-bold text-4xl py-2'>{totalPedidosConfirmados}</h1>
             </div>
             {/* Total Faturado */}
             <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center'>
@@ -496,7 +573,7 @@ function VerEstatisticas() {
               <span className='text-[#DDEB9D] font-extralight text-xs'>
                 {nomeEventoSelecionado ? `* ${nomeEventoSelecionado}` : '* Selecione um evento'}
               </span>
-              <h1 className='text-[#FFFDF6] font-bold text-4xl py-2'>{totalFaturado.toFixed(2)}€</h1>
+              <h1 className='text-[#FFFDF6] font-bold text-4xl py-2'>{totalFaturadoConfirmados.toFixed(2)}€</h1>
             </div>
           </div>
 
