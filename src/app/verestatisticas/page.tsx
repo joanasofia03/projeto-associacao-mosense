@@ -13,6 +13,7 @@ import { IoClose } from "react-icons/io5";
 function VerEstatisticas() {
   // Estados principais
   const [pedidos, setPedidos] = useState<Array<any>>([]);
+  const [pedidosOriginal, setPedidosOriginal] = useState<Array<any>>([]); // Armazenar todos os pedidos originais
   const [pedidosItens, setPedidosItens] = useState<{[key: string]: Array<any>}>({});
   const [filtroValidade, setFiltroValidade] = useState('Todos');
   const [dataAtual, setDataAtual] = useState('');
@@ -22,6 +23,7 @@ function VerEstatisticas() {
   const [erro, setErro] = useState<string | null>(null);
   const [totalPedidos, setTotalPedidos] = useState(0);
   const [totalFaturado, setTotalFaturado] = useState(0);
+  const [termoPesquisa, setTermoPesquisa] = useState(''); // Novo estado para armazenar o termo de pesquisa
   const [eventos, setEventos] = useState<Array<{
     id: number;
     criando_em: string;
@@ -115,6 +117,7 @@ function VerEstatisticas() {
           setErro(`Erro ao buscar pedidos: ${error.message}`);
           console.error('Erro na consulta de pedidos:', error);
         } else {
+          setPedidosOriginal(data || []); // Armazenar os dados originais
           setPedidos(data || []);
           
           // Atualizar estatísticas
@@ -138,6 +141,57 @@ function VerEstatisticas() {
 
     fetchPedidos();
   }, [idEventoSelecionado, filtroValidade]);
+
+  //Função para filtrar os pedidos pela pesquisa
+  useEffect(() => {
+    if (!termoPesquisa.trim()) {
+      // Se a pesquisa estiver vazia, mostrar todos os pedidos originais
+      setPedidos(pedidosOriginal);
+      setTotalPedidos(pedidosOriginal.length);
+      return;
+    }
+
+    // Filtrar pedidos baseado no termo de pesquisa
+    const termoLowerCase = termoPesquisa.toLowerCase().trim();
+    
+    const resultados = pedidosOriginal.filter(pedido => {
+    // Verificar número do pedido (converter para string para garantir)
+    const numeroPedido = String(pedido.numero_diario || '').toLowerCase();
+    
+    // Verificar nome do cliente (se existir)
+    const nomeCliente = String(pedido.nome_cliente || '').toLowerCase();
+    
+    // Verificar contacto (se existir)
+    const contacto = String(pedido.contacto || '').toLowerCase();
+    
+    // Retornar true se qualquer um dos campos contém o termo de pesquisa
+    return numeroPedido.includes(termoLowerCase) || 
+          nomeCliente.includes(termoLowerCase) || 
+          contacto.includes(termoLowerCase);
+    });
+    
+    setPedidos(resultados);
+    
+  }, [termoPesquisa, pedidosOriginal]);
+
+  // Função auxiliar para calcular o total faturado para um conjunto específico de pedidos
+  const calcularTotalFaturadoParaPedidos = (pedidosIds: number[]) => {
+    let total = 0;
+    
+    pedidosIds.forEach(pedidoId => {
+      const itens = pedidosItens[pedidoId] || [];
+      itens.forEach(item => {
+        total += (item.itens?.preco || 0) * item.quantidade;
+      });
+    });
+    
+    return total;
+  };
+
+  // Função de manipulação do input de pesquisa
+  const handlePesquisaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTermoPesquisa(e.target.value);
+  };
 
   // Função para buscar itens dos pedidos
   const fetchPedidosItens = async (pedidosIds: number[]) => {
@@ -332,14 +386,24 @@ function VerEstatisticas() {
           <h1 className='font-bold text-2xl text-[#032221]'>Histórico & Estatísticas de Pedidos</h1>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar - Agora com funcionalidade */}
         <div className='h-10 p-4 mr-4 flex justify-between gap-1 items-center bg-[#FFFDF6] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
           <GoSearch size={20}/>
           <input
             type="text"
-            placeholder="Pesquisar..."
+            placeholder="Pesquisar por nº de pedido, nome do cliente ou contacto..."
             className="w-full p-2 focus:outline-none text-lg text-gray-500 transition-all duration-300 ease-in-out"
+            value={termoPesquisa}
+            onChange={handlePesquisaChange}
           />
+          {termoPesquisa && (
+            <button 
+              onClick={() => setTermoPesquisa('')}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <IoClose size={18} />
+            </button>
+          )}
         </div>
 
         {/* Data Atual */}
@@ -394,7 +458,7 @@ function VerEstatisticas() {
             </div>
           </div> 
 
-          {/* Histórico Pedidos */}
+          {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
           <div className='w-full h-full grid grid-cols-2 gap-4 px-2'>
             {pedidos.length > 0 ? (
               pedidos.map((pedido) => (
@@ -403,9 +467,11 @@ function VerEstatisticas() {
             ) : (
               <div className='col-span-2 flex justify-center items-center p-4 bg-[#FFFDF6] rounded-xl'>
                 <p className='text-[#032221] font-medium text-lg'>
-                  {idEventoSelecionado 
-                    ? 'Nenhum pedido encontrado para este evento e filtro.' 
-                    : 'Selecione um evento para visualizar os pedidos.'}
+                  {idEventoSelecionado && termoPesquisa
+                    ? 'Nenhum pedido encontrado para este termo de pesquisa.'
+                    : idEventoSelecionado 
+                      ? 'Nenhum pedido encontrado para este evento e filtro.' 
+                      : 'Selecione um evento para visualizar os pedidos.'}
                 </p>
               </div>
             )}
@@ -414,7 +480,7 @@ function VerEstatisticas() {
 
         {/* Coluna 2 - Estatísticas */}
         <div className='min-w-110 h-full flex flex-1 flex-col gap-4'>
-          {/* Estatísticas dos Pedidos */}
+          {/* Estatísticas dos Pedidos - Agora atualizadas com a pesquisa */}
           <div className='w-full h-40 flex flex-row bg-[#032221] rounded-xl'>
             {/* Total de Pedidos */}
             <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center'>
