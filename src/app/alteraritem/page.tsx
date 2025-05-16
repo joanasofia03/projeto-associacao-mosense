@@ -390,7 +390,7 @@ function AlterarItem() {
 
       {/* Modal de Edição - Novo estilo baseado no AdicionarItem */}
       {isModalOpen && editingItem && (
-        <div className="fixed inset-0 bg-[#eaf2e9] flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(234, 242, 233, 0.9)' }}>
           <div className="bg-[#FFFDF6] rounded-lg w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="bg-[#032221] text-[#FFFDF6] py-4 px-6 rounded-t-lg">
               <h3 className="text-xl font-semibold">Editar Item</h3>

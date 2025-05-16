@@ -100,7 +100,7 @@ function AlterarPedido() {
     };
 
     return (
-      <div className="fixed inset-0 bg-[#eaf2e9] bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-[#eaf2e9] flex items-center justify-center z-50">
         <div className="bg-[#FFFDF6] rounded-lg shadow-lg max-w-md w-full p-6">
           <h2 className="text-xl font-semibold text-[#032221] mb-4">Confirmar Anulação</h2>
           <p className="mb-6">Tem certeza que deseja anular este pedido? Esta ação não pode ser desfeita.</p>
@@ -380,7 +380,7 @@ function AlterarPedido() {
       if (!modalAberto) return null;
       
       return (
-        <div className="fixed inset-0 bg-[#eaf2e9] flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(234, 242, 233, 0.9)' }}>
           <div className="bg-[#FFFDF6] rounded-xl shadow-lg w-full max-w-md overflow-hidden">
             {/* Cabeçalho do Modal */}
             <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-[#032221]">
@@ -390,7 +390,7 @@ function AlterarPedido() {
                 </div>
                 <h2 className="text-xl font-semibold text-[#FFFDF6]">Detalhes do Pedido</h2>
               </div>
-              <button onClick={fecharModal} className="text-[#FFFDF6] hover:text-gray-300">
+              <button onClick={fecharModal} className="text-[#FFFDF6] hover:text-gray-300 cursor-pointer">
                 <IoClose size={24} />
               </button>
             </div>
