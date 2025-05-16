@@ -3,8 +3,8 @@
 import { useState, useRef } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
+import Toast from '../components/toast';
 
-//import de icons
 import { MdKeyboardArrowDown } from "react-icons/md";
 
 function AdicionarItem() {
@@ -13,12 +13,20 @@ function AdicionarItem() {
   const [tipo, setTipo] = useState('');
   const [isMenu, setIsMenu] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [taxaIVA, setTaxaIVA] = useState(23); // Default IVA em Portugal
   const [imagem, setImagem] = useState<File | null>(null);
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   const handleImagemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,8 +51,7 @@ function AdicionarItem() {
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setSuccessMessage('');
-    setError(null);
+    setToastVisible(false); // reset toast
 
     try {
       const { data: existingItems, error: fetchError } = await supabase
@@ -53,14 +60,14 @@ function AdicionarItem() {
         .ilike('nome', nome.trim());
 
       if (fetchError) {
-        setError('Erro ao verificar duplicação de nome.');
+        showToast('Erro ao verificar duplicação de nome.', 'error');
         console.error(fetchError);
         setLoading(false);
         return;
       }
 
       if (existingItems && existingItems.length > 0) {
-        setError('Já existe um item com esse nome.');
+        showToast('Já existe um item com esse nome.', 'error');
         setLoading(false);
         return;
       }
@@ -73,37 +80,47 @@ function AdicionarItem() {
         console.log('Arquivo para upload:', imagem);
 
         const { data: uploadData, error: uploadError } = await supabase.storage
-  .from('imagens')
-  .upload(imagemNome, imagem, {
-    contentType: imagem.type,
-  });
+          .from('imagens')
+          .upload(imagemNome, imagem, {
+            contentType: imagem.type,
+          });
 
-if (uploadError) {
-  setError('Erro ao fazer upload da imagem.');
-  console.error('Erro no upload:', uploadError);
-  setLoading(false);
-  return;
-}
+        if (uploadError) {
+          showToast('Erro ao fazer upload da imagem.', 'error');
+          console.error('Erro no upload:', uploadError);
+          setLoading(false);
+          return;
+        }
 
-// espera 1 segundo para garantir consistência eventual
-await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('uploaded data', uploadData);
 
-// gerar URL assinada
-const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-  .from('imagens')
-  .createSignedUrl(imagemNome, 60 * 60);
+        // espera 1 segundo para garantir consistência eventual
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-if (signedUrlError) {
-  setError('Erro ao gerar URL temporária da imagem.');
-  console.error('Erro URL temporária:', signedUrlError);
-  setLoading(false);
-  return;
-}
+        const { data: listaArquivos, error: listError } = await supabase.storage
+          .from('imagens')
+          .list('');
 
-imagemUrl = signedUrlData?.signedUrl || null;
+        if (listError) {
+          console.error('Erro ao listar arquivos no bucket:', listError);
+        } else {
+          console.log('Arquivos atualmente no bucket:', listaArquivos);
+        }
 
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from('imagens')
+          .createSignedUrl(imagemNome, 60 * 60 * 24 * 365 * 5);
 
-        console.log("imageurl:", imagemUrl)
+        if (signedUrlError) {
+          showToast('Erro ao gerar URL temporária da imagem.', 'error');
+          console.error('Erro URL temporária:', signedUrlError);
+          setLoading(false);
+          return;
+        }
+
+        imagemUrl = signedUrlData?.signedUrl || null;
+
+        console.log("imageurl:", imagemUrl);
       }
 
       const { error: insertError } = await supabase.from('itens').insert([
@@ -121,11 +138,10 @@ imagemUrl = signedUrlData?.signedUrl || null;
       setLoading(false);
 
       if (insertError) {
-        setError('Ocorreu um erro ao adicionar o item.');
+        showToast('Ocorreu um erro ao adicionar o item.', 'error');
         console.error(insertError.message);
       } else {
-        setSuccessMessage('Item adicionado com sucesso!');
-        setTimeout(() => setSuccessMessage(''), 3000);
+        showToast('Item adicionado com sucesso!', 'success');
         setNome('');
         setPreco(0);
         setTipo('');
@@ -136,11 +152,10 @@ imagemUrl = signedUrlData?.signedUrl || null;
     } catch (err) {
       console.error('Erro inesperado:', err);
       setLoading(false);
-      setError('Erro desconhecido ao adicionar o item.');
+      showToast('Erro desconhecido ao adicionar o item.', 'error');
     }
   };
 
-  // Lista de opções para o dropdown
   const tiposOptions = [
     { value: "", label: "Selecione..." },
     { value: "Sopas", label: "Sopas" },
@@ -155,14 +170,6 @@ imagemUrl = signedUrlData?.signedUrl || null;
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
       <div className="w-full max-w-md bg-[#FFFDF6] rounded-lg p-8 shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
         <h1 className="text-2xl font-semibold mb-2 text-[#032221]">Adicionar Novo Item</h1>
-
-        {error && <p className="text-[#D2665A] text-sm mb-4">{error}</p>}
-
-        {successMessage && (
-          <div className="bg-[#A4B465] text-white p-3 rounded mb-4">
-            {successMessage}
-          </div>
-        )}
 
         <form onSubmit={handleAddItem} className="space-y-4">
           <div>
@@ -218,7 +225,7 @@ imagemUrl = signedUrlData?.signedUrl || null;
                 ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#032221]">
-                <MdKeyboardArrowDown size={4} className='fill-current h-4 w-4'/>
+                <MdKeyboardArrowDown size={4} className='fill-current h-4 w-4' />
               </div>
             </div>
           </div>
@@ -241,7 +248,7 @@ imagemUrl = signedUrlData?.signedUrl || null;
                 <option value="0">0% (Isento)</option>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#032221]">
-                <MdKeyboardArrowDown size={4} className='fill-current h-4 w-4'/>
+                <MdKeyboardArrowDown size={4} className='fill-current h-4 w-4' />
               </div>
             </div>
           </div>
@@ -280,41 +287,51 @@ imagemUrl = signedUrlData?.signedUrl || null;
               </div>
               {imagemPreview && (
                 <div className="mt-2 border border-[#032221] rounded-lg p-2">
-                  <img 
-                    src={imagemPreview} 
-                    alt="Pré-visualização" 
+                  <img
+                    src={imagemPreview}
+                    alt="Pré-visualização"
                     className="w-full h-48 object-contain rounded"
                   />
                   <p className="text-xs text-gray-500 mt-1">{imagem?.name || 'Imagem selecionada'}</p>
                 </div>
               )}
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              checked={isMenu}
-              onChange={(e) => setIsMenu(e.target.checked)}
-              id="isMenu"
-              className="mr-2"
-            />
-            <label htmlFor="isMenu" className="text-sm">Incluir no Menu</label>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-2 flex items-center justify-center gap-2 rounded-lg bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] transition-transform duration-200 hover:scale-101 cursor-pointer ${
-              loading ? 'cursor-not-allowed opacity-60' : ''
-            }`}
-          >
-            {loading ? 'Carregando...' : 'Adicionar Item'}
-          </button>
-        </form>
+        </div>
       </div>
-    </div>
-  );
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="isMenu"
+          checked={isMenu}
+          onChange={() => setIsMenu(!isMenu)}
+          className="w-4 h-4 rounded border-[#032221] focus:ring-[#032221]"
+        />
+        <label htmlFor="isMenu" className="text-sm text-[#032221]">
+          Este item faz parte de um menu?
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className={`w-full py-2 flex items-center justify-center gap-2 rounded-lg bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] transition-transform duration-200 hover:scale-101 cursor-pointer ${
+          loading ? 'cursor-not-allowed opacity-60' : ''
+        }`}
+      >
+        {loading ? 'Carregando...' : 'Adicionar Item'}
+      </button>
+    </form>
+  </div>
+
+  {/* Toast */}
+  <Toast
+    message={toastMessage}
+    visible={toastVisible}
+    onClose={() => setToastVisible(false)}
+    type={toastType}
+  />
+</div>
+);
 }
 
 export default VerificacaoDePermissoes(AdicionarItem, ['Administrador', 'Funcionario de Banca']);
