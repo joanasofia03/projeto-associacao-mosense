@@ -196,18 +196,48 @@ function AlterarItem() {
     }
   };  
 
-  const handleDelete = async (id: string) => {
+    const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm('Tem certeza que deseja excluir este item?');
     if (!confirmDelete) return;
 
     try {
-      const { error } = await supabase.from('itens').delete().eq('id', id);
+      const { data: itemData, error: fetchError } = await supabase
+        .from('itens')
+        .select('imagem_url')
+        .eq('id', id)
+        .single();
 
-      if (error) {
-        console.error('Erro ao excluir item:', error);
+      if (fetchError) {
+        console.error('Erro ao buscar item:', fetchError);
+        showToast('Erro ao excluir item', 'error');
+        return;
+      }
+
+      // Remover imagem do storage se existir
+      if (itemData?.imagem_url) {
+        // Extrair o nome do arquivo da URL assinada
+        const url = new URL(itemData.imagem_url);
+        const pathname = url.pathname;
+        const regex = /\/imagens\/(.+)$/;
+        const match = pathname.match(regex);
+        if (match && match[1]) {
+          const imageName = match[1];
+          const { error: deleteError } = await supabase.storage
+            .from('imagens')
+            .remove([imageName]);
+          if (deleteError) {
+            console.error('Erro ao excluír imagem:', deleteError);
+            // Pode mostrar toast, mas não interromper exclusão do item
+          }
+        }
+      }
+
+      const { error: deleteItemError } = await supabase.from('itens').delete().eq('id', id);
+
+      if (deleteItemError) {
+        console.error('Erro ao excluir item:', deleteItemError);
         showToast('Erro ao excluir o item', 'error');
       } else {
-        console.log('Item excluído com sucesso!');
         setItems(items.filter(item => item.id !== id));
         showToast('Item excluído com sucesso!', 'success');
       }
