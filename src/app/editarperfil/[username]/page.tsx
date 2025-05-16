@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { CiEdit } from 'react-icons/ci';
 import { supabase } from '../../../../lib/supabaseClient';
+import Toast from '../../components/toast';
 
 export default function EditarPerfilCard() {
   const [isEditing, setIsEditing] = useState(false);
@@ -11,16 +12,18 @@ export default function EditarPerfilCard() {
   const [email, setEmail] = useState('');
   const [telemovel, setTelemovel] = useState('');
   const [tipo, setTipo] = useState('');
-  const [erro, setErro] = useState<string | null>(null);
-  const [sucesso, setSucesso] = useState<string | null>(null);
   const [originalEmail, setOriginalEmail] = useState('');
+
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
 
       if (error || !user) {
-        setErro('Erro ao obter utilizador autenticado.');
+        showToast('Erro ao obter utilizador autenticado.', 'error');
         return;
       }
 
@@ -35,7 +38,7 @@ export default function EditarPerfilCard() {
         .single();
 
       if (perfilError) {
-        setErro('Erro ao carregar os dados do perfil.');
+        showToast('Erro ao carregar os dados do perfil.', 'error');
         return;
       }
 
@@ -47,12 +50,15 @@ export default function EditarPerfilCard() {
     fetchUser();
   }, []);
 
-  const handleGuardar = async () => {
-    setErro(null);
-    setSucesso(null);
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
+  const handleGuardar = async () => {
     if (!userId) {
-      setErro('Utilizador não autenticado.');
+      showToast('Utilizador não autenticado.', 'error');
       return;
     }
 
@@ -65,32 +71,35 @@ export default function EditarPerfilCard() {
         .eq('id', userId);
 
       if (error) {
-        setErro('Erro ao atualizar perfil.');
         console.error(error);
+        showToast('Erro ao atualizar perfil.', 'error');
         return;
       }
 
       if (email !== originalEmail) {
-  const { error: emailError } = await supabase.auth.updateUser(
-  { email },
-  { emailRedirectTo: 'http://localhost:3000/confirmar-email' }
-);
+        const { error: emailError } = await supabase.auth.updateUser(
+          { email },
+          { emailRedirectTo: 'http://localhost:3000/confirmar-email' }
+        );
 
-  if (emailError) {
-    setErro('Erro ao atualizar email.');
-    console.error(emailError);
-    return;
-  }
+        if (emailError) {
+          console.error(emailError);
+          showToast('Erro ao atualizar email.', 'error');
+          return;
+        }
 
-  setSucesso('Perfil atualizado com sucesso. Por favor, verifique ambas as caixas de email para confirmar a alteração.');
-} else {
-  setSucesso('Perfil atualizado com sucesso.');
-}
+        showToast(
+          'Perfil atualizado com sucesso. Verifica ambas as caixas de email para confirmar a alteração.',
+          'success'
+        );
+      } else {
+        showToast('Perfil atualizado com sucesso.', 'success');
+      }
 
       setIsEditing(false);
     } catch (err) {
-      setErro('Erro ao atualizar perfil.');
       console.error(err);
+      showToast('Erro ao atualizar perfil.', 'error');
     }
   };
 
@@ -107,9 +116,6 @@ export default function EditarPerfilCard() {
             />
           )}
         </div>
-
-        {erro && <p className="text-sm text-red-500">{erro}</p>}
-        {sucesso && <p className="text-sm text-green-600">{sucesso}</p>}
 
         <div className="flex flex-col gap-4">
           <div className="flex flex-col">
@@ -156,7 +162,9 @@ export default function EditarPerfilCard() {
 
           <div className="flex flex-col">
             <label className="text-sm text-gray-600">Tipo de Utilizador</label>
-            <span className="text-sm text-gray-400 bg-[rgba(3,98,76,0.05)] rounded-lg p-2">{tipo || '—'}</span>
+            <span className="text-sm text-gray-400 bg-[rgba(3,98,76,0.05)] rounded-lg p-2">
+              {tipo || '—'}
+            </span>
           </div>
         </div>
 
@@ -177,6 +185,13 @@ export default function EditarPerfilCard() {
           </div>
         )}
       </div>
+
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+        type={toastType}
+      />
     </div>
   );
 }

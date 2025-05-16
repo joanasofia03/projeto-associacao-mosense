@@ -5,24 +5,31 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabaseClient';
 import { FaUserPlus } from 'react-icons/fa';
+import Toast from '../components/toast';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [nome, setNome] = useState('');
   const [telemovel, setTelemovel] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+
   const router = useRouter();
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
     if (password !== confirmPassword) {
-      setError('As palavras-passe não coincidem.');
+      showToast('As palavras-passe não coincidem.', 'error');
       return;
     }
 
@@ -41,25 +48,22 @@ export default function SignUp() {
       });
 
       if (error) {
-        setError('Erro ao registar. Tente novamente.');
         console.error(error.message);
+        showToast('Erro ao registar. Tente novamente.', 'error');
         return;
       }
 
-      setSuccess('Utilizador criado com sucesso! Verifique o seu e-mail para confirmar o registo.');
+      showToast('Utilizador criado com sucesso! Verifique o seu e-mail para confirmar o registo.', 'success');
     } catch (err) {
-      setError('Ocorreu um erro ao registar.');
       console.error(err);
+      showToast('Ocorreu um erro ao registar.', 'error');
     }
   };
 
   return (
     <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-[#eaf2e9] min-h-screen">
-      <div className="w-full max-w-lg rounded-2xl bg-[#f1f6f7] text-[#032221] shadow-md p-10">
+      <div className="w-full max-w-lg rounded-2xl bg-[#FFFDF6] text-[#032221] shadow-md p-10">
         <h1 className="text-2xl text-[#032221] font-semibold mb-6">Criar uma nova conta</h1>
-
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        {success && <p className="text-green-600 text-sm mb-4">{success}</p>}
 
         <form onSubmit={handleSignUp} className="space-y-4">
           <div>
@@ -139,6 +143,13 @@ export default function SignUp() {
           </button>
         </form>
       </div>
+
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+        type={toastType}
+      />
     </div>
   );
 }

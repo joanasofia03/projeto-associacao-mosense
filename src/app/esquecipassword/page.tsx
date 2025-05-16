@@ -2,48 +2,51 @@
 
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import Toast from '../components/toast';
 
 export default function EsqueciPassword() {
   const [email, setEmail] = useState('');
-  const [mensagem, setMensagem] = useState('');
-  const [erro, setErro] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
-const handleReset = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setMensagem('');
-  setErro('');
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setToastVisible(false);
 
-  // Verifica se o utilizador existe
-  const { data: exists, error: checkError } = await supabase.rpc('check_user_exists', {
-    email_to_check: email,
-  });
+    // Verifica se o utilizador existe
+    const { data: exists, error: checkError } = await supabase.rpc('check_user_exists', {
+      email_to_check: email,
+    });
 
-  if (checkError || !exists) {
-    setErro('Este e-mail não está associado a nenhuma conta.');
-    return;
-  }
+    if (checkError || !exists) {
+      setToastMessage('Este e-mail não está associado a nenhuma conta.');
+      setToastType('error');
+      setToastVisible(true);
+      return;
+    }
 
-  // Envia o e-mail de recuperação
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'http://localhost:3000/reset-password',
-  });
+    // Envia o e-mail de recuperação
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'http://localhost:3000/reset-password',
+    });
 
-  if (error) {
-    setErro('Erro ao enviar email de recuperação.');
-  } else {
-    setMensagem('Verifica o teu email para redefinir a palavra-passe.');
-    setEmail('');
-  }
-};
+    if (error) {
+      setToastMessage('Erro ao enviar email de recuperação.');
+      setToastType('error');
+    } else {
+      setToastMessage('Verifica o teu email para redefinir a palavra-passe.');
+      setToastType('success');
+      setEmail('');
+    }
 
+    setToastVisible(true);
+  };
 
   return (
     <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-[#eaf2e9] min-h-screen">
       <div className="w-full max-w-lg rounded-2xl bg-[#f1f6f7] text-[#032221] shadow-md p-10">
         <h1 className="text-2xl text-[#032221] font-semibold mb-6">Recuperar Palavra-passe</h1>
-
-        {mensagem && <p className="text-green-600 text-sm mb-4">{mensagem}</p>}
-        {erro && <p className="text-red-500 text-sm mb-4">{erro}</p>}
 
         <form onSubmit={handleReset} className="space-y-4">
           <div>
@@ -68,6 +71,14 @@ const handleReset = async (e: React.FormEvent) => {
           </button>
         </form>
       </div>
+
+      {/* Toast */}
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+        type={toastType}
+      />
     </div>
   );
 }

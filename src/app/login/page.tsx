@@ -1,20 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
-
 import { CgLogIn } from "react-icons/cg";
+import Toast from '../components/toast';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('error');
+
   const router = useRouter();
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -23,15 +31,15 @@ export default function Login() {
       });
 
       if (error) {
-        setError('Ocorreu um erro.');
-        console.log(error.message);
+        console.error(error.message);
+        showToast('E-mail ou palavra-passe incorretos.', 'error');
       } else {
-        // Guarda a sessão no localStorage como no navigation.tsx
         localStorage.setItem('session', JSON.stringify(data));
-        router.push('/welcome'); // Redireciona após login
+        showToast('Sessão iniciada com sucesso!', 'success');
+        setTimeout(() => router.push('/welcome'), 1000); // ligeiro atraso para mostrar o toast
       }
     } catch (err) {
-      setError('Ocorreu um erro.');
+      showToast('Ocorreu um erro ao tentar iniciar sessão.', 'error');
     }
   };
 
@@ -39,8 +47,6 @@ export default function Login() {
     <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-[#eaf2e9] min-h-screen">
       <div className="w-full max-w-lg rounded-2xl bg-[#FFFDF6] text-[#032221] shadow-md p-10">
         <h1 className="text-2xl text-[#032221] font-semibold mb-6">Iniciar sessão na sua conta</h1>
-
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -74,12 +80,12 @@ export default function Login() {
               Esqueci-me da palavra-passe
             </a>
           </p>
- 
-           <p className="text-sm mt-2 flex justify-center gap-1 text-gray-500">
-            Não tem uma conta? {' '}
+
+          <p className="text-sm mt-2 flex justify-center gap-1 text-gray-500">
+            Não tem uma conta?{' '}
             <a href="/registar" className="underline text-[#032221] hover:text-[#052e2d]">
               Registe-se.
-            </a>.
+            </a>
           </p>
 
           <button
@@ -91,6 +97,13 @@ export default function Login() {
           </button>
         </form>
       </div>
+
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+        type={toastType}
+      />
     </div>
   );
 }
