@@ -277,7 +277,7 @@ function RegistarPedido() {
       tipo_de_pedido: opcaoSelecionada || 'Comer Aqui',
       registado_por: userId,
       estado_validade: 'Confirmado',
-      id_evento: 3 // mudar
+      id_evento: eventoEmExecucao.id,
     };
 
     const { data: pedidoInserido, error: erroPedido } = await supabase
