@@ -376,7 +376,7 @@ function VerEstatisticas() {
   };
 
   return (
-    <main className="w-full h-full px-6 py-6 bg-[#eaf2e9] flex flex-col">
+    <main className="w-full h-full px-6 py-6 bg-[#eaf2e9] flex flex-col overflow-y-hidden">
       {/* Componente de erro (será exibido somente quando houver erro) */}
       {erro && <MensagemErro />}
       {/* Primeira linha */}
@@ -459,7 +459,7 @@ function VerEstatisticas() {
           </div> 
 
           {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
-          <div className='w-full h-full grid grid-cols-2 gap-4 px-2'>
+          <div className='w-full h-full grid grid-cols-2 gap-4 px-2 pb-8 pt-2 overflow-y-scroll'>
             {pedidos.length > 0 ? (
               pedidos.map((pedido) => (
                 <CardPedido key={pedido.id} pedido={pedido} />
