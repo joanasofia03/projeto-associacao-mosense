@@ -446,7 +446,7 @@ function VerEstatisticas() {
     console.log(`Encontrados ${itensArray.length} itens únicos para classificação de popularidade`);
     
     // Ordenar pelo número de pedidos (maior para menor)
-    return itensArray.sort((a, b) => b.quantidade - a.quantidade).slice(0, 8);
+    return itensArray.sort((a, b) => b.quantidade - a.quantidade);
   };
 
   useEffect(() => {
@@ -586,7 +586,7 @@ function VerEstatisticas() {
                 {/* Botão "Ver mais" estilizado inspirado na imagem de referência */}
                 {temMaisItens && (
                   <div 
-                    className='w-130 h-4 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer relative'
+                    className='w-full h-4 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer'
                     onClick={() => setMostrarTodos(true)}
                   >
                     
@@ -614,7 +614,7 @@ function VerEstatisticas() {
                   ))}
                   {/* Botão "Ver menos" com estilo consistente */}
                 <div 
-                  className='w-130 h-6 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer relative'
+                  className='w-full h-6 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer'
                   onClick={() => setMostrarTodos(false)}
                 >
                   <div className='px-3 py-1 pb-4 flex items-center justify-center z-10'>
@@ -730,7 +730,7 @@ function VerEstatisticas() {
           <div className='w-full h-full grid grid-cols-2 gap-4 px-2 overflow-y-scroll'>
             {pedidos.length > 0 ? (
               pedidos.map((pedido) => (
-                <CardPedido key={pedido.id} pedido={pedido} />
+                <CardPedido key={pedido.id} pedido={pedido}/>
               ))
             ) : (
               <div className='col-span-2 flex justify-center items-center p-4 bg-[#FFFDF6] rounded-xl'>
@@ -783,10 +783,10 @@ function VerEstatisticas() {
             </div>
 
             {/* Exibição de Itens */}
-            <div className='w-full h-full grid grid-rows-8 gap-2 px-2'>
+            <div className='w-full h-full flex flex-col px-2 overflow-y-auto'>
               {pratosPopulares.length > 0 ? (
                 pratosPopulares.map((item, index) => (
-                  <div key={item.id} className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)]'>
+                  <div key={item.id} className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)] py-2'>
                     <div className='w-30 h-full flex items-center justify-start pl-5'>
                       <span className='font-semibold text-2xl text-[#032221]'>
                         {String(index + 1).padStart(2, '0')}
@@ -828,7 +828,6 @@ function VerEstatisticas() {
                 </div>
               )}
             </div>
-            
           </div>
         </div>
       </div>
