@@ -9,6 +9,7 @@ import { GoSearch } from "react-icons/go";
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
+import { TbChartBarPopular } from "react-icons/tb";
 
 function VerEstatisticas() {
   // Estados principais
@@ -26,6 +27,13 @@ function VerEstatisticas() {
   const [termoPesquisa, setTermoPesquisa] = useState(''); // Novo estado para armazenar o termo de pesquisa
   const [totalPedidosConfirmados, setTotalPedidosConfirmados] = useState(0);
   const [totalFaturadoConfirmados, setTotalFaturadoConfirmados] = useState(0);
+  const [pratosPopulares, setPratosPopulares] = useState<Array<{
+    id: number;
+    nome: string;
+    quantidade: number;
+    preco: number;
+    imagem_url?: string;
+  }>>([]);
   const [eventos, setEventos] = useState<Array<{
     id: number;
     criando_em: string;
@@ -96,71 +104,6 @@ function VerEstatisticas() {
 
     setDataAtual(primeiraLetraMaiuscula);
   }, []);
-
-  // Modificação no useEffect que busca os pedidos
-  useEffect(() => {
-    const fetchPedidos = async () => {
-      if (!idEventoSelecionado) return;
-
-      try {
-        // Buscar todos os pedidos para o evento selecionado (para exibição)
-        let query = supabase
-          .from('pedidos')
-          .select('*')
-          .eq('id_evento', idEventoSelecionado);
-
-        if (filtroValidade !== 'Todos') {
-          query = query.eq('estado_validade', filtroValidade);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-          setErro(`Erro ao buscar pedidos: ${error.message}`);
-          console.error('Erro na consulta de pedidos:', error);
-        } else {
-          setPedidosOriginal(data || []); // Armazenar os dados originais
-          setPedidos(data || []);
-          
-          // Buscar apenas os pedidos confirmados para estatísticas
-          const { data: confirmados, error: erroConfirmados } = await supabase
-            .from('pedidos')
-            .select('*')
-            .eq('id_evento', idEventoSelecionado)
-            .eq('estado_validade', 'Confirmado');
-            
-          if (erroConfirmados) {
-            setErro(`Erro ao buscar pedidos confirmados: ${erroConfirmados.message}`);
-            console.error('Erro na consulta de pedidos confirmados:', erroConfirmados);
-          } else {
-            // Atualizar estatísticas apenas com pedidos confirmados
-            setTotalPedidosConfirmados(confirmados?.length || 0);
-            
-            if (!confirmados || confirmados.length === 0) {
-              setTotalFaturadoConfirmados(0);
-            } else {
-              // Buscar os itens apenas para pedidos confirmados
-              const pedidosConfirmadosIds = confirmados.map(pedido => pedido.id);
-              fetchPedidosItensConfirmados(pedidosConfirmadosIds);
-            }
-          }
-          
-          // Importante: Buscar os itens para todos os pedidos (para exibição)
-          if (data && data.length > 0) {
-            const pedidosIds = data.map(pedido => pedido.id);
-            fetchPedidosItens(pedidosIds);
-          } else {
-            setPedidosItens({});
-          }
-        }
-      } catch (err) {
-        setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
-        console.error('Exceção ao buscar pedidos:', err);
-      }
-    };
-
-    fetchPedidos();
-  }, [idEventoSelecionado, filtroValidade]);
 
   // Função para buscar itens dos pedidos confirmados (apenas para estatísticas)
   const fetchPedidosItensConfirmados = async (pedidosConfirmadosIds: number[]) => {
@@ -271,6 +214,7 @@ function VerEstatisticas() {
   };
 
   // Função para buscar itens dos pedidos
+  // Modificar a função fetchPedidosItens para atualizar os pratos populares
   const fetchPedidosItens = async (pedidosIds: number[]) => {
     if (!pedidosIds.length) return;
     
@@ -334,11 +278,196 @@ function VerEstatisticas() {
       
       setPedidosItens(itensAgrupados);
       setTotalFaturado(valorTotal);
+      
+      // Buscar apenas os pedidos confirmados do evento atual para calcular os pratos populares
+      const pedidosConfirmados = pedidosOriginal.filter(pedido => pedido.estado_validade === 'Confirmado');
+      const pedidosConfirmadosIds = pedidosConfirmados.map(pedido => pedido.id);
+      
+      console.log(`Calculando pratos populares para ${pedidosConfirmadosIds.length} pedidos confirmados`);
+      
+      if (pedidosConfirmadosIds.length > 0) {
+        const pratosMaisPopulares = calcularPratosPopulares(itensAgrupados, pedidosConfirmadosIds);
+        setPratosPopulares(pratosMaisPopulares);
+        console.log("Pratos populares calculados:", pratosMaisPopulares);
+      } else {
+        console.log("Nenhum pedido confirmado encontrado para calcular pratos populares");
+        setPratosPopulares([]);
+      }
+      
     } catch (err) {
       setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
       console.error('Exceção ao buscar itens dos pedidos:', err);
     }
   };
+
+  useEffect(() => {
+    const fetchPedidos = async () => {
+      if (!idEventoSelecionado) return;
+
+      try {
+        // Buscar todos os pedidos para o evento selecionado (para exibição)
+        let query = supabase
+          .from('pedidos')
+          .select('*')
+          .eq('id_evento', idEventoSelecionado);
+
+        if (filtroValidade !== 'Todos') {
+          query = query.eq('estado_validade', filtroValidade);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          setErro(`Erro ao buscar pedidos: ${error.message}`);
+          console.error('Erro na consulta de pedidos:', error);
+        } else {
+          setPedidosOriginal(data || []); // Armazenar os dados originais
+          setPedidos(data || []);
+          setTotalPedidos(data?.length || 0);
+          
+          // CORREÇÃO: Buscar separadamente todos os pedidos confirmados para estatísticas
+          // independentemente do filtro atual
+          const { data: confirmados, error: erroConfirmados } = await supabase
+            .from('pedidos')
+            .select('*')
+            .eq('id_evento', idEventoSelecionado)
+            .eq('estado_validade', 'Confirmado');
+            
+          if (erroConfirmados) {
+            setErro(`Erro ao buscar pedidos confirmados: ${erroConfirmados.message}`);
+            console.error('Erro na consulta de pedidos confirmados:', erroConfirmados);
+          } else {
+            // Atualizar estatísticas apenas com pedidos confirmados
+            setTotalPedidosConfirmados(confirmados?.length || 0);
+            
+            // CORREÇÃO: Garantir que estamos buscando itens mesmo se não houver pedidos no filtro atual
+            // mas existirem pedidos confirmados para estatísticas
+            let todosOsPedidosIds: number[] = [];
+            
+            // Adicionar IDs dos pedidos filtrados para exibição
+            if (data && data.length > 0) {
+              todosOsPedidosIds = [...data.map(pedido => pedido.id)];
+            }
+            
+            // Adicionar IDs dos pedidos confirmados para estatísticas (se não estiverem já incluídos)
+            if (confirmados && confirmados.length > 0) {
+              const confirmadosIds = confirmados.map(pedido => pedido.id);
+              confirmadosIds.forEach(id => {
+                if (!todosOsPedidosIds.includes(id)) {
+                  todosOsPedidosIds.push(id);
+                }
+              });
+              
+              // Calcular faturamento de pedidos confirmados
+              if (confirmados.length > 0) {
+                fetchPedidosItensConfirmados(confirmadosIds);
+              } else {
+                setTotalFaturadoConfirmados(0);
+              }
+            } else {
+              setTotalFaturadoConfirmados(0);
+            }
+            
+            // CORREÇÃO: Buscar itens para todos os pedidos (filtrados + confirmados)
+            if (todosOsPedidosIds.length > 0) {
+              fetchPedidosItens(todosOsPedidosIds);
+            } else {
+              setPedidosItens({});
+              setPratosPopulares([]);
+            }
+          }
+        }
+      } catch (err) {
+        setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
+        console.error('Exceção ao buscar pedidos:', err);
+      }
+    };
+
+    fetchPedidos();
+  }, [idEventoSelecionado, filtroValidade]);
+
+  // Corrigir a função calcularPratosPopulares para lidar melhor com valores nulos/indefinidos
+  const calcularPratosPopulares = (pedidosItensPorPedido: {[key: string]: Array<any>}, pedidosConfirmadosIds: number[]) => {
+    // Contador para cada item
+    const contadorItens: { [key: number]: { 
+      id: number, 
+      nome: string, 
+      quantidade: number, 
+      preco: number,
+      imagemUrl?: string 
+    } } = {};
+    
+    console.log(`Calculando pratos populares para ${pedidosConfirmadosIds.length} pedidos confirmados`);
+    
+    // Verificar se temos pedidos confirmados para processar
+    if (!pedidosConfirmadosIds || pedidosConfirmadosIds.length === 0) {
+      console.log("Nenhum pedido confirmado para calcular pratos populares");
+      return [];
+    }
+    
+    // Percorrer apenas os pedidos confirmados
+    pedidosConfirmadosIds.forEach(pedidoId => {
+      const itensPedido = pedidosItensPorPedido[pedidoId];
+      
+      if (!itensPedido || itensPedido.length === 0) {
+        console.log(`Pedido confirmado #${pedidoId} não tem itens disponíveis`);
+        return;
+      }
+      
+      console.log(`Processando pedido confirmado #${pedidoId} com ${itensPedido.length} itens`);
+      
+      // Contar a quantidade de cada item no pedido confirmado
+      itensPedido.forEach(item => {
+        if (!item || !item.item_id) {
+          console.log("Item inválido encontrado:", item);
+          return;
+        }
+        
+        const itemId = item.item_id;
+        
+        if (!contadorItens[itemId]) {
+          contadorItens[itemId] = {
+            id: itemId,
+            nome: item.itens?.nome || 'Item não disponível',
+            quantidade: 0,
+            preco: item.itens?.preco || 0,
+            imagemUrl: `/api/placeholder/120/120`
+          };
+        }
+        
+        // Adicionar a quantidade deste pedido ao contador total
+        contadorItens[itemId].quantidade += (item.quantidade || 0);
+      });
+    });
+    
+    // Converter o objeto em array para ordenação
+    const itensArray = Object.values(contadorItens);
+    console.log(`Encontrados ${itensArray.length} itens únicos para classificação de popularidade`);
+    
+    // Ordenar pelo número de pedidos (maior para menor)
+    return itensArray.sort((a, b) => b.quantidade - a.quantidade).slice(0, 8);
+  };
+
+  useEffect(() => {
+    // Se não há pedidos ou pedidos itens, limpar os pratos populares
+    if (!pedidosOriginal.length || Object.keys(pedidosItens).length === 0) {
+      setPratosPopulares([]);
+      return;
+    }
+    
+    // Filtrar apenas os pedidos confirmados para calcular os pratos populares
+    const pedidosConfirmados = pedidosOriginal.filter(pedido => pedido.estado_validade === 'Confirmado');
+    const pedidosConfirmadosIds = pedidosConfirmados.map(pedido => pedido.id);
+    
+    console.log(`Recalculando pratos populares após atualização de dados: ${pedidosConfirmadosIds.length} pedidos confirmados`);
+    
+    if (pedidosConfirmadosIds.length > 0) {
+      const pratosMaisPopulares = calcularPratosPopulares(pedidosItens, pedidosConfirmadosIds);
+      setPratosPopulares(pratosMaisPopulares);
+    } else {
+      setPratosPopulares([]);
+    }
+  }, [pedidosOriginal, pedidosItens]);
 
   // Atualizar o nome do evento quando um evento for selecionado
   useEffect(() => {
@@ -375,12 +504,25 @@ function VerEstatisticas() {
     }, 0).toFixed(2);
   };
 
-  // Modificação do CardPedido componente para alinhar corretamente os números
+  //Componente CardPedido
   const CardPedido = ({ pedido }: { pedido: any }) => {
     const itens = pedidosItens[pedido.id] || [];
+    const [mostrarTodos, setMostrarTodos] = useState(false);
+    
+    // Número de itens a mostrar inicialmente
+    const itensMostrados = 5;
+    
+    // Calcular se há mais itens para mostrar
+    const temMaisItens = itens.length > itensMostrados;
+    
+    // Filtrar os itens que serão exibidos inicialmente
+    const itensParaExibir = mostrarTodos ? itens : itens.slice(0, itensMostrados);
+    
+    // Quantidade de itens extras não mostrados
+    const itensExtras = itens.length - itensMostrados;
     
     return (
-      <div className='w-full h-90 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
+      <div className='w-full h-105 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
         {/* Nome, Nº e Estado */}
         <div className='flex flex-row justify-between items-start w-full h-20 px-3 py-4'>
           <div className='bg-[#032221] rounded-lg p-3'>
@@ -414,30 +556,81 @@ function VerEstatisticas() {
           </span>
         </div>
 
-        {/* Display de Itens, Quantidade e Preço - MODIFICADO PARA CORRIGIR ALINHAMENTO */}
-        <div className='w-full h-full flex flex-col justify-between items-start px-3 pt-2 border-b-1 border-[rgba(32,41,55,0.1)]'>
-          <div className='w-full h-5 flex flex-row justify-between items-start'>
+        {/* Display de Itens, Quantidade e Preço */}
+        <div className='w-full flex flex-col px-3 pt-2 border-b-1 border-[rgba(32,41,55,0.1)]'>
+          {/* Cabeçalho da tabela de itens */}
+          <div className='w-full h-6 flex flex-row justify-between items-center mb-1'>
             <span className='font-normal text-xs w-3/5' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Itens</span>
             <span className='font-normal text-xs w-1/5 text-center' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Qty</span>
             <span className='font-normal text-xs w-1/5 text-right' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Preço</span>
           </div>
-          <div className='w-full h-full grid grid-rows-4 gap-1 overflow-y-auto'>
-            {itens.map((item) => (
-              <div key={item.id} className='w-full h-full flex flex-row justify-between items-center'>
-                <span className='text-[#032221] font-medium text-sm w-3/5'>
-                  {item.itens?.nome || 'Item não disponível'}
-                </span>
-                <span className='text-[#032221] font-medium text-sm w-1/5 text-center'>{item.quantidade}</span>
-                <span className='text-[#032221] font-medium text-sm w-1/5 text-right'>
-                  {((item.itens?.preco || 0) * item.quantidade).toFixed(2)}€
-                </span>
+          
+          {/* Container para os itens */}
+          <div className='w-full'>
+            {!mostrarTodos ? (
+              // Container sem scroll quando mostrando apenas os primeiros itens
+              <div className='w-full'>
+                {itensParaExibir.map((item) => (
+                  <div key={item.id} className='w-full flex flex-row justify-between items-center py-1'>
+                    <span className='text-[#032221] font-medium text-sm w-3/5 truncate'>
+                      {item.itens?.nome || 'Item não disponível'}
+                    </span>
+                    <span className='text-[#032221] font-medium text-sm w-1/5 text-center'>{item.quantidade}</span>
+                    <span className='text-[#032221] font-medium text-sm w-1/5 text-right'>
+                      {((item.itens?.preco || 0) * item.quantidade).toFixed(2)}€
+                    </span>
+                  </div>
+                ))}
+                
+                {/* Botão "Ver mais" estilizado inspirado na imagem de referência */}
+                {temMaisItens && (
+                  <div 
+                    className='w-full h-8 flex justify-center items-center mt-1 relative overflow-hidden cursor-pointer'
+                    onClick={() => setMostrarTodos(true)}
+                  >
+                    {/* Gradient overlay */}
+                    <div className='absolute inset-0 bg-gradient-to-t from-[#FFFDF6] to-transparent pointer-events-none'></div>
+                    
+                    {/* Botão "Ver mais" com estilo moderno */}
+                    <div className='bg-[#F5F8F9] border border-gray-200 rounded-full px-3 py-1 flex items-center justify-center shadow-sm z-10'>
+                      <span className='text-[#5A6978] font-medium text-xs'>+{itensExtras} more</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            ))}
+            ) : (
+              // Container com scroll quando "Ver mais" é clicado
+              <div className='flex flex-col'>
+                <div className='w-full max-h-28 overflow-y-auto pr-1'>
+                  {itens.map((item) => (
+                    <div key={item.id} className='w-full flex flex-row justify-between items-center py-1'>
+                      <span className='text-[#032221] font-medium text-sm w-3/5 truncate'>
+                        {item.itens?.nome || 'Item não disponível'}
+                      </span>
+                      <span className='text-[#032221] font-medium text-sm w-1/5 text-center'>{item.quantidade}</span>
+                      <span className='text-[#032221] font-medium text-sm w-1/5 text-right'>
+                        {((item.itens?.preco || 0) * item.quantidade).toFixed(2)}€
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Botão "Ver menos" com estilo consistente */}
+                <div 
+                  className='w-full h-8 flex justify-center items-center mt-1'
+                  onClick={() => setMostrarTodos(false)}
+                >
+                  <div className='bg-[#F5F8F9] border border-gray-200 rounded-full px-3 py-1 flex items-center justify-center shadow-sm'>
+                    <span className='text-[#5A6978] font-medium text-xs'>Ver menos</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Total Faturado */}
-        <div className='w-full h-10 flex flex-row justify-between items-start px-3 pt-2'>
+        <div className='w-full h-10 flex flex-row justify-between items-center px-3 pt-2'>
           <h1 className='text-[#032221] font-semibold text-lg'>Total</h1>
           <h1 className='text-[#032221] font-semibold text-lg'>{calcularTotalPedido(pedido.id)}€</h1>
         </div>
@@ -582,7 +775,7 @@ function VerEstatisticas() {
             {/* Título */}
             <div className='w-full h-10 flex flex-row justify-between items-center px-3 py-4'>
               <h1 className='font-semibold text-2xl text-[#032221]'>Pratos Populares</h1>
-              <span className='font-normal text-sm text-[#399918] cursor-pointer'>Ver Todos</span>
+              <TbChartBarPopular size={24} className='font-normal text-[#032221]'/>
             </div>
 
             {/* Rank & Nome */}
@@ -592,35 +785,43 @@ function VerEstatisticas() {
             </div>
 
             {/* Exibição de Itens */}
-            <div className='w-full h-full grid grid-rows-8 gap-2 px-2'>
-              {/* Item 1 */}
-              <div className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)]'>
-                <div className='w-30 h-full flex items-center justify-start pl-5'>
-                  <span className='font-semibold text-2xl text-[#032221]'>01</span>
+            <div className='w-full h-full grid grid-rows-8 gap-2 px-2 overflow-y-scroll'>
+              {pratosPopulares.length > 0 ? (
+                pratosPopulares.map((item, index) => (
+                  <div key={item.id} className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)]'>
+                    <div className='w-30 h-full flex items-center justify-start pl-5'>
+                      <span className='font-semibold text-2xl text-[#032221]'>
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                    </div>
+                    <div className='w-35 h-full flex items-center justify-center'>
+                      <img 
+                        src={item.imagem_url} 
+                        alt={item.nome} 
+                        width={120} 
+                        height={40} 
+                        className='rounded-full'
+                      />
+                    </div>
+                    <div className='w-full h-full flex flex-col items-start justify-center pl-7'>
+                      <h1 className='font-semibold text-lg text-[#032221]'>{item.nome}</h1>
+                      <span className='font-light text-base text-gray-600'>
+                        Pedidos: <strong>{item.quantidade}</strong> ({(item.preco * item.quantidade).toFixed(2)}€)
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className='col-span-8 flex justify-center items-center p-4'>
+                  <p className='text-[#032221] font-medium text-lg'>
+                    {idEventoSelecionado 
+                      ? 'Nenhum item encontrado para este evento.' 
+                      : 'Selecione um evento para visualizar os itens populares.'}
+                  </p>
                 </div>
-                <div className='w-35 h-full flex items-center justify-center'>
-                  <img src="/CaldoVerde.jpg" alt="Caldo Verde" width={120} height={40} className='rounded-full'/>
-                </div>
-                <div className='w-full h-full flex flex-col items-start justify-center pl-7'>
-                  <h1 className='font-semibold text-lg text-[#032221]'>Título do item</h1>
-                  <span className='font-light text-base text-gray-600'>Pedidos:</span>
-                </div>
-              </div>
-
-              {/* Item 2 */}
-              <div className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)]'>
-                <div className='w-30 h-full flex items-center justify-start pl-5'>
-                  <span className='font-semibold text-2xl text-[#032221]'>02</span>
-                </div>
-                <div className='w-35 h-full flex items-center justify-center'>
-                  <img src="/CaldoVerde.jpg" alt="Caldo Verde" width={120} height={40} className='rounded-full'/>
-                </div>
-                <div className='w-full h-full flex flex-col items-start justify-center pl-7'>
-                  <h1 className='font-semibold text-lg text-[#032221]'>Título do item</h1>
-                  <span className='font-light text-base text-gray-600'>Pedidos:</span>
-                </div>
-              </div>
+              )}
             </div>
+            
           </div>
         </div>
       </div>
