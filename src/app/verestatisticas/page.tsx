@@ -510,7 +510,7 @@ function VerEstatisticas() {
     const [mostrarTodos, setMostrarTodos] = useState(false);
     
     // Número de itens a mostrar inicialmente
-    const itensMostrados = 5;
+    const itensMostrados = 4;
     
     // Calcular se há mais itens para mostrar
     const temMaisItens = itens.length > itensMostrados;
@@ -522,9 +522,9 @@ function VerEstatisticas() {
     const itensExtras = itens.length - itensMostrados;
     
     return (
-      <div className='w-full h-105 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
+      <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
         {/* Nome, Nº e Estado */}
-        <div className='flex flex-row justify-between items-start w-full h-20 px-3 py-4'>
+        <div className='flex flex-row justify-between items-start w-full h-20 px-5 py-4'>
           <div className='bg-[#032221] rounded-lg p-3'>
             <span className='text-[#FFFDF6] font-semibold text-lg'>{pedido.numero_diario}</span>
           </div>
@@ -547,7 +547,7 @@ function VerEstatisticas() {
         </div>
 
         {/* Data&Hora e Evento */}
-        <div className='w-full h-6 flex flex-row justify-between items-center px-3 pb-2 border-b-1 border-[rgba(32,41,55,0.1)]'>
+        <div className='w-full h-6 flex flex-row justify-between items-center px-5 pb-2 border-b-1 border-[rgba(32,41,55,0.1)]'>
           <span className='font-normal text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>
             {formatarData(pedido.criado_em)}
           </span>
@@ -557,7 +557,7 @@ function VerEstatisticas() {
         </div>
 
         {/* Display de Itens, Quantidade e Preço */}
-        <div className='w-full flex flex-col px-3 pt-2 border-b-1 border-[rgba(32,41,55,0.1)]'>
+        <div className='w-full flex flex-col px-3 pt-2 border-b-1 border-[rgba(32,41,55,0.1)] overflow-y-auto px-5'>
           {/* Cabeçalho da tabela de itens */}
           <div className='w-full h-6 flex flex-row justify-between items-center mb-1'>
             <span className='font-normal text-xs w-3/5' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Itens</span>
@@ -566,10 +566,10 @@ function VerEstatisticas() {
           </div>
           
           {/* Container para os itens */}
-          <div className='w-full'>
+          <div className='w-full h-35'>
             {!mostrarTodos ? (
               // Container sem scroll quando mostrando apenas os primeiros itens
-              <div className='w-full'>
+              <div className='w-full h-35'>
                 {itensParaExibir.map((item) => (
                   <div key={item.id} className='w-full flex flex-row justify-between items-center py-1'>
                     <span className='text-[#032221] font-medium text-sm w-3/5 truncate'>
@@ -581,18 +581,15 @@ function VerEstatisticas() {
                     </span>
                   </div>
                 ))}
-                
                 {/* Botão "Ver mais" estilizado inspirado na imagem de referência */}
                 {temMaisItens && (
                   <div 
-                    className='w-full h-8 flex justify-center items-center mt-1 relative overflow-hidden cursor-pointer'
+                    className='w-130 h-4 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer absolute'
                     onClick={() => setMostrarTodos(true)}
                   >
-                    {/* Gradient overlay */}
-                    <div className='absolute inset-0 bg-gradient-to-t from-[#FFFDF6] to-transparent pointer-events-none'></div>
                     
                     {/* Botão "Ver mais" com estilo moderno */}
-                    <div className='bg-[#F5F8F9] border border-gray-200 rounded-full px-3 py-1 flex items-center justify-center shadow-sm z-10'>
+                    <div className='px-3 py-1 flex items-center justify-center z-10'>
                       <span className='text-[#5A6978] font-medium text-xs'>+{itensExtras} more</span>
                     </div>
                   </div>
@@ -601,7 +598,7 @@ function VerEstatisticas() {
             ) : (
               // Container com scroll quando "Ver mais" é clicado
               <div className='flex flex-col'>
-                <div className='w-full max-h-28 overflow-y-auto pr-1'>
+                <div className='w-full max-h-30 pr-1'>
                   {itens.map((item) => (
                     <div key={item.id} className='w-full flex flex-row justify-between items-center py-1'>
                       <span className='text-[#032221] font-medium text-sm w-3/5 truncate'>
@@ -613,16 +610,15 @@ function VerEstatisticas() {
                       </span>
                     </div>
                   ))}
-                </div>
-                
-                {/* Botão "Ver menos" com estilo consistente */}
+                  {/* Botão "Ver menos" com estilo consistente */}
                 <div 
-                  className='w-full h-8 flex justify-center items-center mt-1'
+                  className='w-full h-10 flex justify-center items-center mt-1 mb-4'
                   onClick={() => setMostrarTodos(false)}
                 >
-                  <div className='bg-[#F5F8F9] border border-gray-200 rounded-full px-3 py-1 flex items-center justify-center shadow-sm'>
+                  <div className='bg-[#F5F8F9] border border-gray-200 rounded-full mt-2 px-3 py-1 flex items-center justify-center shadow-sm'>
                     <span className='text-[#5A6978] font-medium text-xs'>Ver menos</span>
                   </div>
+                </div>
                 </div>
               </div>
             )}
@@ -630,13 +626,13 @@ function VerEstatisticas() {
         </div>
 
         {/* Total Faturado */}
-        <div className='w-full h-10 flex flex-row justify-between items-center px-3 pt-2'>
+        <div className='w-full h-10 flex flex-row justify-between items-center px-5 pt-2'>
           <h1 className='text-[#032221] font-semibold text-lg'>Total</h1>
           <h1 className='text-[#032221] font-semibold text-lg'>{calcularTotalPedido(pedido.id)}€</h1>
         </div>
 
         {/* Botão Ver Detalhes */}
-        <div className='w-full px-3 pb-4 pt-1'>
+        <div className='w-full px-5 pb-4 pt-1'>
           <button className='bg-[#032221] text-[#FFFDF6] rounded-lg w-full flex justify-center items-center py-2 cursor-pointer hover:bg-[#052e2d] transition-transform duration-300 hover:scale-102'>
             Ver Detalhes
           </button>
