@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
+import Image from 'next/image';
 
 // Import de Icons
 import { GoSearch } from "react-icons/go";
@@ -128,7 +129,7 @@ function VerEstatisticas() {
       // Buscar detalhes dos itens
       const { data: itensData, error: itensError } = await supabase
         .from('itens')
-        .select('id, nome, preco')
+        .select('id, nome, preco, imagem_url')
         .in('id', itensIds);
         
       if (itensError) {
@@ -237,7 +238,7 @@ function VerEstatisticas() {
       // Buscar detalhes dos itens
       const { data: itensData, error: itensError } = await supabase
         .from('itens')
-        .select('id, nome, preco')
+        .select('id, nome, preco, imagem_url')
         .in('id', itensIds);
         
       if (itensError) {
@@ -394,7 +395,7 @@ function VerEstatisticas() {
       nome: string, 
       quantidade: number, 
       preco: number,
-      imagemUrl?: string 
+      imagem_url?: string 
     } } = {};
     
     console.log(`Calculando pratos populares para ${pedidosConfirmadosIds.length} pedidos confirmados`);
@@ -431,7 +432,7 @@ function VerEstatisticas() {
             nome: item.itens?.nome || 'Item não disponível',
             quantidade: 0,
             preco: item.itens?.preco || 0,
-            imagemUrl: `/api/placeholder/120/120`
+            imagem_url: item.itens?.imagem_url
           };
         }
         
@@ -464,6 +465,7 @@ function VerEstatisticas() {
     if (pedidosConfirmadosIds.length > 0) {
       const pratosMaisPopulares = calcularPratosPopulares(pedidosItens, pedidosConfirmadosIds);
       setPratosPopulares(pratosMaisPopulares);
+      console.log(pratosMaisPopulares)
     } else {
       setPratosPopulares([]);
     }
@@ -794,15 +796,24 @@ function VerEstatisticas() {
                         {String(index + 1).padStart(2, '0')}
                       </span>
                     </div>
-                    <div className='w-35 h-full flex items-center justify-center'>
-                      <img 
-                        src={item.imagem_url} 
-                        alt={item.nome} 
-                        width={120} 
-                        height={40} 
-                        className='rounded-full'
-                      />
-                    </div>
+                      <div className="relative w-35 h-full rounded-full overflow-hidden flex items-center justify-center">
+                        {item.imagem_url ? (
+                          <Image
+                            src={item.imagem_url}
+                            alt={item.nome}
+                            fill
+                            className="object-cover rounded-full"
+                            unoptimized={true} // Importante para URLs externas
+                          />
+                        ) : (
+                          <Image
+                            src="/CaldoVerde.jpg"
+                            alt={item.nome}
+                            fill
+                            className="object-cover rounded-full"
+                          />
+                        )}
+                      </div>
                     <div className='w-full h-full flex flex-col items-start justify-center pl-7'>
                       <h1 className='font-semibold text-lg text-[#032221]'>{item.nome}</h1>
                       <span className='font-light text-base text-gray-600'>
