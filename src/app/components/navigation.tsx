@@ -195,6 +195,22 @@ setUserId(session?.user.id);
           />
         </MenuSection>
 
+        {/* Eventos - Apenas para Administradores */}
+        {userType === 'Administrador' && (
+          <MenuSection title={isExpanded ? "Gestão de Eventos" : null}>
+            <MenuItem 
+              href="/criarevento" 
+              icon={<IoAddCircleOutline size={iconSize} />} 
+              label="Criar Evento" 
+            />
+            <MenuItem 
+              href="/alteraritem" 
+              icon={<CiEdit size={iconSize} />} 
+              label="Alterar Item" 
+            />
+          </MenuSection>
+        )}
+
         {/* Pedidos - Apenas para Administradores e Funcionarios de Banca */}
         {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
           <MenuSection title={isExpanded ? "Gestão de Pedidos" : null}>
