@@ -524,7 +524,7 @@ function VerEstatisticas() {
     const itensExtras = itens.length - itensMostrados;
     
     return (
-      <div className='w-full h-100 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
+      <div className='w-full h-95 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
         {/* Nome, Nº e Estado */}
         <div className='flex flex-row justify-between items-start w-full h-20 px-5 py-4'>
           <div className='bg-[#032221] rounded-lg p-3'>
@@ -586,7 +586,7 @@ function VerEstatisticas() {
                 {/* Botão "Ver mais" estilizado inspirado na imagem de referência */}
                 {temMaisItens && (
                   <div 
-                    className='w-130 h-4 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer absolute'
+                    className='w-130 h-4 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer relative'
                     onClick={() => setMostrarTodos(true)}
                   >
                     
@@ -614,10 +614,10 @@ function VerEstatisticas() {
                   ))}
                   {/* Botão "Ver menos" com estilo consistente */}
                 <div 
-                  className='w-full h-10 flex justify-center items-center mt-1 mb-4'
+                  className='w-130 h-6 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer relative'
                   onClick={() => setMostrarTodos(false)}
                 >
-                  <div className='bg-[#F5F8F9] border border-gray-200 rounded-full mt-2 px-3 py-1 flex items-center justify-center shadow-sm'>
+                  <div className='px-3 py-1 pb-4 flex items-center justify-center z-10'>
                     <span className='text-[#5A6978] font-medium text-xs'>Ver menos</span>
                   </div>
                 </div>
@@ -783,7 +783,7 @@ function VerEstatisticas() {
             </div>
 
             {/* Exibição de Itens */}
-            <div className='w-full h-full grid grid-rows-8 gap-2 px-2 overflow-y-scroll'>
+            <div className='w-full h-full grid grid-rows-8 gap-2 px-2'>
               {pratosPopulares.length > 0 ? (
                 pratosPopulares.map((item, index) => (
                   <div key={item.id} className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)]'>
