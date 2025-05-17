@@ -17,6 +17,7 @@ import { CgArrowLeftO } from "react-icons/cg";
 import { IoIosLogOut } from "react-icons/io";
 import { TbProgressHelp } from "react-icons/tb";
 import { FaUserLarge } from "react-icons/fa6";
+import { MdEvent } from "react-icons/md";
 
 export const Navigation = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -199,9 +200,9 @@ setUserId(session?.user.id);
         {userType === 'Administrador' && (
           <MenuSection title={isExpanded ? "Gestão de Eventos" : null}>
             <MenuItem 
-              href="/criarevento" 
-              icon={<IoAddCircleOutline size={iconSize} />} 
-              label="Criar Evento" 
+              href="/adicionarevento" 
+              icon={<MdEvent size={iconSize} />} 
+              label="Adicionar Evento" 
             />
             <MenuItem 
               href="/alteraritem" 

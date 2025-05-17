@@ -142,11 +142,11 @@ function AdicionarEvento() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 rounded-lg bg-[#032221] text-white hover:bg-[#05403d] transition-transform ${
-              loading ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105'
+            className={`w-full py-2 flex items-center justify-center gap-2 rounded-lg bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] transition-transform duration-200 hover:scale-101 cursor-pointer ${
+              loading ? 'opacity-60 cursor-not-allowed' : ''
             }`}
           >
-            {loading ? 'Salvando...' : 'Adicionar Evento'}
+            {loading ? 'Guardando...' : 'Adicionar Evento'}
           </button>
         </form>
 
