@@ -12,6 +12,7 @@ import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
 import { TbChartBarPopular } from "react-icons/tb";
+import { FaEye } from "react-icons/fa";
 
 function VerEstatisticas() {
   // Estados principais
@@ -566,7 +567,7 @@ function VerEstatisticas() {
         {/* Nome, Nº e Estado */}
         <div className='flex flex-row justify-between items-start w-full h-20 px-5 py-4'>
           <div className='bg-[#032221] rounded-lg p-3'>
-            <span className='text-[#FFFDF6] font-semibold text-lg'>{pedido.numero_diario}</span>
+            <span className='text-[#FFFDF6] font-semibold text-lg'>#{pedido.numero_diario}</span>
           </div>
           <div className='flex flex-col justify-start items-start w-190 h-full px-3'>
             <h1 className='text-[#032221] font-semibold text-lg'>{pedido.nome_cliente}</h1>
@@ -675,7 +676,7 @@ function VerEstatisticas() {
         {/* Botão Ver Detalhes */}
         <div className='w-full px-5 pb-4 pt-1'>
           <button className='bg-[#032221] text-[#FFFDF6] rounded-lg w-full flex justify-center items-center py-2 cursor-pointer hover:bg-[#052e2d] transition-transform duration-300 hover:scale-102'>
-            Ver Detalhes
+            <FaEye className="mr-1" />Ver Detalhes
           </button>
         </div>
       </div>

@@ -9,8 +9,6 @@ import { GoSearch } from "react-icons/go";
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
-import { FiEdit } from "react-icons/fi";
-import { BsTrash } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBin6Line } from "react-icons/ri";
@@ -386,7 +384,7 @@ function AlterarPedido() {
             <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-[#032221]">
               <div className="flex items-center">
                 <div className="bg-[#FFFDF6] rounded-lg p-2 mr-3">
-                  <span className="text-[#032221] font-semibold text-lg">{pedido.numero_diario}</span>
+                  <span className="text-[#032221] font-semibold text-lg">#{pedido.numero_diario}</span>
                 </div>
                 <h2 className="text-xl font-semibold text-[#FFFDF6]">Detalhes do Pedido</h2>
               </div>
@@ -446,9 +444,10 @@ function AlterarPedido() {
                 <span className="font-normal text-sm w-1/5 text-right text-gray-600">Preço</span>
               </div>
               
-              <div className="w-full max-h-60 overflow-y-auto">
+              <div className="w-full max-h-60 overflow-y-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style> {/* Permite que haja scroll sem estar visivel a scroll bar */}
                 {itens.map((item) => (
-                  <div key={item.id} className="w-full flex justify-between items-center py-1 border-b border-gray-100 last:border-b-0">
+                  <div key={item.id} className="w-full flex justify-between items-center py-1">
                     <span className="text-[#032221] font-medium text-sm w-3/5">
                       {item.itens?.nome || 'Item não disponível'}
                     </span>
@@ -512,7 +511,7 @@ function AlterarPedido() {
             <div className="grid grid-cols-2 gap-3">
               <button 
                 onClick={() => editarPedido(pedido.id)}
-                className="bg-[#DDEB9D] text-[#032221] cursor-pointer py-2 px-4 rounded-md font-medium hover:bg-opacity-80 transition-colors flex items-center justify-center"
+                className="bg-[#DDEB9D] text-[#032221] cursor-pointer py-2 px-4 rounded-md font-medium hover:bg-opacity-80 transition-colors flex items-center justify-center cursor-pointer transition-transform duration-300 hover:-translate-y-1"
                 disabled={pedido.estado_validade === 'Anulado'}
               >
                 <MdOutlineEdit className="mr-1 h-4 w-4" /> Editar
@@ -520,7 +519,7 @@ function AlterarPedido() {
               
               <button 
                 onClick={() => iniciarAnulacaoPedido(pedido.id)}
-                className="bg-[rgba(210,102,90,0.1)] cursor-pointer text-[#D2665A] py-2 px-4 rounded-md font-medium hover:bg-[rgba(210,102,90,0.15)] transition-colors flex items-center justify-center"
+                className="bg-[rgba(210,102,90,0.1)] cursor-pointer text-[#D2665A] py-2 px-4 rounded-md font-medium hover:bg-[rgba(210,102,90,0.15)] transition-colors flex items-center justify-center cursor-pointer transition-transform duration-300 hover:-translate-y-1"
                 disabled={pedido.estado_validade === 'Anulado'}
               >
                 <RiDeleteBin6Line className="mr-1 h-4 w-4" /> Anular
@@ -529,7 +528,7 @@ function AlterarPedido() {
             
             <button 
               onClick={abrirModal}
-              className="w-full mt-3 bg-[#032221] text-[#FFFDF6] py-2 px-4 rounded-md font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center"
+              className="w-full mt-3 bg-[#032221] text-[#FFFDF6] py-2 px-4 rounded-md font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center cursor-pointer hover:bg-[#052e2d] transition-transform duration-300 hover:scale-102"
             >
               <FaEye className="mr-1" /> Ver Detalhes
             </button>

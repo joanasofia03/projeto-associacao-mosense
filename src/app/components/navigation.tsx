@@ -1,95 +1,128 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-// Importar Icons
+// Icons
 import { MdOutlineMenu } from "react-icons/md";
-import { MdOutlineCancel } from "react-icons/md";
+import { LuNotebookPen, LuNotebook } from "react-icons/lu";
 import { IoAddCircleOutline } from "react-icons/io5";
-import { CiEdit } from "react-icons/ci";
+import { MdOutlineChangeCircle } from "react-icons/md";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import { FaRegEye } from "react-icons/fa";
 import { CgArrowLeftO } from "react-icons/cg";
 import { IoIosLogOut } from "react-icons/io";
 import { TbProgressHelp } from "react-icons/tb";
 import { FaUserLarge } from "react-icons/fa6";
-import { MdEvent } from "react-icons/md";
+import { MdOutlineEmojiEvents, MdOutlineEventRepeat } from "react-icons/md";
 
 export const Navigation = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userType, setUserType] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
-  const router = useRouter();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [isExpanded, setIsExpanded] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+  const router = useRouter();
 
-  //Quando a sessão finaliza ---> forçar a expansão da navbar
+  // Tamanho fixo para todos os ícones
+  const iconSize = 20;
+
+  // Quando a sessão finaliza -> forçar a expansão da navbar
   useEffect(() => {
     if (!isLoggedIn) {
       setIsExpanded(true);
     }
   }, [isLoggedIn]);
 
-  const toggleSidebar = () => { //Só permitir encolher a navbar se o utilizador estiver login
-    if (isLoggedIn) {
+  const toggleSidebar = () => {
+    // Só permitir encolher a navbar se o utilizador estiver logado
+    if (isLoggedIn && !isTransitioning) {
+      setIsTransitioning(true);
       setIsExpanded(!isExpanded);
+      // Remover o estado de transição após a animação completar
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 600); // Tempo igual à duração da transição CSS
     }
   };
 
+  // Classes para os links com alinhamento consistente e espaçamento fixo
+  const linkClass = useMemo(() => 
+    isExpanded 
+      ? "flex items-center gap-3 w-full px-4 py-3 text-[#032221] hover:text-[#FFFDF6] hover:bg-[#032221] rounded-lg transition-all duration-200 hover:-translate-y-[4px]" 
+      : "flex justify-center items-center w-full px-4 py-3 text-[#032221] hover:text-[#FFFDF6] hover:bg-[#032221] rounded-lg transition-all duration-200 hover:-translate-y-[4px]",
+    [isExpanded]
+  );
+
   useEffect(() => {
     const checkSession = async () => {
-      const savedSession = localStorage.getItem('session');
-      if (savedSession) {
-        const session = JSON.parse(savedSession);
-        const user = session?.user;
-        setIsLoggedIn(!!user);
-        if (user) {
-  setUserId(user.id);
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('tipo, nome')
-    .eq('id', user.id)
-    .single();
+      try {
+        const savedSession = localStorage.getItem('session');
+        if (savedSession) {
+          const session = JSON.parse(savedSession);
+          const user = session?.user;
+          
+          setIsLoggedIn(!!user);
+          
+          if (user) {
+            setUserId(user.id);
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('tipo, nome')
+              .eq('id', user.id)
+              .single();
 
-          if (data && !error) {
-            setUserType(data.tipo);
-            setUserName(data.nome);
+            if (data && !error) {
+              setUserType(data.tipo);
+              setUserName(data.nome);
+            }
           }
         }
+      } catch (error) {
+        console.error("Error checking session:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     checkSession();
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setIsLoggedIn(false);
-    setUserType(null);
-    localStorage.removeItem('session');
-    router.push('/login');
+    try {
+      await supabase.auth.signOut();
+      setIsLoggedIn(false);
+      setUserType(null);
+      localStorage.removeItem('session');
+      router.push('/login');
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const handleLogin = async (session: any) => {
-    localStorage.setItem('session', JSON.stringify(session));
-    setIsLoggedIn(true);
-setUserId(session?.user.id);
+    try {
+      localStorage.setItem('session', JSON.stringify(session));
+      setIsLoggedIn(true);
+      setUserId(session?.user.id);
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('tipo, nome')
-      .eq('id', session?.user.id)
-      .single();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('tipo, nome')
+        .eq('id', session?.user.id)
+        .single();
 
-    if (data && !error) {
-      setUserType(data.tipo);
-      setUserName(data.nome);
+      if (data && !error) {
+        setUserType(data.tipo);
+        setUserName(data.nome);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
     }
   };
 
@@ -109,17 +142,15 @@ setUserId(session?.user.id);
     };
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center h-screen">A carregar...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#FFFDF6]">
+        <div className="animate-pulse text-[#032221]">A carregar...</div>
+      </div>
+    );
+  }
 
-  //Tamanho fixo para todos os ícones
-  const iconSize = 20;
-  
-  //Classes para os links com alinhamento consistente
-  const linkClass = isExpanded 
-    ? "flex items-center gap-3 w-full px-4 py-3 text-[#032221] hover:text-[#FFFDF6] hover:bg-[#032221] rounded-lg transition-all duration-200 hover:-translate-y-[2px]" 
-    : "flex justify-center items-center w-full px-4 py-3 text-[#032221] hover:text-[#FFFDF6] hover:bg-[#032221] rounded-lg transition-all duration-200 hover:-translate-y-[2px]";
-
-  //Menu item com notificação opcional
+  // Menu item com notificação opcional
   const MenuItem = ({ 
     href, 
     icon, 
@@ -140,7 +171,11 @@ setUserId(session?.user.id);
           </span>
         )}
       </div>
-      <span className={`transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
+      <span className={`whitespace-nowrap transition-all duration-300 ease-in-out ease-out ${
+        isExpanded 
+          ? 'opacity-100 max-w-[200px]' 
+          : 'opacity-0 max-w-0 overflow-hidden'
+      }`}>
         {label}
       </span>
     </Link>
@@ -153,32 +188,62 @@ setUserId(session?.user.id);
     title?: string | null; 
     children: React.ReactNode 
   }) => (
-    <div className="w-full space-y-1">
-      {title && isExpanded && (
-        <h3 className="text-xs font-medium text-gray-500 uppercase px-4 mt-3 mb-2">{title}</h3>
+    <div className={`w-full ${isExpanded ? 'space-y-1' : 'space-y-5'}`}>
+      {title && (
+        <div className={`transition-all duration-300 ease-in-out ease-out ${
+          isExpanded 
+            ? 'px-4 mt-6 mb-2' 
+            : 'px-2 mt-6 mb-2'
+        }`}>
+          {isExpanded ? (
+            <h3 className="text-xs font-medium text-gray-500 uppercase">
+              {title}
+            </h3>
+          ) : (
+            <div className="w-full h-px bg-gray-300 rounded"></div>
+          )}
+        </div>
       )}
       {children}
     </div>
   );
 
   return (
-    <nav className={`flex flex-col justify-between sticky top-0 left-0 h-screen bg-[#FFFDF6] transition-all duration-500 ${isExpanded ? 'w-75' : 'w-20'} shadow-md z-10`}>
+    <nav 
+      className={`flex flex-col justify-between sticky top-0 left-0 h-screen bg-[#FFFDF6] transition-all duration-600 ease-in-out ease-out ${
+        isExpanded ? 'w-[240px]' : 'w-[70px]'
+      } shadow-md z-10`}
+    >
       {/* Header */}
       <div className="px-4 py-6 border-b border-[rgba(114,120,133,0.1)]">
         <div className="flex items-center justify-between">
-          <div className={`transition-opacity duration-500 ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+          <div className={`overflow-hidden transition-all duration-600 ease-in-out ease-out ${
+            isExpanded ? 'opacity-100 max-w-[150px]' : 'opacity-0 max-w-0'
+          }`}>
             <Link href="/">
-              <Image src="/OsMosenses.png" alt="Logo" width={120} height={40} />
+              <Image 
+                src="/OsMosenses.png" 
+                alt="Logo" 
+                width={120} 
+                height={40} 
+                priority 
+                className="transition-all duration-300"
+              />
             </Link>
           </div>
           {isLoggedIn && (
             <button 
               onClick={toggleSidebar} 
-              className={`text-[#032221] hover:bg-gray-200 p-1 rounded-full transition-all ${isExpanded ? '' : 'mx-auto'}`}
+              className={`text-[#032221] hover:bg-gray-200 p-1 rounded-full transition-all ${
+                isExpanded ? '' : 'mx-auto'
+              }`}
+              disabled={isTransitioning}
             >
               <CgArrowLeftO
                 size={iconSize}
-                className={`transition-transform duration-500 ${!isExpanded ? 'rotate-180' : ''}`}
+                className={`transition-transform duration-600 ease-in-out ease-out ${
+                  !isExpanded ? 'rotate-180' : ''
+                }`}
               />
             </button>
           )}
@@ -186,7 +251,7 @@ setUserId(session?.user.id);
       </div>
 
       {/* Exibição do Menu */}
-      <div className="flex-1 flex flex-col space-y-2 py-4 px-2 overflow-y-auto">
+      <div className="flex-1 flex flex-col py-4 px-2 overflow-hidden">
         {/* Principais */}
         <MenuSection>
           <MenuItem 
@@ -198,55 +263,55 @@ setUserId(session?.user.id);
 
         {/* Eventos - Apenas para Administradores */}
         {userType === 'Administrador' && (
-          <MenuSection title={isExpanded ? "Gestão de Eventos" : null}>
+          <MenuSection title="Gestão de Eventos">
             <MenuItem 
               href="/adicionarevento" 
-              icon={<MdEvent size={iconSize} />} 
+              icon={<MdOutlineEmojiEvents size={iconSize} />} 
               label="Adicionar Evento" 
             />
             <MenuItem 
               href="/alterarevento" 
-              icon={<CiEdit size={iconSize} />} 
-              label="Alterar Evento" 
+              icon={<MdOutlineEventRepeat size={iconSize} />} 
+              label="Editar Evento" 
             />
           </MenuSection>
         )}
 
         {/* Pedidos - Apenas para Administradores e Funcionarios de Banca */}
         {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
-          <MenuSection title={isExpanded ? "Gestão de Pedidos" : null}>
+          <MenuSection title="Gestão de Pedidos">
             <MenuItem 
               href="/registarpedido" 
-              icon={<CiEdit size={iconSize} />} 
-              label="Registar Pedido" 
+              icon={<LuNotebook size={iconSize} />} 
+              label="Adicionar Pedido" 
             />
             <MenuItem 
               href="/anularpedido" 
-              icon={<MdOutlineCancel size={iconSize} />} 
-              label="Anular Pedido" 
+              icon={<LuNotebookPen size={iconSize} />} 
+              label="Editar Pedido" 
             />
           </MenuSection>
         )}
 
         {/* Inventário - Apenas para Administradores */}
         {userType === 'Administrador' && (
-          <MenuSection title={isExpanded ? "Gestão de Inventário" : null}>
+          <MenuSection title="Gestão de Inventário">
             <MenuItem 
               href="/adicionaritem" 
               icon={<IoAddCircleOutline size={iconSize} />} 
-              label="Adicionar Item" 
+              label="Adicionar Produto" 
             />
             <MenuItem 
               href="/alteraritem" 
-              icon={<CiEdit size={iconSize} />} 
-              label="Alterar Item" 
+              icon={<MdOutlineChangeCircle size={iconSize} />} 
+              label="Editar Produto" 
             />
           </MenuSection>
         )}
 
         {/* Administração - Apenas para Administradores */}
         {userType === 'Administrador' && (
-          <MenuSection title={isExpanded ? "Administração" : null}>
+          <MenuSection title="Administração">
             <MenuItem 
               href="/adicionarutilizador" 
               icon={<AiOutlineUserAdd size={iconSize} />} 
@@ -255,7 +320,7 @@ setUserId(session?.user.id);
             <MenuItem 
               href="/verestatisticas" 
               icon={<FaRegEye size={iconSize} />} 
-              label="Ver Estatísticas" 
+              label="Consutar Estatísticas" 
             />
           </MenuSection>
         )}
@@ -275,39 +340,38 @@ setUserId(session?.user.id);
 
       {/* Footer */}
       <div className="border-t border-[rgba(114,120,133,0.1)] pt-3 pb-4 px-3 mt-auto">
-        {/* Ajuda visível sempre */}
-        <Link href="/help" className={`${linkClass} mb-3`}>
-          <TbProgressHelp size={iconSize} />
-          <span className={`transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
-            Ajuda
-          </span>
-        </Link>
+        {/* Ajuda */}
+        <MenuItem 
+          href="/help" 
+          icon={<TbProgressHelp size={iconSize} />} 
+          label="Ajuda" 
+        />
 
         {isLoggedIn && (
-          <>
-            <div
-              className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} px-2 py-2 mt-1 bg-gray-100 rounded-lg hover:bg-[rgba(3,98,76,0.1)] transition-colors cursor-pointer`}
+          <div className={`flex items-center ${
+            isExpanded ? 'justify-between' : 'justify-center'
+          } px-2 py-2 mt-3 bg-gray-100 rounded-lg hover:bg-[rgba(3,98,76,0.1)] transition-colors cursor-pointer`}>
+            <Link
+              href={`/editarperfil/${encodeURIComponent(userName || '')}`}
+              className={`flex items-center ${
+                isExpanded ? 'opacity-100 max-w-[200px]' : 'opacity-0 max-w-0'
+              } transition-all duration-600 ease-in-out ease-out overflow-hidden`}
             >
-              <Link
-                href={`/editarperfil/${encodeURIComponent(userName || '')}`}
-                className={`flex items-center transition-all duration-500 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}
-              >
-                <FaUserLarge size={25} className='text-[#032221]'/>
-                <div className="ml-3 truncate">
-                  <p className="text-xs font-semibold text-[#032221] truncate">{userName}</p>
-                  <p className="text-xs text-[#032221] opacity-75 truncate">{userType}</p>
-                </div>
-              </Link>
+              <FaUserLarge size={25} className='text-[#032221]'/>
+              <div className="ml-3 truncate">
+                <p className="text-xs font-semibold text-[#032221] truncate">{userName}</p>
+                <p className="text-xs text-[#032221] opacity-75 truncate">{userType}</p>
+              </div>
+            </Link>
 
-              <button
-                onClick={handleLogout}
-                className="p-1 text-[#032221] hover:text-[#dc3545] hover:bg-gray-200 rounded-full transition-all"
-                title="Terminar sessão"
-              >
-                <IoIosLogOut size={iconSize} />
-              </button>
-            </div>
-          </>
+            <button
+              onClick={handleLogout}
+              className="p-1 text-[#032221] hover:text-[#dc3545] hover:bg-gray-200 rounded-full transition-all"
+              title="Terminar sessão"
+            >
+              <IoIosLogOut size={iconSize} />
+            </button>
+          </div>
         )}
       </div>
     </nav>
