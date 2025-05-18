@@ -66,20 +66,28 @@ function VerEstatisticas() {
     );
   };
 
-  // Carregar eventos disponíveis
+  // Carregar eventos disponíveis 
   useEffect(() => {
+    // Carregar eventos apenas uma vez quando o componente é montado
     const fetchEventos = async () => {
       try {
         const { data, error } = await supabase
           .from('eventos')
-          .select('*');
+          .select('*')
+          .order('data_inicio', { ascending: false });
 
         if (error) {
           setErro(`Erro ao buscar eventos: ${error.message}`);
           console.error('Erro na consulta Supabase:', error);
         } else {
-          // Garantir que o mesmo formato de dados da definição SQL seja respeitado
           setEventos(data || []);
+          
+          // Verificar se há um evento em execução para selecionar automaticamente
+          const eventoAtivo = data?.find(evento => evento.em_execucao);
+          if (eventoAtivo) {
+            setIdEventoSelecionado(eventoAtivo.id.toString());
+            setNomeEventoSelecionado(eventoAtivo.nome);
+          }
         }
       } catch (err) {
         setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
@@ -165,35 +173,47 @@ function VerEstatisticas() {
 
   //Função para filtrar os pedidos pela pesquisa
   useEffect(() => {
-    if (!termoPesquisa.trim()) {
-      // Se a pesquisa estiver vazia, mostrar todos os pedidos originais
-      setPedidos(pedidosOriginal);
-      setTotalPedidos(pedidosOriginal.length);
+    // Verificar se temos dados originais para filtrar
+    if (!pedidosOriginal.length) {
+      setPedidos([]);
+      setTotalPedidos(0);
       return;
     }
 
-    // Filtrar pedidos baseado no termo de pesquisa
+    // Se não há termo de pesquisa mas há filtro de validade
+    if (!termoPesquisa.trim()) {
+      // Filtrar apenas por validade
+      const pedidosFiltrados = filtroValidade !== 'Todos'
+        ? pedidosOriginal.filter(pedido => pedido.estado_validade === filtroValidade)
+        : [...pedidosOriginal];
+        
+      setPedidos(pedidosFiltrados);
+      setTotalPedidos(pedidosFiltrados.length);
+      return;
+    }
+
+    // Filtrar pedidos baseado no termo de pesquisa e estado de validade
     const termoLowerCase = termoPesquisa.toLowerCase().trim();
     
     const resultados = pedidosOriginal.filter(pedido => {
-    // Verificar número do pedido (converter para string para garantir)
-    const numeroPedido = String(pedido.numero_diario || '').toLowerCase();
-    
-    // Verificar nome do cliente (se existir)
-    const nomeCliente = String(pedido.nome_cliente || '').toLowerCase();
-    
-    // Verificar contacto (se existir)
-    const contacto = String(pedido.contacto || '').toLowerCase();
-    
-    // Retornar true se qualquer um dos campos contém o termo de pesquisa
-    return numeroPedido.includes(termoLowerCase) || 
-          nomeCliente.includes(termoLowerCase) || 
-          contacto.includes(termoLowerCase);
+      // Primeiro verificar se o pedido atende ao filtro de validade
+      if (filtroValidade !== 'Todos' && pedido.estado_validade !== filtroValidade) {
+        return false;
+      }
+      
+      // Depois verificar se atende ao termo de pesquisa
+      const numeroPedido = String(pedido.numero_diario || '').toLowerCase();
+      const nomeCliente = String(pedido.nome_cliente || '').toLowerCase();
+      const contacto = String(pedido.contacto || '').toLowerCase();
+      
+      return numeroPedido.includes(termoLowerCase) || 
+            nomeCliente.includes(termoLowerCase) || 
+            contacto.includes(termoLowerCase);
     });
     
     setPedidos(resultados);
-    
-  }, [termoPesquisa, pedidosOriginal]);
+    setTotalPedidos(resultados.length);
+  }, [termoPesquisa, pedidosOriginal, filtroValidade]);
 
   // Função auxiliar para calcular o total faturado para um conjunto específico de pedidos
   const calcularTotalFaturadoParaPedidos = (pedidosIds: number[]) => {
@@ -214,8 +234,7 @@ function VerEstatisticas() {
     setTermoPesquisa(e.target.value);
   };
 
-  // Função para buscar itens dos pedidos
-  // Modificar a função fetchPedidosItens para atualizar os pratos populares
+  //Função para buscar itens dos pedidos - função fetchPedidosItens
   const fetchPedidosItens = async (pedidosIds: number[]) => {
     if (!pedidosIds.length) return;
     
@@ -232,8 +251,14 @@ function VerEstatisticas() {
         return;
       }
       
-      // Obter todos os IDs de itens para buscar os detalhes
-      const itensIds = pedidosItensData?.map(item => item.item_id) || [];
+      if (!pedidosItensData || pedidosItensData.length === 0) {
+        setPedidosItens({});
+        setPratosPopulares([]);
+        return;
+      }
+      
+      // Obter todos os IDs de itens únicos para buscar os detalhes
+      const itensIds = [...new Set(pedidosItensData.map(item => item.item_id))];
       
       // Buscar detalhes dos itens
       const { data: itensData, error: itensError } = await supabase
@@ -284,14 +309,10 @@ function VerEstatisticas() {
       const pedidosConfirmados = pedidosOriginal.filter(pedido => pedido.estado_validade === 'Confirmado');
       const pedidosConfirmadosIds = pedidosConfirmados.map(pedido => pedido.id);
       
-      console.log(`Calculando pratos populares para ${pedidosConfirmadosIds.length} pedidos confirmados`);
-      
       if (pedidosConfirmadosIds.length > 0) {
         const pratosMaisPopulares = calcularPratosPopulares(itensAgrupados, pedidosConfirmadosIds);
         setPratosPopulares(pratosMaisPopulares);
-        console.log("Pratos populares calculados:", pratosMaisPopulares);
       } else {
-        console.log("Nenhum pedido confirmado encontrado para calcular pratos populares");
         setPratosPopulares([]);
       }
       
@@ -326,8 +347,7 @@ function VerEstatisticas() {
           setPedidos(data || []);
           setTotalPedidos(data?.length || 0);
           
-          // CORREÇÃO: Buscar separadamente todos os pedidos confirmados para estatísticas
-          // independentemente do filtro atual
+          // SEMPRE buscar todos os pedidos confirmados para estatísticas independentemente do filtro atual
           const { data: confirmados, error: erroConfirmados } = await supabase
             .from('pedidos')
             .select('*')
@@ -341,8 +361,7 @@ function VerEstatisticas() {
             // Atualizar estatísticas apenas com pedidos confirmados
             setTotalPedidosConfirmados(confirmados?.length || 0);
             
-            // CORREÇÃO: Garantir que estamos buscando itens mesmo se não houver pedidos no filtro atual
-            // mas existirem pedidos confirmados para estatísticas
+            // CORREÇÃO: Garantir que estamos buscando itens mesmo se não houver pedidos no filtro atual mas existirem pedidos confirmados para estatísticas
             let todosOsPedidosIds: number[] = [];
             
             // Adicionar IDs dos pedidos filtrados para exibição
@@ -387,7 +406,7 @@ function VerEstatisticas() {
     fetchPedidos();
   }, [idEventoSelecionado, filtroValidade]);
 
-  // Corrigir a função calcularPratosPopulares para lidar melhor com valores nulos/indefinidos
+  //Função calcularPratosPopulares
   const calcularPratosPopulares = (pedidosItensPorPedido: {[key: string]: Array<any>}, pedidosConfirmadosIds: number[]) => {
     // Contador para cada item
     const contadorItens: { [key: number]: { 
@@ -398,29 +417,22 @@ function VerEstatisticas() {
       imagem_url?: string 
     } } = {};
     
-    console.log(`Calculando pratos populares para ${pedidosConfirmadosIds.length} pedidos confirmados`);
-    
     // Verificar se temos pedidos confirmados para processar
     if (!pedidosConfirmadosIds || pedidosConfirmadosIds.length === 0) {
-      console.log("Nenhum pedido confirmado para calcular pratos populares");
       return [];
     }
     
-    // Percorrer apenas os pedidos confirmados
+    //Percorrer apenas os pedidos confirmados
     pedidosConfirmadosIds.forEach(pedidoId => {
       const itensPedido = pedidosItensPorPedido[pedidoId];
       
       if (!itensPedido || itensPedido.length === 0) {
-        console.log(`Pedido confirmado #${pedidoId} não tem itens disponíveis`);
         return;
       }
-      
-      console.log(`Processando pedido confirmado #${pedidoId} com ${itensPedido.length} itens`);
       
       // Contar a quantidade de cada item no pedido confirmado
       itensPedido.forEach(item => {
         if (!item || !item.item_id) {
-          console.log("Item inválido encontrado:", item);
           return;
         }
         
@@ -443,7 +455,6 @@ function VerEstatisticas() {
     
     // Converter o objeto em array para ordenação
     const itensArray = Object.values(contadorItens);
-    console.log(`Encontrados ${itensArray.length} itens únicos para classificação de popularidade`);
     
     // Ordenar pelo número de pedidos (maior para menor)
     return itensArray.sort((a, b) => b.quantidade - a.quantidade);
@@ -727,7 +738,7 @@ function VerEstatisticas() {
           </div> 
 
           {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
-          <div className='w-full h-full grid grid-cols-2 gap-4 px-2 overflow-y-scroll'>
+          <div className='w-full h-full grid grid-cols-2 gap-4 px-2 overflow-y-scroll mb-13'>
             {pedidos.length > 0 ? (
               pedidos.map((pedido) => (
                 <CardPedido key={pedido.id} pedido={pedido}/>
@@ -769,7 +780,7 @@ function VerEstatisticas() {
           </div>
 
           {/* Pratos Populares */}
-          <div className='w-full h-full bg-[#FFFDF6] rounded-2xl flex flex-col pt-2 shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
+          <div className='w-full h-full bg-[#FFFDF6] rounded-2xl flex flex-col pt-2 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] mb-13'>
             {/* Título */}
             <div className='w-full h-10 flex flex-row justify-between items-center px-3 py-4'>
               <h1 className='font-semibold text-2xl text-[#032221]'>Pratos Populares</h1>
@@ -783,7 +794,7 @@ function VerEstatisticas() {
             </div>
 
             {/* Exibição de Itens */}
-            <div className='w-full h-full flex flex-col px-2 overflow-y-auto'>
+            <div className='w-full h-150 flex flex-col px-2 overflow-y-auto'>
               {pratosPopulares.length > 0 ? (
                 pratosPopulares.map((item, index) => (
                   <div key={item.id} className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)] py-2'>
