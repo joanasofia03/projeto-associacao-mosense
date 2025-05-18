@@ -253,7 +253,6 @@ function VerEstatisticas() {
       
       if (!pedidosItensData || pedidosItensData.length === 0) {
         setPedidosItens({});
-        setPratosPopulares([]);
         return;
       }
       
@@ -305,16 +304,8 @@ function VerEstatisticas() {
       setPedidosItens(itensAgrupados);
       setTotalFaturado(valorTotal);
       
-      // Buscar apenas os pedidos confirmados do evento atual para calcular os pratos populares
-      const pedidosConfirmados = pedidosOriginal.filter(pedido => pedido.estado_validade === 'Confirmado');
-      const pedidosConfirmadosIds = pedidosConfirmados.map(pedido => pedido.id);
-      
-      if (pedidosConfirmadosIds.length > 0) {
-        const pratosMaisPopulares = calcularPratosPopulares(itensAgrupados, pedidosConfirmadosIds);
-        setPratosPopulares(pratosMaisPopulares);
-      } else {
-        setPratosPopulares([]);
-      }
+      // REMOVIDO: Não vamos mais calcular os pratos populares aqui
+      // Isso agora é feito na função dedicada fetchPedidosItensPratosPopulares
       
     } catch (err) {
       setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
@@ -322,12 +313,14 @@ function VerEstatisticas() {
     }
   };
 
+  // Substitua a função fetchPedidos no useEffect com a versão corrigida:
+
   useEffect(() => {
     const fetchPedidos = async () => {
       if (!idEventoSelecionado) return;
 
       try {
-        // Buscar todos os pedidos para o evento selecionado (para exibição)
+        // Buscar pedidos com base no filtro para exibição nos cards
         let query = supabase
           .from('pedidos')
           .select('*')
@@ -341,13 +334,12 @@ function VerEstatisticas() {
 
         if (error) {
           setErro(`Erro ao buscar pedidos: ${error.message}`);
-          console.error('Erro na consulta de pedidos:', error);
         } else {
           setPedidosOriginal(data || []); // Armazenar os dados originais
           setPedidos(data || []);
           setTotalPedidos(data?.length || 0);
           
-          // SEMPRE buscar todos os pedidos confirmados para estatísticas independentemente do filtro atual
+          // IMPORTANTE: Sempre buscar TODOS os pedidos confirmados para estatísticas
           const { data: confirmados, error: erroConfirmados } = await supabase
             .from('pedidos')
             .select('*')
@@ -356,55 +348,113 @@ function VerEstatisticas() {
             
           if (erroConfirmados) {
             setErro(`Erro ao buscar pedidos confirmados: ${erroConfirmados.message}`);
-            console.error('Erro na consulta de pedidos confirmados:', erroConfirmados);
           } else {
-            // Atualizar estatísticas apenas com pedidos confirmados
+            // Atualizar estatísticas com pedidos confirmados
             setTotalPedidosConfirmados(confirmados?.length || 0);
             
-            // CORREÇÃO: Garantir que estamos buscando itens mesmo se não houver pedidos no filtro atual mas existirem pedidos confirmados para estatísticas
-            let todosOsPedidosIds: number[] = [];
-            
-            // Adicionar IDs dos pedidos filtrados para exibição
-            if (data && data.length > 0) {
-              todosOsPedidosIds = [...data.map(pedido => pedido.id)];
-            }
-            
-            // Adicionar IDs dos pedidos confirmados para estatísticas (se não estiverem já incluídos)
+            // Para calcular pratos populares, precisamos das informações dos itens dos pedidos CONFIRMADOS
             if (confirmados && confirmados.length > 0) {
               const confirmadosIds = confirmados.map(pedido => pedido.id);
-              confirmadosIds.forEach(id => {
-                if (!todosOsPedidosIds.includes(id)) {
-                  todosOsPedidosIds.push(id);
-                }
-              });
               
               // Calcular faturamento de pedidos confirmados
-              if (confirmados.length > 0) {
-                fetchPedidosItensConfirmados(confirmadosIds);
-              } else {
-                setTotalFaturadoConfirmados(0);
-              }
+              fetchPedidosItensConfirmados(confirmadosIds);
+              
+              // Buscar itens para TODOS os pedidos confirmados para cálculo de pratos populares
+              fetchPedidosItensPratosPopulares(confirmadosIds);
             } else {
               setTotalFaturadoConfirmados(0);
+              setPratosPopulares([]);
             }
             
-            // CORREÇÃO: Buscar itens para todos os pedidos (filtrados + confirmados)
-            if (todosOsPedidosIds.length > 0) {
-              fetchPedidosItens(todosOsPedidosIds);
+            // Buscar itens para os pedidos filtrados (para exibição nos cards)
+            if (data && data.length > 0) {
+              const pedidosFiltradosIds = data.map(pedido => pedido.id);
+              fetchPedidosItens(pedidosFiltradosIds);
             } else {
               setPedidosItens({});
-              setPratosPopulares([]);
             }
           }
         }
       } catch (err) {
         setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
-        console.error('Exceção ao buscar pedidos:', err);
       }
     };
 
     fetchPedidos();
   }, [idEventoSelecionado, filtroValidade]);
+
+  // Adicione esta nova função para buscar itens apenas para cálculo de pratos populares
+  const fetchPedidosItensPratosPopulares = async (pedidosConfirmadosIds: number[]) => {
+    if (!pedidosConfirmadosIds.length) return;
+    
+    try {
+      // Primeiro, buscar os pedidos_itens dos pedidos confirmados
+      const { data: pedidosItensData, error: pedidosItensError } = await supabase
+        .from('pedidos_itens')
+        .select('id, pedido_id, item_id, quantidade')
+        .in('pedido_id', pedidosConfirmadosIds);
+
+      if (pedidosItensError) {
+        setErro(`Erro ao buscar itens dos pedidos confirmados: ${pedidosItensError.message}`);
+        console.error('Erro na consulta de itens dos pedidos confirmados:', pedidosItensError);
+        return;
+      }
+      
+      if (!pedidosItensData || pedidosItensData.length === 0) {
+        setPratosPopulares([]);
+        return;
+      }
+      
+      // Obter todos os IDs de itens únicos para buscar os detalhes
+      const itensIds = [...new Set(pedidosItensData.map(item => item.item_id))];
+      
+      // Buscar detalhes dos itens
+      const { data: itensData, error: itensError } = await supabase
+        .from('itens')
+        .select('id, nome, preco, imagem_url')
+        .in('id', itensIds);
+        
+      if (itensError) {
+        setErro(`Erro ao buscar detalhes dos itens: ${itensError.message}`);
+        console.error('Erro na consulta de detalhes dos itens:', itensError);
+        return;
+      }
+      
+      // Criar um mapa dos itens para acesso rápido
+      const itensMap = new Map();
+      itensData?.forEach(item => {
+        itensMap.set(item.id, item);
+      });
+      
+      // Agrupar itens por pedido_id e adicionar os detalhes do item
+      const itensAgrupados: {[key: string]: Array<any>} = {};
+      
+      pedidosItensData?.forEach(pedidoItem => {
+        if (!itensAgrupados[pedidoItem.pedido_id]) {
+          itensAgrupados[pedidoItem.pedido_id] = [];
+        }
+        
+        const itemDetalhes = itensMap.get(pedidoItem.item_id);
+        
+        if (itemDetalhes) {
+          const itemCompleto = {
+            ...pedidoItem,
+            itens: itemDetalhes
+          };
+          
+          itensAgrupados[pedidoItem.pedido_id].push(itemCompleto);
+        }
+      });
+      
+      // Calcular os pratos mais populares diretamente aqui
+      const pratosMaisPopulares = calcularPratosPopulares(itensAgrupados, pedidosConfirmadosIds);
+      setPratosPopulares(pratosMaisPopulares);
+      
+    } catch (err) {
+      setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
+      console.error('Exceção ao buscar itens dos pedidos para pratos populares:', err);
+    }
+  };
 
   //Função calcularPratosPopulares
   const calcularPratosPopulares = (pedidosItensPorPedido: {[key: string]: Array<any>}, pedidosConfirmadosIds: number[]) => {
@@ -453,34 +503,10 @@ function VerEstatisticas() {
       });
     });
     
-    // Converter o objeto em array para ordenação
+    // Convertendo para array e ordenando...
     const itensArray = Object.values(contadorItens);
-    
-    // Ordenar pelo número de pedidos (maior para menor)
     return itensArray.sort((a, b) => b.quantidade - a.quantidade);
   };
-
-  useEffect(() => {
-    // Se não há pedidos ou pedidos itens, limpar os pratos populares
-    if (!pedidosOriginal.length || Object.keys(pedidosItens).length === 0) {
-      setPratosPopulares([]);
-      return;
-    }
-    
-    // Filtrar apenas os pedidos confirmados para calcular os pratos populares
-    const pedidosConfirmados = pedidosOriginal.filter(pedido => pedido.estado_validade === 'Confirmado');
-    const pedidosConfirmadosIds = pedidosConfirmados.map(pedido => pedido.id);
-    
-    console.log(`Recalculando pratos populares após atualização de dados: ${pedidosConfirmadosIds.length} pedidos confirmados`);
-    
-    if (pedidosConfirmadosIds.length > 0) {
-      const pratosMaisPopulares = calcularPratosPopulares(pedidosItens, pedidosConfirmadosIds);
-      setPratosPopulares(pratosMaisPopulares);
-      console.log(pratosMaisPopulares)
-    } else {
-      setPratosPopulares([]);
-    }
-  }, [pedidosOriginal, pedidosItens]);
 
   // Atualizar o nome do evento quando um evento for selecionado
   useEffect(() => {
@@ -738,7 +764,7 @@ function VerEstatisticas() {
           </div> 
 
           {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
-          <div className='w-full h-full grid grid-cols-2 gap-4 px-2 overflow-y-scroll mb-13'>
+          <div className='w-full h-full grid grid-cols-2 gap-5 px-2 overflow-y-scroll mb-13'>
             {pedidos.length > 0 ? (
               pedidos.map((pedido) => (
                 <CardPedido key={pedido.id} pedido={pedido}/>
