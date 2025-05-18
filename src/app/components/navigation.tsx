@@ -205,9 +205,9 @@ setUserId(session?.user.id);
               label="Adicionar Evento" 
             />
             <MenuItem 
-              href="/alteraritem" 
+              href="/alterarevento" 
               icon={<CiEdit size={iconSize} />} 
-              label="Alterar Item" 
+              label="Alterar Evento" 
             />
           </MenuSection>
         )}
