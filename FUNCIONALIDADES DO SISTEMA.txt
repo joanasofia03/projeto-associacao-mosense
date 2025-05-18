@@ -117,19 +117,13 @@ Problemas a resolver ainda:
 
 -> Ao excluir um item, fazer que a exclusão inclua a eliminação no bucket do supabase;
 
--> O Total de Pedidos e o Valor Faturado está a mudar consoante os filtros de Confirmado ou Anulado, o objetivo é que fique com os valores do Confirmado sempre, independentemente do filtro atual;
-
 MAJOR ALTERAÇÕES:
 -> ANULAR/ALTERAR PEDIDO;
 -> NAVBAR;
 -> EVENTOS;
 -> ALTERAR ITEM;
 -> VER ESTATÍSTICAS;
-    - Corrigir scroll nos cards e nos pratos populares, corrigir o bottom padding;
-    - O gap dos cards muda consoante os filtros e não pode;
     - Fazer o modal "Ver Detalhes";
-    - Se possível permitir que haja scroll nos cards e nos pratos populares mas não permite a visualização da barra;
-    - Corrigir a alteração dos paddings do Total Pedidos e Total Faturado quando muda de filtro ou exibição de informações;
 -> IMPRIMIR PEDIDOS;
 -> EXPORTAR RESUMO EVENTOS EM PDF;
 -> RESPONSIVIDADE (ALTERAÇÕES DA RESOLUÇÃO);

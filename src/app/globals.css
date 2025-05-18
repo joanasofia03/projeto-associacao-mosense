@@ -34,3 +34,13 @@ html {
   margin: 0;
   height: 100%;
 }
+
+.hide-scrollbar {
+  overflow-y: scroll !important;
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari and Opera */
+}

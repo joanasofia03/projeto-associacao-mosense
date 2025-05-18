@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import Image from 'next/image';
+import '../globals.css'
 
 // Import de Icons
 import { GoSearch } from "react-icons/go";
@@ -596,7 +597,8 @@ function VerEstatisticas() {
         </div>
 
         {/* Display de Itens, Quantidade e Preço */}
-        <div className='w-full flex flex-col px-3 pt-2 border-b-1 border-[rgba(32,41,55,0.1)] overflow-y-auto px-5'>
+        <div className='w-full flex flex-col px-3 pt-2 border-b-1 border-[rgba(32,41,55,0.1)] overflow-y-auto px-5' style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style> {/* Permite que haja scroll sem estar visivel a scroll bar */}
           {/* Cabeçalho da tabela de itens */}
           <div className='w-full h-6 flex flex-row justify-between items-center mb-1'>
             <span className='font-normal text-xs w-3/5' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Itens</span>
@@ -764,7 +766,8 @@ function VerEstatisticas() {
           </div> 
 
           {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
-          <div className='w-full h-full grid grid-cols-2 gap-5 px-2 overflow-y-scroll mb-13'>
+          <div className='w-full h-full grid grid-cols-2 gap-5 px-2 overflow-y-scroll mb-13' style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style> {/* Permite que haja scroll sem estar visivel a scroll bar */}
             {pedidos.length > 0 ? (
               pedidos.map((pedido) => (
                 <CardPedido key={pedido.id} pedido={pedido}/>
@@ -820,7 +823,8 @@ function VerEstatisticas() {
             </div>
 
             {/* Exibição de Itens */}
-            <div className='w-full h-150 flex flex-col px-2 overflow-y-auto'>
+            <div className='w-full h-150 flex flex-col px-2 overflow-y-auto' style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style> {/* Permite que haja scroll sem estar visivel a scroll bar */}
               {pratosPopulares.length > 0 ? (
                 pratosPopulares.map((item, index) => (
                   <div key={item.id} className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)] py-2'>
