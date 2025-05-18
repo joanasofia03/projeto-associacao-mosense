@@ -139,7 +139,7 @@ function AdicionarUtilizador() {
             />
           </div>
 
-          <div className='bg-[rgba(3,98,76,0.1)] w-full h-14 flex flex-row justify-between items-center rounded-3xl border border-[rgba(209,213,219,0.3)]'>
+          <div className='bg-[rgba(3,98,76,0.2)] w-full h-14 flex flex-row justify-between items-center rounded-3xl border border-[rgba(209,213,219,0.3)]'>
           {['Administrador', 'Funcionario de Banca', 'Cliente'].map((opcao) => (
             <h1
               key={opcao}

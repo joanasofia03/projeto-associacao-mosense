@@ -507,7 +507,7 @@ function AlterarPedido() {
           </div>
 
           {/* Botões de Ação */}
-          <div className='p-4 mt-auto border-t border-gray-200'>
+          <div className='p-4 mt-auto'>
             <div className="grid grid-cols-2 gap-3">
               <button 
                 onClick={() => editarPedido(pedido.id)}
