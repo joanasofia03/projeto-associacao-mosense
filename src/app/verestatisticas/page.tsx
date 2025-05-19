@@ -13,6 +13,9 @@ import { MdKeyboardArrowDown } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
 import { TbChartBarPopular } from "react-icons/tb";
 import { FaEye } from "react-icons/fa";
+import { IoFilter } from "react-icons/io5";
+import { FaRegFilePdf } from "react-icons/fa6";
+import { ImPrinter } from "react-icons/im";
 
 function VerEstatisticas() {
   // Estados principais
@@ -30,6 +33,7 @@ function VerEstatisticas() {
   const [termoPesquisa, setTermoPesquisa] = useState(''); // Novo estado para armazenar o termo de pesquisa
   const [totalPedidosConfirmados, setTotalPedidosConfirmados] = useState(0);
   const [totalFaturadoConfirmados, setTotalFaturadoConfirmados] = useState(0);
+  const [itensAplicadosNoFiltro, setItensAplicadosNoFiltro] = useState<number[]>([]);
   const [pratosPopulares, setPratosPopulares] = useState<Array<{
     id: number;
     nome: string;
@@ -45,6 +49,14 @@ function VerEstatisticas() {
     data_fim: string | null;
     em_execucao: boolean;
   }>>([]);
+  const [todosItens, setTodosItens] = useState<Array<{
+    id: number;
+    nome: string;
+    preco: number;
+    imagem_url?: string;
+  }>>([]);
+  const [itensSelecionados, setItensSelecionados] = useState<number[]>([]);
+  const [mostrarFiltroItens, setMostrarFiltroItens] = useState(false);
 
   // Constantes
   const filtros = ["Todos", "Confirmado", "Anulado"];
@@ -545,6 +557,188 @@ function VerEstatisticas() {
     }, 0).toFixed(2);
   };
 
+  const fetchTodosItens = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('itens')
+        .select('id, nome, preco, imagem_url')
+        .order('nome', { ascending: true });
+
+      if (error) {
+        setErro(`Erro ao buscar itens: ${error.message}`);
+        console.error('Erro na consulta de itens:', error);
+      } else {
+        setTodosItens(data || []);
+      }
+    } catch (err) {
+      setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
+      console.error('Exceção ao buscar itens:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTodosItens();
+  }, []);
+
+  useEffect(() => {
+    // Verificar se temos dados originais para filtrar
+    if (!pedidosOriginal.length) {
+      setPedidos([]);
+      setTotalPedidos(0);
+      return;
+    }
+
+    let pedidosFiltrados = [...pedidosOriginal];
+
+    // Aplicar filtro de validade
+    if (filtroValidade !== 'Todos') {
+      pedidosFiltrados = pedidosFiltrados.filter(pedido => 
+        pedido.estado_validade === filtroValidade
+      );
+    }
+
+    // Aplicar filtro de pesquisa
+    if (termoPesquisa.trim()) {
+      const termoLowerCase = termoPesquisa.toLowerCase().trim();
+      pedidosFiltrados = pedidosFiltrados.filter(pedido => {
+        const numeroPedido = String(pedido.numero_diario || '').toLowerCase();
+        const nomeCliente = String(pedido.nome_cliente || '').toLowerCase();
+        const contacto = String(pedido.contacto || '').toLowerCase();
+        
+        return numeroPedido.includes(termoLowerCase) || 
+              nomeCliente.includes(termoLowerCase) || 
+              contacto.includes(termoLowerCase);
+      });
+    }
+
+    // Aplicar filtro de itens - AGORA USA itensAplicadosNoFiltro
+    if (itensAplicadosNoFiltro.length > 0) {
+      pedidosFiltrados = pedidosFiltrados.filter(pedido => {
+        const itensPedido = pedidosItens[pedido.id] || [];
+        const itensIdsNoPedido = itensPedido.map(item => item.item_id);
+        
+        // Verificar se TODOS os itens selecionados estão no pedido (operador AND)
+        return itensAplicadosNoFiltro.every(itemId => 
+          itensIdsNoPedido.includes(itemId)
+        );
+      });
+    }
+
+    setPedidos(pedidosFiltrados);
+    setTotalPedidos(pedidosFiltrados.length);
+  }, [termoPesquisa, pedidosOriginal, filtroValidade, itensAplicadosNoFiltro, pedidosItens]); // Mudou aqui também
+
+  const toggleFiltroItens = () => {
+    setMostrarFiltroItens(!mostrarFiltroItens);
+  };
+
+  const toggleItemSelecionado = (itemId: number) => {
+    setItensSelecionados(prev => {
+      if (prev.includes(itemId)) {
+        return prev.filter(id => id !== itemId);
+      } else {
+        return [...prev, itemId];
+      }
+    });
+  };
+
+  const limparFiltroItens = () => {
+    setItensSelecionados([]);
+    setItensAplicadosNoFiltro([]); // Limpar também os aplicados
+  };
+
+  const aplicarFiltroItens = () => {
+    setItensAplicadosNoFiltro([...itensSelecionados]); // Aplicar os itens selecionados
+    setMostrarFiltroItens(false);
+  };
+
+  //RETURN DO MODAL DA FILTRAGEM DOS PEDIDOS POR ITEM
+  const FiltroItens = () => {
+    if (!mostrarFiltroItens) return null;
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(234, 242, 233, 0.9)' }}>
+        <div className="bg-[#FFFDF6] rounded-xl shadow-lg w-96 max-h-150 flex flex-col">
+          {/* Cabeçalho */}
+          <div className="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-[#032221]">Filtrar por Itens</h3>
+            <button 
+              onClick={toggleFiltroItens}
+              className="text-gray-500 hover:text-[#052e2d] cursor-pointer"
+            >
+              <IoClose size={24} />
+            </button>
+          </div>
+
+          {/* Lista de itens */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-2">
+              {todosItens.map(item => (
+                <label 
+                  key={item.id} 
+                  className="flex items-center space-x-4 cursor-pointer hover:bg-[rgba(3,98,76,0.1)] p-2 rounded-lg"
+                >
+                  <input
+                    type="checkbox"
+                    checked={itensSelecionados.includes(item.id)}
+                    onChange={() => toggleItemSelecionado(item.id)}
+                    className="w-4 h-4 text-[#032221] rounded focus:ring-[#032221]"
+                  />
+                  <div className="flex items-center space-x-3 flex-1">
+                    {item.imagem_url ? (
+                      <div className="w-10 h-10 overflow-hidden pt-2">
+                        <Image
+                          src={item.imagem_url}
+                          alt={item.nome}
+                          width={32}
+                          height={32}
+                          className="object-cover rounded-full"
+                          unoptimized={true}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-xs text-[#032221]">🍽️</span>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <span className="text-lg font-medium text-[#032221] truncate">{item.nome}</span>
+                      <span className="text-xs text-gray-500 ml-2">{item.preco.toFixed(2)}€</span>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Rodapé com botões */}
+          <div className="flex justify-between items-center p-4 border-t border-gray-200">
+            <button
+              onClick={limparFiltroItens}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+            >
+              Limpar ({itensSelecionados.length})
+            </button>
+            <div className="space-x-2">
+              <button
+                onClick={toggleFiltroItens}
+                className="px-4 py-2 text-sm font-medium text-[#032221] rounded-lg bg-[rgba(3,98,76,0.2)] hover:bg-[rgba(3,98,76,0.3)] transition-transform duration-300 hover:scale-102 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={aplicarFiltroItens}
+                className="px-4 py-2 text-sm font-medium bg-[#032221] text-[#FFFDF6] rounded-lg hover:bg-[#052e2d] transition-transform duration-300 hover:scale-102 cursor-pointer"
+              >
+                Aplicar Filtro
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   //Componente CardPedido
   const CardPedido = ({ pedido }: { pedido: any }) => {
     const itens = pedidosItens[pedido.id] || [];
@@ -734,7 +928,7 @@ function VerEstatisticas() {
                     setFiltroValidade(filtro);
                     setFiltroAtivo(filtro);
                   }}
-                  className={`w-35 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer
+                  className={`w-30 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer
                     ${
                       filtroAtivo === filtro
                         ? 'bg-[#032221] text-[#FFFDF6]'
@@ -744,14 +938,31 @@ function VerEstatisticas() {
                   {filtro}
                 </button>
               ))}
+              <button 
+                onClick={toggleFiltroItens}
+                className={`w-10 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 
+                            shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer
+                            ${itensAplicadosNoFiltro.length > 0 
+                              ? 'bg-[#032221] text-[#FFFDF6]' 
+                              : 'bg-[#FFFDF6] text-[#032221] hover:bg-[#dce6e7]'
+                            }`}
+              >
+                <IoFilter size={20}/>
+                {itensAplicadosNoFiltro.length > 0 && (
+                  <span className="absolute bg-[#DDEB9D] text-[#032221] text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {itensAplicadosNoFiltro.length}
+                  </span>
+                )}
+              </button>
             </div>
 
-            <div className="relative flex flex-row items-center">
-              <label className="mr-3 text-md font-semibold text-[#032221]">Selecionar Evento:</label>
+            {/* SELECIONAR EVENTO */}
+            <div className="relative flex flex-row items-center gap-4 mr-1">
+              <label className="text-md font-semibold text-[#032221]">Selecionar Evento:</label>
               <select
                 value={idEventoSelecionado}
                 onChange={(e) => setIdEventoSelecionado(e.target.value)}
-                className="bg-[#032221] text-[#FFFDF6] font-semibold rounded-lg px-20 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)] appearance-none"
+                className="bg-[#032221] text-[#FFFDF6] font-semibold rounded-lg px-18 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)] appearance-none"
               >
                 <option value="" disabled hidden>Selecione...</option>
                 {eventos.map((evento) => (
@@ -760,9 +971,17 @@ function VerEstatisticas() {
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#FFFDF6]">
-                <MdKeyboardArrowDown size={4} className='fill-current h-4 w-4'/>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#FFFDF6] mr-28">
+                <MdKeyboardArrowDown size={5} className='fill-current h-4 w-4'/>
               </div>
+              <button className='w-10 flex justify-center items-center px-3 py-2 text-sm font-semibold bg-[#FFFDF6] text-[#032221] rounded-lg ease-in-out duration-200 
+                              hover:bg-[#dce6e7] shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer'>
+                <FaRegFilePdf size={20}/>
+              </button>
+              <button className='w-10 flex justify-center items-center px-3 py-2 text-sm font-semibold bg-[#FFFDF6] text-[#032221] rounded-lg ease-in-out duration-200 
+                              hover:bg-[#dce6e7] shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer'>
+                <ImPrinter size={20}/>
+              </button>
             </div>
           </div> 
 
@@ -873,6 +1092,7 @@ function VerEstatisticas() {
           </div>
         </div>
       </div>
+      <FiltroItens />
     </main>
   );
 }
