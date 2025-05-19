@@ -306,7 +306,7 @@ function AlterarItem() {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#032221]"></div>
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="bg-[#FFFDF6] rounded-lg shadow-md p-8 text-center">
             <p className="text-lg text-gray-600">Nenhum item encontrado para esta categoria.</p>
           </div>
         ) : (
@@ -321,7 +321,7 @@ function AlterarItem() {
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300"
+                  className="bg-[#FFFDF6] rounded-xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300"
                 >
                   <div className="flex flex-col">
                     {/* Cabeçalho do card */}
@@ -366,14 +366,14 @@ function AlterarItem() {
                       <div className="mt-4 grid grid-cols-2 gap-3">
                         <button
                           onClick={() => handleEditClick(item)}
-                          className="bg-[#DDEB9D] text-[#032221] cursor-pointer py-2 px-4 rounded-md font-medium hover:bg-opacity-80 transition-colors flex items-center justify-center"
+                          className="bg-[#DDEB9D] text-[#032221] cursor-pointer py-2 px-4 rounded-md font-medium flex items-center justify-center transition-all duration-200 hover:scale-105"
                         >
                           <MdOutlineEdit size='4' className="h-4 w-4 mr-1"/>
                           Editar
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="bg-[rgba(210,102,90,0.1)] cursor-pointer text-[#D2665A] py-2 px-4 rounded-md font-medium hover:bg-[rgba(210,102,90,0.15)] transition-colors flex items-center justify-center"
+                          className="bg-[rgba(210,102,90,0.12)] cursor-pointer text-[#D2665A] py-2 px-4 rounded-md font-medium hover:bg-[rgba(210,102,90,0.17)] flex items-center justify-center transition-all duration-200 hover:scale-105"
                         >
                           <RiDeleteBin6Line size='4' className="h-4 w-4 mr-1"/>
                           Excluir
@@ -511,7 +511,7 @@ function AlterarItem() {
                           }
                           setImagemPreview(null);
                         }}
-                        className="px-4 py-2 bg-[#D2665A] text-white rounded-lg hover:bg-opacity-90 cursor-pointer transition-transform duration-200 hover:scale-101"
+                        className="px-4 py-2 bg-[#D2665A] text-[#FFFDF6] rounded-lg hover:bg-opacity-90 cursor-pointer transition-transform duration-200 hover:scale-101"
                       >
                         Remover
                       </button>
@@ -552,13 +552,13 @@ function AlterarItem() {
                     setIsModalOpen(false);
                     resetImagemInput();
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 cursor-pointer transition-transform duration-200 hover:scale-101"
+                  className="px-4 py-2 border border-[rgba(3,98,76,1)] rounded-md text-[#032221] cursor-pointer transition-transform duration-200 hover:scale-105"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-[#032221] text-white rounded-md hover:bg-opacity-90 cursor-pointer transition-transform duration-200 hover:scale-101"
+                  className="px-4 py-2 bg-[#032221] text-[#FFFDF6] rounded-md hover:bg-opacity-90 cursor-pointer transition-transform duration-200 hover:scale-105"
                 >
                   Salvar Alterações
                 </button>

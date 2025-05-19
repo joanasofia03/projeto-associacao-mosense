@@ -652,7 +652,7 @@ function VerEstatisticas() {
     setMostrarFiltroItens(false);
   };
 
-  //RETURN DO MODAL DA FILTRAGEM DOS PEDIDOS POR ITEM
+  //MODAL DA FILTRAGEM DOS PEDIDOS POR ITEM
   const FiltroItens = () => {
     if (!mostrarFiltroItens) return null;
 

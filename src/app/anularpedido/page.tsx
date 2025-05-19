@@ -117,7 +117,7 @@ function AlterarPedido() {
             
             <button
               onClick={handleConfirmar}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+              className="px-4 py-2 rounded-lg bg-red-600 text-[#FFFDF6] hover:bg-red-700"
               disabled={loading}
             >
               {loading ? 'Anulando...' : 'Anular Pedido'}
@@ -482,11 +482,11 @@ function AlterarPedido() {
     
     return (
       <>
-        <div className='bg-white rounded-xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300 flex flex-col h-full'>
+        <div className='bg-[#FFFDF6] rounded-xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300 flex flex-col h-full'>
           {/* Cabeçalho do Card */}
           <div className='flex flex-row justify-between items-start w-full p-4 border-b border-gray-200'>
             <div className='bg-[#032221] rounded-lg p-3 mr-3'>
-              <span className='text-[#FFFDF6] font-semibold text-lg'>{pedido.numero_diario}</span>
+              <span className='text-[#FFFDF6] font-semibold text-lg'>#{pedido.numero_diario}</span>
             </div>
             <div className='flex flex-col justify-start items-start flex-grow px-2'>
               <h1 className='text-[#032221] font-semibold text-lg truncate'>{pedido.nome_cliente}</h1>
@@ -629,7 +629,7 @@ function AlterarPedido() {
         {/* Lista de Pedidos - Agora com 3 colunas e layout adaptável */}
         <div className='w-full h-full p-2 overflow-y-auto'>
           {pedidos.length > 0 ? (
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
               {pedidos.map((pedido) => (
                 <CardPedido key={pedido.id} pedido={pedido} />
               ))}
