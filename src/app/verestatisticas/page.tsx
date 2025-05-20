@@ -779,9 +779,9 @@ function VerEstatisticas() {
         {/* Linha vertical de conexão entre cards */}
         <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-[rgba(3,98,76,0.2)] -z-10"></div>
 
-        <div className='w-full bg-[#FFFDF6] rounded-xl shadow-md overflow-hidden mb-4 relative z-10'>
+        <div className="w-full bg-[#FFFDF6] rounded-xl shadow-md overflow-hidden mb-4 relative z-10">
           {/* Header clicável */}
-          <div className="flex flex-row justify-between items-center p-4 transition-colors">
+          <div className={`flex flex-row justify-between items-center p-4 transition-colors ${isExpanded ? 'rounded-t-xl bg-[rgba(3,34,33,1)]' : ''}`}>
             {/* Checkbox para seleção + Ícone e dados do pedido */}
             <div className="flex items-center space-x-3">
               {/* Checkbox */}
@@ -805,13 +805,13 @@ function VerEstatisticas() {
               </div>
               
               <div 
-                className="flex flex-col cursor-pointer"
+                className={'flex flex-col cursor-pointer'}
                 onClick={toggleExpanded}
               >
-                <h3 className="font-semibold text-[#032221] text-base">
+                <h3 className={`font-semibold text-[#032221] text-base ${isExpanded ? 'text-[#FFFDF6]' : ''}`}>
                   Pedido #{pedido.numero_diario} - {pedido.nome_cliente}
                 </h3>
-                <span className="text-xs text-gray-500">
+                <span className={`font-normal text-xs text-gray-500 ${isExpanded ? 'text-white' : ''}`}>
                   {formatarDataCompleta(pedido.criado_em)}
                 </span>
               </div>
@@ -833,7 +833,7 @@ function VerEstatisticas() {
                 </div>
                 
                 {/* Contato e tipo de pedido */}
-                <span className="text-xs text-gray-500 mt-1">
+                <span className={`text-xs text-gray-500 mt-1 ${isExpanded ? 'text-white' : ''}`}>
                   {pedido.contacto || 'N/A'} / {pedido.tipo_de_pedido}
                 </span>
               </div>
@@ -843,7 +843,7 @@ function VerEstatisticas() {
                 className="text-[#032221] cursor-pointer"
                 onClick={toggleExpanded}
               >
-                {isExpanded ? <IoChevronUp size={20} /> : <IoChevronDown size={20} />}
+                {isExpanded ? <IoChevronUp size={20} className='text-white' /> : <IoChevronDown size={20} className='text-[#032221]'/>}
               </div>
             </div>
           </div>
@@ -858,7 +858,7 @@ function VerEstatisticas() {
           >
             <div ref={contentRef} className="px-4 pb-4">
               {/* Informações adicionais: evento, notas e criador */}
-              <div className="mb-4 grid grid-cols-3 gap-4 border-t border-gray-200 pt-3">
+              <div className="mb-4 grid grid-cols-3 gap-4 pt-3">
                 <div className="flex flex-col">
                   <span className="text-[#032221] font-semibold text-sm">Evento:</span>
                   <span className="text-gray-600 text-sm">{pedido.eventoNome || nomeEventoSelecionado}</span>
