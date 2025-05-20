@@ -230,20 +230,6 @@ function VerEstatisticas() {
     setTotalPedidos(resultados.length);
   }, [termoPesquisa, pedidosOriginal, filtroValidade]);
 
-  // Função auxiliar para calcular o total faturado para um conjunto específico de pedidos
-  const calcularTotalFaturadoParaPedidos = (pedidosIds: number[]) => {
-    let total = 0;
-    
-    pedidosIds.forEach(pedidoId => {
-      const itens = pedidosItens[pedidoId] || [];
-      itens.forEach(item => {
-        total += (item.itens?.preco || 0) * item.quantidade;
-      });
-    });
-    
-    return total;
-  };
-
   // Função de manipulação do input de pesquisa
   const handlePesquisaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTermoPesquisa(e.target.value);
@@ -535,21 +521,6 @@ function VerEstatisticas() {
     }
   }, [idEventoSelecionado, eventos]);
 
-  // Função para formatar a data do pedido
-  const formatarData = (dataString: string) => {
-    const data = new Date(dataString);
-    const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    
-    return `${diasSemana[data.getDay()]}, ${data.getDate()} ${meses[data.getMonth()]}, ${data.getFullYear()}`;
-  };
-
-  // Função para formatar a hora do pedido
-  const formatarHora = (dataString: string) => {
-    const data = new Date(dataString);
-    return `${String(data.getHours()).padStart(2, '0')}:${String(data.getMinutes()).padStart(2, '0')}`;
-  };
-
   // Função para calcular o total do pedido
   const calcularTotalPedido = (pedidoId: number) => {
     const itens = pedidosItens[pedidoId] || [];
@@ -784,23 +755,6 @@ function VerEstatisticas() {
     const toggleExpanded = () => {
       setIsExpanded(!isExpanded);
     };
-
-    // Formatação de data simplificada
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    };
-
-    const formatTime = (dateString: string) => {
-      const date = new Date(dateString);
-      return date.toLocaleTimeString('pt-PT', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-    };
     
     // Formatação de data completa para exibição
     const formatarDataCompleta = (dateString: string) => {
@@ -824,7 +778,7 @@ function VerEstatisticas() {
       <div className="relative w-full">
         {/* Linha vertical de conexão entre cards */}
         <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-[rgba(3,98,76,0.2)] -z-10"></div>
-        
+
         <div className='w-full bg-[#FFFDF6] rounded-xl shadow-md overflow-hidden mb-4 relative z-10'>
           {/* Header clicável */}
           <div className="flex flex-row justify-between items-center p-4 transition-colors">
@@ -858,7 +812,7 @@ function VerEstatisticas() {
                   Pedido #{pedido.numero_diario} - {pedido.nome_cliente}
                 </h3>
                 <span className="text-xs text-gray-500">
-                  {formatDate(pedido.criado_em)} às {formatTime(pedido.criado_em)}
+                  {formatarDataCompleta(pedido.criado_em)}
                 </span>
               </div>
             </div>
