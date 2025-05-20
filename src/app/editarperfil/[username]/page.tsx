@@ -235,7 +235,7 @@ const ProfileField = ({
         type={type}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
-        className="mt-1 p-2 rounded-lg border border-gray-300 bg-white focus:outline-none"
+        className="mt-1 p-2 rounded-lg border border-gray-300 bg-[#FFFDF6] focus:outline-none"
       />
     ) : (
       <span className={`${readOnly ? 'text-sm text-gray-400 bg-[rgba(3,98,76,0.05)] rounded-lg p-2' : isEditing ? 'text-lg font-semibold text-[#032221]' : 'text-sm text-gray-600'}`}>
@@ -553,7 +553,7 @@ export default function EditarPerfilCard() {
               </div>
               
               {/* Barra de pesquisa */}
-              <div className='flex items-center gap-3 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200'>
+              <div className='flex items-center gap-3 bg-[#FFFDF6] px-3 py-2 rounded-lg shadow-sm border border-gray-200'>
                 <GoSearch size={20} className="text-gray-400"/>
                 <input
                   type="text"

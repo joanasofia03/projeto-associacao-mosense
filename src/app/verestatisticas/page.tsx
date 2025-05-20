@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import Image from 'next/image';
@@ -8,14 +8,13 @@ import '../globals.css'
 
 // Import de Icons
 import { GoSearch } from "react-icons/go";
-import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import { MdKeyboardArrowDown } from "react-icons/md";
-import { IoClose } from "react-icons/io5";
 import { TbChartBarPopular } from "react-icons/tb";
-import { FaEye } from "react-icons/fa";
-import { IoFilter } from "react-icons/io5";
 import { FaRegFilePdf } from "react-icons/fa6";
 import { ImPrinter } from "react-icons/im";
+import { IoCheckmarkDoneOutline, IoClose, IoChevronDown, IoChevronUp, IoFilter } from 'react-icons/io5';
+import { FcTodoList } from "react-icons/fc";
+import { FaCheck } from "react-icons/fa6";
 
 function VerEstatisticas() {
   // Estados principais
@@ -34,6 +33,8 @@ function VerEstatisticas() {
   const [totalPedidosConfirmados, setTotalPedidosConfirmados] = useState(0);
   const [totalFaturadoConfirmados, setTotalFaturadoConfirmados] = useState(0);
   const [itensAplicadosNoFiltro, setItensAplicadosNoFiltro] = useState<number[]>([]);
+  const [pedidosSelecionados, setPedidosSelecionados] = useState<number[]>([]);
+  const [selecionarTodos, setSelecionarTodos] = useState(false);
   const [pratosPopulares, setPratosPopulares] = useState<Array<{
     id: number;
     nome: string;
@@ -739,139 +740,221 @@ function VerEstatisticas() {
     );
   };
 
-  //Componente CardPedido
+  // Função para selecionar/desselecionar um pedido
+  const togglePedidoSelecionado = (pedidoId: number) => {
+    setPedidosSelecionados(prevSelecionados => {
+      if (prevSelecionados.includes(pedidoId)) {
+        return prevSelecionados.filter(id => id !== pedidoId);
+      } else {
+        return [...prevSelecionados, pedidoId];
+      }
+    });
+  };
+
+  // Função para selecionar/desselecionar todos os pedidos
+  const toggleSelecionarTodos = () => {
+    if (selecionarTodos || pedidosSelecionados.length === pedidos.length) {
+      // Se todos já estão selecionados, desmarca todos
+      setPedidosSelecionados([]);
+      setSelecionarTodos(false);
+    } else {
+      // Seleciona todos os pedidos visíveis
+      const todosPedidosIds = pedidos.map(pedido => pedido.id);
+      setPedidosSelecionados(todosPedidosIds);
+      setSelecionarTodos(true);
+    }
+  };
+
   const CardPedido = ({ pedido }: { pedido: any }) => {
     const itens = pedidosItens[pedido.id] || [];
-    const [mostrarTodos, setMostrarTodos] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const [contentHeight, setContentHeight] = useState(0);
     
-    // Número de itens a mostrar inicialmente
-    const itensMostrados = 4;
+    // Verificar se o pedido está selecionado
+    const estaSelecionado = pedidosSelecionados.includes(pedido.id);
     
-    // Calcular se há mais itens para mostrar
-    const temMaisItens = itens.length > itensMostrados;
+    // Calcular a altura real do conteúdo quando expande
+    useEffect(() => {
+      if (contentRef.current) {
+        setContentHeight(contentRef.current.scrollHeight);
+      }
+    }, [isExpanded, itens]);
+
+    const toggleExpanded = () => {
+      setIsExpanded(!isExpanded);
+    };
+
+    // Formatação de data simplificada
+    const formatDate = (dateString: string) => {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+
+    const formatTime = (dateString: string) => {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString('pt-PT', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    };
     
-    // Filtrar os itens que serão exibidos inicialmente
-    const itensParaExibir = mostrarTodos ? itens : itens.slice(0, itensMostrados);
-    
-    // Quantidade de itens extras não mostrados
-    const itensExtras = itens.length - itensMostrados;
+    // Formatação de data completa para exibição
+    const formatarDataCompleta = (dateString: string) => {
+      const date = new Date(dateString);
+      
+      const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      
+      const diaSemana = diasSemana[date.getDay()];
+      const dia = date.getDate();
+      const mes = meses[date.getMonth()];
+      const ano = date.getFullYear();
+      
+      const horas = date.getHours().toString().padStart(2, '0');
+      const minutos = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${diaSemana}, ${dia} ${mes}, ${ano} às ${horas}h${minutos}`;
+    };
     
     return (
-      <div className='w-full h-95 bg-[#FFFDF6] rounded-xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] flex flex-col'>
-        {/* Nome, Nº e Estado */}
-        <div className='flex flex-row justify-between items-start w-full h-20 px-5 py-4'>
-          <div className='bg-[#032221] rounded-lg p-3'>
-            <span className='text-[#FFFDF6] font-semibold text-lg'>#{pedido.numero_diario}</span>
-          </div>
-          <div className='flex flex-col justify-start items-start w-190 h-full px-3'>
-            <h1 className='text-[#032221] font-semibold text-lg'>{pedido.nome_cliente}</h1>
-            <span className='font-medium text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>
-              {pedido.contacto || 'N/A'} / {pedido.tipo_de_pedido}
-            </span>
-          </div>
-          <div className={`flex flex-1 flex-row justify-center content-center items-center w-full h-7 gap-1 py-1 px-2 rounded-lg ${
-            pedido.estado_validade === 'Confirmado' ? 'bg-[#DDEB9D]' : 'bg-[#f8d7da]'
-          }`}>
-            {pedido.estado_validade === 'Confirmado' ? (
-              <IoCheckmarkDoneSharp size={12} className='text-[#032221] font-semibold text-xs'/>
-            ) : (
-              <IoClose size={12} className='text-[#032221] font-semibold text-xs'/>
-            )}
-            <span className='text-[#032221] font-medium text-xs'>{pedido.estado_validade}</span>
-          </div>
-        </div>
+      <div className="relative w-full">
+        {/* Linha vertical de conexão entre cards */}
+        <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-[rgba(3,98,76,0.2)] -z-10"></div>
+        
+        <div className='w-full bg-[#FFFDF6] rounded-xl shadow-md overflow-hidden mb-4 relative z-10'>
+          {/* Header clicável */}
+          <div className="flex flex-row justify-between items-center p-4 transition-colors">
+            {/* Checkbox para seleção + Ícone e dados do pedido */}
+            <div className="flex items-center space-x-3">
+              {/* Checkbox */}
+              <div 
+                className="w-6 h-6 flex items-center justify-center cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePedidoSelecionado(pedido.id);
+                }}
+              >
+                <div className={`w-5 h-5 rounded border ${estaSelecionado ? 'bg-[#032221] border-[#032221]' : 'border-gray-400'} flex items-center justify-center`}>
+                  {estaSelecionado && (
+                    <FaCheck className="h-4 w-4 text-white"/>
+                  )}
+                </div>
+              </div>
+              
+              {/* Ícone do pedido */}
+              <div className="flex items-center justify-center">
+                <FcTodoList size={32} className="text-[#FFFDF6]"/>
+              </div>
+              
+              <div 
+                className="flex flex-col cursor-pointer"
+                onClick={toggleExpanded}
+              >
+                <h3 className="font-semibold text-[#032221] text-base">
+                  Pedido #{pedido.numero_diario} - {pedido.nome_cliente}
+                </h3>
+                <span className="text-xs text-gray-500">
+                  {formatDate(pedido.criado_em)} às {formatTime(pedido.criado_em)}
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex flex-row items-center gap-4">
+              {/* Coluna com estado e contacto */}
+              <div className="flex flex-col items-end">
+                {/* Estado do Pedido */}
+                <div className='flex items-center gap-1 py-1 px-2 rounded-lg'>
+                  {pedido.estado_validade === 'Confirmado' ? (
+                    <IoCheckmarkDoneOutline size={14} className="text-[#A4B465]"/>
+                  ) : (
+                    <IoClose size={14} className="text-[#FF6347]"/>
+                  )}
+                  <span className={`text-sm font-medium ${
+                    pedido.estado_validade === 'Confirmado' ? 'text-[#A4B465]' : 'text-[#FF6347]'
+                  }`}>{pedido.estado_validade}</span>
+                </div>
+                
+                {/* Contato e tipo de pedido */}
+                <span className="text-xs text-gray-500 mt-1">
+                  {pedido.contacto || 'N/A'} / {pedido.tipo_de_pedido}
+                </span>
+              </div>
 
-        {/* Data&Hora e Evento */}
-        <div className='w-full h-6 flex flex-row justify-between items-center px-5 pb-2 border-b-1 border-[rgba(32,41,55,0.1)]'>
-          <span className='font-normal text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>
-            {formatarData(pedido.criado_em)}
-          </span>
-          <span className='font-normal text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>
-            {formatarHora(pedido.criado_em)}
-          </span>
-        </div>
-
-        {/* Display de Itens, Quantidade e Preço */}
-        <div className='w-full flex flex-col px-3 pt-2 border-b-1 border-[rgba(32,41,55,0.1)] overflow-y-auto px-5' style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style> {/* Permite que haja scroll sem estar visivel a scroll bar */}
-          {/* Cabeçalho da tabela de itens */}
-          <div className='w-full h-6 flex flex-row justify-between items-center mb-1'>
-            <span className='font-normal text-xs w-3/5' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Itens</span>
-            <span className='font-normal text-xs w-1/5 text-center' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Qty</span>
-            <span className='font-normal text-xs w-1/5 text-right' style={{ color: "rgba(3, 34, 33, 0.6)" }}>Preço</span>
+              {/* Ícone de expandir/recolher */}
+              <div 
+                className="text-[#032221] cursor-pointer"
+                onClick={toggleExpanded}
+              >
+                {isExpanded ? <IoChevronUp size={20} /> : <IoChevronDown size={20} />}
+              </div>
+            </div>
           </div>
           
-          {/* Container para os itens */}
-          <div className='w-full h-35'>
-            {!mostrarTodos ? (
-              // Container sem scroll quando mostrando apenas os primeiros itens
-              <div className='w-full h-35'>
-                {itensParaExibir.map((item) => (
-                  <div key={item.id} className='w-full flex flex-row justify-between items-center py-1'>
-                    <span className='text-[#032221] font-medium text-sm w-3/5 truncate'>
-                      {item.itens?.nome || 'Item não disponível'}
-                    </span>
-                    <span className='text-[#032221] font-medium text-sm w-1/5 text-center'>{item.quantidade}</span>
-                    <span className='text-[#032221] font-medium text-sm w-1/5 text-right'>
-                      {((item.itens?.preco || 0) * item.quantidade).toFixed(2)}€
-                    </span>
-                  </div>
-                ))}
-                {/* Botão "Ver mais" estilizado inspirado na imagem de referência */}
-                {temMaisItens && (
-                  <div 
-                    className='w-full h-4 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer'
-                    onClick={() => setMostrarTodos(true)}
-                  >
-                    
-                    {/* Botão "Ver mais" com estilo moderno */}
-                    <div className='px-3 py-1 flex items-center justify-center z-10'>
-                      <span className='text-[#5A6978] font-medium text-xs'>+{itensExtras} more</span>
-                    </div>
-                  </div>
-                )}
+          {/* Conteúdo expansível com altura dinâmica */}
+          <div 
+            className="overflow-hidden transition-all duration-300 ease-in-out"
+            style={{ 
+              maxHeight: isExpanded ? `${contentHeight}px` : '0px',
+              opacity: isExpanded ? 1 : 0
+            }}
+          >
+            <div ref={contentRef} className="px-4 pb-4">
+              {/* Informações adicionais: evento, notas e criador */}
+              <div className="mb-4 grid grid-cols-3 gap-4 border-t border-gray-200 pt-3">
+                <div className="flex flex-col">
+                  <span className="text-[#032221] font-semibold text-sm">Evento:</span>
+                  <span className="text-gray-600 text-sm">{pedido.eventoNome || nomeEventoSelecionado}</span>
+                </div>
+                
+                <div className="flex flex-col">
+                  <span className="text-[#032221] font-semibold text-sm">Notas:</span>
+                  <span className="text-gray-600 text-sm truncate">{pedido.notas || 'Nenhuma nota'}</span>
+                </div>
+                
+                <div className="flex flex-col">
+                  <span className="text-[#032221] font-semibold text-sm">Criado por:</span>
+                  <span className="text-gray-600 text-sm">{pedido.criado_por || 'Sistema'}</span>
+                </div>
               </div>
-            ) : (
-              // Container com scroll quando "Ver mais" é clicado
-              <div className='flex flex-col'>
-                <div className='w-full max-h-30 pr-1'>
-                  {itens.map((item) => (
-                    <div key={item.id} className='w-full flex flex-row justify-between items-center py-1'>
-                      <span className='text-[#032221] font-medium text-sm w-3/5 truncate'>
+              
+              {/* Cabeçalho da tabela de itens */}
+              <div className="w-full grid grid-cols-12 gap-2 text-xs text-gray-500 mt-2 mb-2 border-t border-gray-200 pt-3">
+                <span className="col-span-7">Itens</span>
+                <span className="col-span-2 text-center">Qty</span>
+                <span className="col-span-3 text-right">Preço</span>
+              </div>
+              
+              {/* Lista de itens */}
+              <div className="space-y-2 max-h-48 overflow-y-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
+                {itens.length > 0 ? (
+                  itens.map((item) => (
+                    <div key={item.id} className="w-full grid grid-cols-12 gap-2 py-1 border-b border-gray-100 last:border-b-0">
+                      <span className="text-gray-700 font-medium text-sm col-span-7 truncate">
                         {item.itens?.nome || 'Item não disponível'}
                       </span>
-                      <span className='text-[#032221] font-medium text-sm w-1/5 text-center'>{item.quantidade}</span>
-                      <span className='text-[#032221] font-medium text-sm w-1/5 text-right'>
+                      <span className="text-gray-700 font-medium text-sm col-span-2 text-center">{item.quantidade}</span>
+                      <span className="text-gray-700 font-medium text-sm col-span-3 text-right">
                         {((item.itens?.preco || 0) * item.quantidade).toFixed(2)}€
                       </span>
                     </div>
-                  ))}
-                  {/* Botão "Ver menos" com estilo consistente */}
-                <div 
-                  className='w-full h-6 flex justify-center items-center mt-1 a overflow-hidden cursor-pointer'
-                  onClick={() => setMostrarTodos(false)}
-                >
-                  <div className='px-3 py-1 pb-4 flex items-center justify-center z-10'>
-                    <span className='text-[#5A6978] font-medium text-xs'>Ver menos</span>
-                  </div>
-                </div>
-                </div>
+                  ))
+                ) : (
+                  <div className="text-center py-2 text-gray-500">Nenhum item neste pedido</div>
+                )}
               </div>
-            )}
+              
+              {/* Total */}
+              <div className="border-t border-gray-300 mt-4 pt-3 flex justify-between items-center">
+                <span className="font-semibold text-[#032221]">Total</span>
+                <span className="font-bold text-[#032221] text-lg">{calcularTotalPedido(pedido.id)}€</span>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* Total Faturado */}
-        <div className='w-full h-10 flex flex-row justify-between items-center px-5 pt-2'>
-          <h1 className='text-[#032221] font-semibold text-lg'>Total</h1>
-          <h1 className='text-[#032221] font-semibold text-lg'>{calcularTotalPedido(pedido.id)}€</h1>
-        </div>
-
-        {/* Botão Ver Detalhes */}
-        <div className='w-full px-5 pb-4 pt-1'>
-          <button className='bg-[#032221] text-[#FFFDF6] rounded-lg w-full flex justify-center items-center py-2 cursor-pointer hover:bg-[#052e2d] transition-transform duration-300 hover:scale-102'>
-            <FaEye className="mr-1" />Ver Detalhes
-          </button>
         </div>
       </div>
     );
@@ -986,23 +1069,11 @@ function VerEstatisticas() {
           </div> 
 
           {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
-          <div className='w-full h-full grid grid-cols-2 gap-5 px-2 overflow-y-scroll mb-13' style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="w-full bg-transparent rounded-2xl p-1 mb-8 space-y-2 overflow-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style> {/* Permite que haja scroll sem estar visivel a scroll bar */}
-            {pedidos.length > 0 ? (
-              pedidos.map((pedido) => (
-                <CardPedido key={pedido.id} pedido={pedido}/>
-              ))
-            ) : (
-              <div className='col-span-2 flex justify-center items-center p-4 bg-[#FFFDF6] rounded-xl'>
-                <p className='text-[#032221] font-medium text-lg'>
-                  {idEventoSelecionado && termoPesquisa
-                    ? 'Nenhum pedido encontrado para este termo de pesquisa.'
-                    : idEventoSelecionado 
-                      ? 'Nenhum pedido encontrado para este evento e filtro.' 
-                      : 'Selecione um evento para visualizar os pedidos.'}
-                </p>
-              </div>
-            )}
+            {pedidos.map((pedido: any) => (
+              <CardPedido key={pedido.id} pedido={pedido} />
+            ))}
           </div>
         </div>
 
