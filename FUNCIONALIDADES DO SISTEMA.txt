@@ -120,9 +120,8 @@ MAJOR ALTERAÇÕES:
         - Refazer exibição dos itens com a implementação de uma estrutura igual ao "editarperfil";
 
     -> VER ESTATÍSTICAS;
-        - Exportar resumo dos eventos em pdf (junto do "Selecionar Evento") (Janela de popup a perguntar se tem a certeza que quer exportar);
-        - Melhorar a estilização do botão de "Selecionar Evento";
-        - Melhorar a exibição dos itens com a implementação de uma estrutura igual ao "editarperfil";
+        - Exportar resumo dos eventos em pdf (Janela de popup a perguntar se tem a certeza que quer exportar);
+        - Imprimir as senhas dos pedidos selecionados com a checkbox;
             - Adicionar funcionalidade de selecionar todos os pedidos;
 
     -> AJUDA - FAQS;

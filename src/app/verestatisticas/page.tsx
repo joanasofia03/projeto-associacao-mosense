@@ -795,7 +795,7 @@ function VerEstatisticas() {
     return (
       <div className="relative w-full">
         {/* Linha vertical de conexão entre cards */}
-        <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-[rgba(3,98,76,0.2)] -z-10"></div>
+        <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-[rgba(3,98,76,0.2)] z-10"></div>
 
         <div className="w-full bg-[#FFFDF6] rounded-xl shadow-md overflow-hidden mb-4 relative z-10">
           {/* Header clicável */}
@@ -1037,7 +1037,7 @@ function VerEstatisticas() {
               <select
                 value={idEventoSelecionado}
                 onChange={(e) => setIdEventoSelecionado(e.target.value)}
-                className="bg-[#032221] text-[#FFFDF6] font-semibold rounded-lg px-18 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)] appearance-none"
+                className="bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] focus:ring-0 focus:outline-none appearance-none font-semibold rounded-lg px-18 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)]"
               >
                 <option value="" disabled hidden>Selecione...</option>
                 {eventos.map((evento) => (
@@ -1061,7 +1061,7 @@ function VerEstatisticas() {
           </div> 
 
           {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
-            <div className="w-full bg-transparent rounded-2xl p-1 overflow-auto flex flex-col mb-13" 
+            <div className="w-full bg-transparent rounded-2xl p-2 overflow-auto flex flex-col mb-13" 
               style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
             <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
               {pedidos.map((pedido: any) => (
