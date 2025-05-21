@@ -124,8 +124,6 @@ MAJOR ALTERAÇÕES:
         - Melhorar a estilização do botão de "Selecionar Evento";
         - Melhorar a exibição dos itens com a implementação de uma estrutura igual ao "editarperfil";
             - Adicionar funcionalidade de selecionar todos os pedidos;
-            - Encontrar uma forma de colocar "+x itens" quando os itens de um pedido são demasiado, porque o scroll está a funcionar mas de forma invisivel;
-            - O Scroll do div da exibição dos pedidos deve respeitar o bottom padding do próprio div;
 
     -> AJUDA - FAQS;
 

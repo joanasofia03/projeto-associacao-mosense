@@ -742,6 +742,10 @@ function VerEstatisticas() {
     const [isExpanded, setIsExpanded] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
     const [contentHeight, setContentHeight] = useState(0);
+    const [showAllItems, setShowAllItems] = useState(false);
+    
+    // Número máximo de itens para mostrar inicialmente
+    const MAX_ITENS_VISIBLE = 3;
     
     // Verificar se o pedido está selecionado
     const estaSelecionado = pedidosSelecionados.includes(pedido.id);
@@ -751,10 +755,19 @@ function VerEstatisticas() {
       if (contentRef.current) {
         setContentHeight(contentRef.current.scrollHeight);
       }
-    }, [isExpanded, itens]);
+    }, [isExpanded, itens, showAllItems]);
 
     const toggleExpanded = () => {
       setIsExpanded(!isExpanded);
+      if (!isExpanded) {
+        // Reset para mostrar apenas os primeiros itens quando expande o card
+        setShowAllItems(false);
+      }
+    };
+    
+    const toggleShowAllItems = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Impedir que o card colapse quando clica no botão
+      setShowAllItems(!showAllItems);
     };
     
     // Formatação de data completa para exibição
@@ -774,6 +787,10 @@ function VerEstatisticas() {
       
       return `${diaSemana}, ${dia} ${mes}, ${ano} às ${horas}h${minutos}`;
     };
+    
+    // Determinar quais itens mostrar com base no estado showAllItems
+    const itensToShow = showAllItems ? itens : itens.slice(0, MAX_ITENS_VISIBLE);
+    const hasMoreItems = itens.length > MAX_ITENS_VISIBLE;
     
     return (
       <div className="relative w-full">
@@ -877,32 +894,52 @@ function VerEstatisticas() {
               </div>
               
               {/* Cabeçalho da tabela de itens */}
-              <div className="w-full grid grid-cols-12 gap-2 text-xs text-gray-500 mt-2 mb-2 border-t border-gray-300 pt-3">
+              <div className="w-full grid grid-cols-12 gap-2 text-xs text-gray-500 mt-2 mb-2 border-t border-[#A1A3A3] pt-3">
                 <span className="col-span-7">Itens</span>
                 <span className="col-span-2 text-center">Qty</span>
                 <span className="col-span-3 text-right">Preço</span>
               </div>
               
-              {/* Lista de itens */}
-              <div className="space-y-2 max-h-48 overflow-y-auto border-b border-gray-300 pb-3" style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
+              {/* Lista de itens - agora com limitação de itens visíveis */}
+              <div className="space-y-2 border-b border-[#A1A3A3] pb-3">
                 {itens.length > 0 ? (
-                  itens.map((item) => (
-                    <div key={item.id} className="w-full grid grid-cols-12 gap-2 py-1">
-                      <span className="text-gray-700 font-medium text-sm col-span-7 truncate">
-                        {item.itens?.nome || 'Item não disponível'}
-                      </span>
-                      <span className="text-gray-700 font-medium text-sm col-span-2 text-center">{item.quantidade}</span>
-                      <span className="text-gray-700 font-medium text-sm col-span-3 text-right">
-                        {((item.itens?.preco || 0) * item.quantidade).toFixed(2)}€
-                      </span>
-                    </div>
-                  ))
+                  <>
+                    {itensToShow.map((item, index) => (
+                      <div
+                        key={item.id}
+                        className={`w-full grid grid-cols-12 gap-2 py-1`}
+                      >
+                        <span className="text-gray-700 font-medium text-sm col-span-7 truncate">
+                          {item.itens?.nome || 'Item não disponível'}
+                        </span>
+                        <span className="text-gray-700 font-medium text-sm col-span-2 text-center">
+                          {item.quantidade}
+                        </span>
+                        <span className="text-gray-700 font-medium text-sm col-span-3 text-right">
+                          {((item.itens?.preco || 0) * item.quantidade).toFixed(2)}€
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Botão para ver mais/menos itens */}
+                    {hasMoreItems && (
+                      <div className="w-full flex justify-center mt-2">
+                        <button 
+                          onClick={toggleShowAllItems}
+                          className="px-4 py-1 text-sm text-[#032221] bg-[rgba(3,98,76,0.1)] hover:bg-[rgba(3,98,76,0.2)] rounded-full transition-colors duration-200"
+                        >
+                          {showAllItems 
+                            ? `Ver menos itens` 
+                            : `+ ${itens.length - MAX_ITENS_VISIBLE} itens`}
+                        </button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-2 text-gray-500">Nenhum item neste pedido</div>
                 )}
               </div>
-              
+
               {/* Total */}
               <div className="pt-3 flex justify-between items-center">
                 <span className="font-bold text-[#032221]">Total</span>
@@ -1024,11 +1061,12 @@ function VerEstatisticas() {
           </div> 
 
           {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
-          <div className="w-full bg-transparent rounded-2xl p-1 mb-8 space-y-2 overflow-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style> {/* Permite que haja scroll sem estar visivel a scroll bar */}
-            {pedidos.map((pedido: any) => (
-              <CardPedido key={pedido.id} pedido={pedido} />
-            ))}
+            <div className="w-full bg-transparent rounded-2xl p-1 overflow-auto flex flex-col mb-13" 
+              style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+            <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
+              {pedidos.map((pedido: any) => (
+                <CardPedido key={pedido.id} pedido={pedido} />
+              ))}
           </div>
         </div>
 
