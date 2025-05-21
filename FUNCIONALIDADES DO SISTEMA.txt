@@ -110,6 +110,7 @@ PEQUENAS ALTERAÇÕES A EFETUAR:
     -> Adicionar Tooltip ao projeto;
     -> Melhorar o loading das páginas;
     -> Estilização geral do projeto mantendo as mesmas regras;
+    -> Integrar shadcn para melhorias de estilização e otimização de código;
 
 MAJOR ALTERAÇÕES:
     -> REGISTAR PEDIDO;
