@@ -81,7 +81,7 @@ function VerEstatisticas() {
     );
   };
 
-  // Carregar eventos disponíveis 
+  //Carregar eventos disponíveis 
   useEffect(() => {
     // Carregar eventos apenas uma vez quando o componente é montado
     const fetchEventos = async () => {
@@ -305,16 +305,12 @@ function VerEstatisticas() {
       setPedidosItens(itensAgrupados);
       setTotalFaturado(valorTotal);
       
-      // REMOVIDO: Não vamos mais calcular os pratos populares aqui
-      // Isso agora é feito na função dedicada fetchPedidosItensPratosPopulares
-      
     } catch (err) {
       setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
       console.error('Exceção ao buscar itens dos pedidos:', err);
     }
   };
 
-  // Substitua a função fetchPedidos no useEffect com a versão corrigida:
 
   useEffect(() => {
     const fetchPedidos = async () => {
@@ -324,7 +320,12 @@ function VerEstatisticas() {
         // Buscar pedidos com base no filtro para exibição nos cards
         let query = supabase
           .from('pedidos')
-          .select('*')
+          .select(`
+            *,
+            profiles:registado_por (
+              nome
+            )
+          `)
           .eq('id_evento', idEventoSelecionado);
 
         if (filtroValidade !== 'Todos') {
@@ -866,28 +867,28 @@ function VerEstatisticas() {
                 
                 <div className="flex flex-col">
                   <span className="text-[#032221] font-semibold text-sm">Notas:</span>
-                  <span className="text-gray-600 text-sm truncate">{pedido.notas || 'Nenhuma nota'}</span>
+                  <span className="text-gray-600 text-sm truncate">{pedido.nota || 'Nenhuma nota'}</span>
                 </div>
                 
                 <div className="flex flex-col">
                   <span className="text-[#032221] font-semibold text-sm">Criado por:</span>
-                  <span className="text-gray-600 text-sm">{pedido.criado_por || 'Sistema'}</span>
+                  <span className="text-gray-600 text-sm">{pedido.profiles.nome || 'Sistema'}</span>
                 </div>
               </div>
               
               {/* Cabeçalho da tabela de itens */}
-              <div className="w-full grid grid-cols-12 gap-2 text-xs text-gray-500 mt-2 mb-2 border-t border-gray-200 pt-3">
+              <div className="w-full grid grid-cols-12 gap-2 text-xs text-gray-500 mt-2 mb-2 border-t border-gray-300 pt-3">
                 <span className="col-span-7">Itens</span>
                 <span className="col-span-2 text-center">Qty</span>
                 <span className="col-span-3 text-right">Preço</span>
               </div>
               
               {/* Lista de itens */}
-              <div className="space-y-2 max-h-48 overflow-y-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div className="space-y-2 max-h-48 overflow-y-auto border-b border-gray-300 pb-3" style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
                 {itens.length > 0 ? (
                   itens.map((item) => (
-                    <div key={item.id} className="w-full grid grid-cols-12 gap-2 py-1 border-b border-gray-100 last:border-b-0">
+                    <div key={item.id} className="w-full grid grid-cols-12 gap-2 py-1">
                       <span className="text-gray-700 font-medium text-sm col-span-7 truncate">
                         {item.itens?.nome || 'Item não disponível'}
                       </span>
@@ -903,8 +904,8 @@ function VerEstatisticas() {
               </div>
               
               {/* Total */}
-              <div className="border-t border-gray-300 mt-4 pt-3 flex justify-between items-center">
-                <span className="font-semibold text-[#032221]">Total</span>
+              <div className="pt-3 flex justify-between items-center">
+                <span className="font-bold text-[#032221]">Total</span>
                 <span className="font-bold text-[#032221] text-lg">{calcularTotalPedido(pedido.id)}€</span>
               </div>
             </div>
