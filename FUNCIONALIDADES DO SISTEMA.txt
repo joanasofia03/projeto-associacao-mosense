@@ -111,20 +111,47 @@ PEQUENAS ALTERAÇÕES A EFETUAR:
     -> Melhorar o loading das páginas;
     -> Estilização geral do projeto mantendo as mesmas regras;
     -> Integrar shadcn para melhorias de estilização e otimização de código;
+    -> Realizar testes unitários e outros;
+    -> Melhorar a velocidade do website;
 
 MAJOR ALTERAÇÕES:
+    -> ADICIONAR EVENTO;
+        - Modificar a estilização com shadcn;
+        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
+
     -> REGISTAR PEDIDO;
-        - Implementar a função de impressão dos pedidos;
+        - Implementar a função de impressão das senhas;
+        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
+        - Modificar a estilização com shadcn;
+        - Adicionar um textarea do shadcn para as notas;
+        - Adicionar um carousel do shadcn para os filtros dos itens;
+
+    -> ADICIONAR PRODUTO;
+        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
+        - Modificar a estilização com shadcn;
+
+    -> ADICIONAR UTILIZADOR;
+        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
+        - Modificar a estilização com shadcn;
 
     -> ANULAR/ALTERAR PEDIDO;
         - Fazer o editar - Na base de dados é anulado o pedido e é criado um novo;
-        - Refazer exibição dos itens com a implementação de uma estrutura igual ao "editarperfil";
+        - Adicionar um pagination (shadcn) para não carregar tudo na mesma página - limitar a 10 pedidos por página;
 
     -> VER ESTATÍSTICAS;
         - Exportar resumo dos eventos em pdf (Janela de popup a perguntar se tem a certeza que quer exportar);
         - Imprimir as senhas dos pedidos selecionados com a checkbox;
-            - Adicionar funcionalidade de selecionar todos os pedidos;
+        - Utilizar a mesma estrutura do alterarpedido (substituir a posição do searchbar e a data);
+        - Estilizar a exibição dos pedidos com uma data table do shadcn;
+        - Utilizar um sheet do shadcn para os filtros por itens;
 
+    -> NAVIGATION;
+        - Modificar a estilização com shadcn;
+        - Usar tooltip do shadcn para os icons;
+
+    -> EDITAR PERFIL;
+        - Usar um chart do shadcn para ver  histórico de login da conta do utilizador em causa;
+    
     -> AJUDA - FAQS;
 
     -> RESPONSIVIDADE (ALTERAÇÕES DA RESOLUÇÃO);

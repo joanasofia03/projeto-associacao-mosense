@@ -33,6 +33,8 @@ const buttonVariants = cva(
           "bg-[#537D5D] text-[#FFFDF6] hover:bg-[#537D5D] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
         dark: 
           "bg-[#FFFDF6] text-[#032221] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
+        darkhover: 
+          "bg-[#FFFDF6] text-[#032221] hover:bg-[#032221] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
         darkselecionado:
           "bg-[#032221] text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
 

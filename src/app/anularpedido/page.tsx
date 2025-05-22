@@ -7,10 +7,8 @@ import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 // Import de Icons
 import { GoSearch } from "react-icons/go";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
-import { FaEye } from "react-icons/fa";
-import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBin6Line } from "react-icons/ri";
-import { IoCheckmarkDoneOutline, IoClose, IoCheckmarkDoneSharp, IoChevronDown} from "react-icons/io5";
+import { IoCheckmarkDoneOutline, IoClose } from "react-icons/io5";
 import { MdOutlineStoreMallDirectory } from "react-icons/md";
 import { FcTodoList } from "react-icons/fc";
 
@@ -52,7 +50,6 @@ function AlterarPedido() {
   const [pedidosItens, setPedidosItens] = useState<{[key: string]: Array<any>}>({});
   const [filtroValidade, setFiltroValidade] = useState('Todos');
   const [dataAtual, setDataAtual] = useState('');
-  const [filtroAtivo, setFiltroAtivo] = useState("Todos");
   const [idEventoSelecionado, setIdEventoSelecionado] = useState('');
   const [nomeEventoSelecionado, setNomeEventoSelecionado] = useState('');
   const [erro, setErro] = useState<string | null>(null);
@@ -61,6 +58,7 @@ function AlterarPedido() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [pedidoParaAnular, setPedidoParaAnular] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pedidosSelecionados, setPedidosSelecionados] = useState<number[]>([]);
   const [eventos, setEventos] = useState<Array<{
     id: number;
     criando_em: string;
@@ -69,9 +67,6 @@ function AlterarPedido() {
     data_fim: string | null;
     em_execucao: boolean;
   }>>([]);
-
-  // Constantes
-  const filtros = ["Todos", "Confirmado", "Anulado"];
   
   // Exibir mensagem de erro quando ocorrer
   const MensagemErro = () => {
@@ -94,29 +89,58 @@ function AlterarPedido() {
 
   //ModalAnular para anular pedido;
   const ModalAnular = () => {
+    const isAnulacaoMultipla = pedidoParaAnular === -1;
+    const quantidadePedidos = isAnulacaoMultipla ? pedidosSelecionados.length : 1;
+    
     const handleConfirmar = async () => {
       if (pedidoParaAnular === null) return;
       
       setLoading(true);
       try {
-        const { error } = await supabase
-          .from('pedidos')
-          .update({ estado_validade: 'Anulado' })
-          .eq('id', pedidoParaAnular);
+        if (isAnulacaoMultipla) {
+          // Anular múltiplos pedidos
+          const { error } = await supabase
+            .from('pedidos')
+            .update({ estado_validade: 'Anulado' })
+            .in('id', pedidosSelecionados);
 
-        if (error) {
-          setErro(`Erro ao anular o pedido: ${error.message}`);
+          if (error) {
+            setErro(`Erro ao anular os pedidos: ${error.message}`);
+          } else {
+            // Atualizar o estado dos pedidos na interface
+            const novosPedidos = pedidos.map(pedido => {
+              if (pedidosSelecionados.includes(pedido.id)) {
+                return { ...pedido, estado_validade: 'Anulado' };
+              }
+              return pedido;
+            });
+            
+            setPedidos(novosPedidos);
+            setPedidosOriginal(novosPedidos.map(p => ({...p})));
+            
+            // Limpar seleções
+            setPedidosSelecionados([]);
+          }
         } else {
-          // Atualizar o estado do pedido na interface
-          const novoPedidos = pedidos.map(pedido => {
-            if (pedido.id === pedidoParaAnular) {
-              return { ...pedido, estado_validade: 'Anulado' };
-            }
-            return pedido;
-          });
-          
-          setPedidos(novoPedidos);
-          setPedidosOriginal(novoPedidos.map(p => ({...p})));
+          // Anular pedido individual (código existente)
+          const { error } = await supabase
+            .from('pedidos')
+            .update({ estado_validade: 'Anulado' })
+            .eq('id', pedidoParaAnular);
+
+          if (error) {
+            setErro(`Erro ao anular o pedido: ${error.message}`);
+          } else {
+            const novoPedidos = pedidos.map(pedido => {
+              if (pedido.id === pedidoParaAnular) {
+                return { ...pedido, estado_validade: 'Anulado' };
+              }
+              return pedido;
+            });
+            
+            setPedidos(novoPedidos);
+            setPedidosOriginal(novoPedidos.map(p => ({...p})));
+          }
         }
       } catch (err) {
         setErro(`Erro inesperado: ${err instanceof Error ? err.message : String(err)}`);
@@ -135,8 +159,10 @@ function AlterarPedido() {
               Tem a certeza absoluta?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600">
-              Esta ação não pode ser desfeita. Isto irá alterar permanentemente 
-              o estado do pedido para anulado.
+              {isAnulacaoMultipla 
+                ? `Esta ação não pode ser desfeita. Isto irá alterar permanentemente o estado de ${quantidadePedidos} pedido${quantidadePedidos > 1 ? 's' : ''} para anulado.`
+                : 'Esta ação não pode ser desfeita. Isto irá alterar permanentemente o estado do pedido para anulado.'
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -328,7 +354,7 @@ function AlterarPedido() {
       // Buscar detalhes dos itens incluindo o campo iva
       const { data: itensData, error: itensError } = await supabase
         .from('itens')
-        .select('id, nome, preco, iva')
+        .select('id, nome, preco, IVA, imagem_url')
         .in('id', itensIds);
         
       if (itensError) {
@@ -461,6 +487,37 @@ function AlterarPedido() {
     setFiltroValidade(filtro);
   };
 
+  const toggleSelecaoPedido = (pedidoId: number, checked: boolean) => {
+    if (checked) {
+      setPedidosSelecionados(prev => [...prev, pedidoId]);
+    } else {
+      setPedidosSelecionados(prev => prev.filter(id => id !== pedidoId));
+      // Remover: setTodosSelecionados(false);
+    }
+  };
+
+  const iniciarAnulacaoMultipla = () => {
+    if (pedidosSelecionados.length === 0) {
+      setErro('Selecione pelo menos um pedido para anular.');
+      return;
+    }
+    
+    // Usar um valor especial para indicar anulação múltipla
+    setPedidoParaAnular(-1); // -1 indica anulação múltipla
+    setMostrarModal(true);
+  };
+
+  useEffect(() => {
+    setPedidosSelecionados([]);
+    // Remover: setTodosSelecionados(false);
+  }, [idEventoSelecionado]);
+
+  useEffect(() => {
+    setPedidosSelecionados([]);
+    // Remover: setTodosSelecionados(false);
+  }, [filtroValidade]); 
+
+
   return (
     <main className="w-full h-full px-6 py-6 bg-[#eaf2e9] flex flex-col overflow-y-hidden space-y-1">
       {/* Componente de erro (será exibido somente quando houver erro) */}
@@ -516,7 +573,16 @@ function AlterarPedido() {
           >
             <IoClose size={20}/>Anulados
           </Button>
-          <Button variant="anular"><RiDeleteBin6Line size={20}/></Button>
+          <Button 
+            variant="anular" 
+            onClick={iniciarAnulacaoMultipla}
+            disabled={pedidosSelecionados.length === 0}
+          >
+            <RiDeleteBin6Line size={20}/>
+            {pedidosSelecionados.length > 0 && (
+              <span className="ml-1">({pedidosSelecionados.length})</span>
+            )}
+          </Button>
         </div>
 
         {/* Evento */}
@@ -576,7 +642,12 @@ function AlterarPedido() {
                 {/* Checkbox, icon, título e data*/}
                 <div className='min-w-10 h-full flex flex-row justify-between items-center space-x-3 p-4'>
                   <div onClick={(e) => e.stopPropagation()}>
-                    <Checkbox className="size-5 border-2 border-[#032221] data-[state=checked]:bg-[#032221] data-[state=checked]:border-[#032221]"/>
+                    <Checkbox 
+                      className="size-5 border-2 border-[#032221] data-[state=checked]:bg-[#032221] data-[state=checked]:border-[#032221]"
+                      checked={pedidosSelecionados.includes(pedido.id)}
+                      onCheckedChange={(checked) => toggleSelecaoPedido(pedido.id, checked as boolean)}
+                      disabled={pedido.estado_validade === 'Anulado'}
+                    />
                   </div>
                   <FcTodoList size={36} className="text-[#FFFDF6]" />
                   <div className='flex flex-col justify-between items-start'>
@@ -616,10 +687,16 @@ function AlterarPedido() {
                 {/* Editar & Eliminar*/}
                 <div className='min-w-10 h-full flex flex-row justify-center items-center space-x-3 p-4'>
                   <div onClick={(e) => e.stopPropagation()}>
-                    <Button variant="confirmar" onClick={() => editarPedido(pedido.id)}>Editar</Button>
+                    <Button variant="darkhover" onClick={() => editarPedido(pedido.id)}>Editar</Button>
                   </div>
                   <div onClick={(e) => e.stopPropagation()}>
-                    <Button variant="anular" onClick={() => iniciarAnulacaoPedido(pedido.id)}>Eliminar</Button>
+                    <Button 
+                      variant="anular" 
+                      onClick={() => iniciarAnulacaoPedido(pedido.id)}
+                      disabled={pedido.estado_validade === 'Anulado'}
+                    >
+                      Eliminar
+                    </Button>
                   </div>
                   {pedidosExpandidos[pedido.id] ? (
                     <MdKeyboardArrowUp 
@@ -660,7 +737,7 @@ function AlterarPedido() {
                             <TableCell>
                               <Avatar className="h-8 w-8">
                                 <AvatarImage 
-                                  src={`/api/placeholder/32/32`} 
+                                  src={item.itens?.imagem_url || `/api/placeholder/32/32`} 
                                   alt={item.itens?.nome || 'Item'} 
                                 />
                                 <AvatarFallback className="bg-[#032221] text-[#FFFDF6] text-xs">
@@ -678,7 +755,7 @@ function AlterarPedido() {
                               €{(item.itens?.preco || 0).toFixed(2)}
                             </TableCell>
                             <TableCell className="text-right text-[#032221]">
-                              {item.itens?.iva || 23}%
+                              {item.itens?.IVA || 23}%
                             </TableCell>
                             <TableCell className="text-right text-[#032221] font-medium">
                               €{((item.itens?.preco || 0) * item.quantidade).toFixed(2)}
