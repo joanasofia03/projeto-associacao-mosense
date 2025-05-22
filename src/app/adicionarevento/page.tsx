@@ -282,7 +282,7 @@ function AdicionarEvento() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
-      <Toaster position="top-right" />
+      <Toaster position="bottom-right" />
       <Card className="w-full max-w-md bg-[#FFFDF6] shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold text-[#032221]">

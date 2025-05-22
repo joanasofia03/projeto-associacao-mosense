@@ -115,10 +115,6 @@ PEQUENAS ALTERAÇÕES A EFETUAR:
     -> Melhorar a velocidade do website;
 
 MAJOR ALTERAÇÕES:
-    -> ADICIONAR EVENTO;
-        - Modificar a estilização com shadcn;
-        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
-
     -> REGISTAR PEDIDO;
         - Implementar a função de impressão das senhas;
         - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
