@@ -22,6 +22,10 @@ const buttonVariants = cva(
         link: 
           "text-primary underline-offset-4 hover:underline",
 
+        botaoadicionar: 
+          "bg-[#032221] text-[#FFFDF6] text-sm font-semibold rounded-lg cursor-pointer transition-all duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100",
+
+
   
         anular:
           "bg-[#FFFDF6] text-[#032221] hover:bg-[#A31D1D] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
