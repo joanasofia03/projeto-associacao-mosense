@@ -6,12 +6,44 @@ import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 
 // Import de Icons
 import { GoSearch } from "react-icons/go";
-import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
-import { IoClose } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import { IoCheckmarkDoneOutline, IoClose, IoCheckmarkDoneSharp, IoChevronDown} from "react-icons/io5";
+import { MdOutlineStoreMallDirectory } from "react-icons/md";
+import { FcTodoList } from "react-icons/fc";
+
+//Import de Shadcn
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 function AlterarPedido() {
   // Estados principais
@@ -60,10 +92,8 @@ function AlterarPedido() {
     );
   };
 
-  // Modal de confirmação para anular o pedido
-  const ModalConfirmacao = () => {
-    if (!mostrarModal) return null;
-    
+  //ModalAnular para anular pedido;
+  const ModalAnular = () => {
     const handleConfirmar = async () => {
       if (pedidoParaAnular === null) return;
       
@@ -98,33 +128,37 @@ function AlterarPedido() {
     };
 
     return (
-      <div className="fixed inset-0 bg-[#eaf2e9] flex items-center justify-center z-50">
-        <div className="bg-[#FFFDF6] rounded-lg shadow-lg max-w-md w-full p-6">
-          <h2 className="text-xl font-semibold text-[#032221] mb-4">Confirmar Anulação</h2>
-          <p className="mb-6">Tem certeza que deseja anular este pedido? Esta ação não pode ser desfeita.</p>
-          
-          <div className="flex justify-end space-x-3">
-            <button
+      <AlertDialog open={mostrarModal} onOpenChange={setMostrarModal}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[#032221]">
+              Tem a certeza absoluta?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Esta ação não pode ser desfeita. Isto irá alterar permanentemente 
+              o estado do pedido para anulado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              className="bg-gray-100 text-[#032221] hover:bg-gray-200"
               onClick={() => {
                 setMostrarModal(false);
                 setPedidoParaAnular(null);
               }}
-              className="px-4 py-2 rounded-lg bg-gray-200 text-[#032221] hover:bg-gray-300"
-              disabled={loading}
             >
               Cancelar
-            </button>
-            
-            <button
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 text-white hover:bg-red-700"
               onClick={handleConfirmar}
-              className="px-4 py-2 rounded-lg bg-red-600 text-[#FFFDF6] hover:bg-red-700"
               disabled={loading}
             >
-              {loading ? 'Anulando...' : 'Anular Pedido'}
-            </button>
-          </div>
-        </div>
-      </div>
+              {loading ? 'A anular...' : 'Continuar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     );
   };
 
@@ -134,7 +168,8 @@ function AlterarPedido() {
       try {
         const { data, error } = await supabase
           .from('eventos')
-          .select('*');
+          .select('*')
+          .order('nome', { ascending: true }); // Ordenar por nome
 
         if (error) {
           setErro(`Erro ao buscar eventos: ${error.message}`);
@@ -170,13 +205,25 @@ function AlterarPedido() {
   // Buscar pedidos
   useEffect(() => {
     const fetchPedidos = async () => {
-      if (!idEventoSelecionado) return;
+      if (!idEventoSelecionado) {
+        // Limpar pedidos se nenhum evento estiver selecionado
+        setPedidos([]);
+        setPedidosOriginal([]);
+        setPedidosItens({});
+        return;
+      }
 
       try {
         let query = supabase
           .from('pedidos')
-          .select('*')
-          .eq('id_evento', idEventoSelecionado);
+          .select(`
+            *,
+            profiles:registado_por (
+              nome
+            )
+          `)
+          .eq('id_evento', idEventoSelecionado)
+          .order('criado_em', { ascending: false }); // Ordenar por data/hora (mais recente primeiro)
 
         if (filtroValidade !== 'Todos') {
           query = query.eq('estado_validade', filtroValidade);
@@ -188,12 +235,19 @@ function AlterarPedido() {
           setErro(`Erro ao buscar pedidos: ${error.message}`);
           console.error('Erro na consulta de pedidos:', error);
         } else {
-          setPedidosOriginal(data || []);
-          setPedidos(data || []);
+          // Ordenação adicional no cliente para garantir ordem correta
+          const pedidosOrdenados = (data || []).sort((a, b) => {
+            const dataA = new Date(a.criado_em || 0);
+            const dataB = new Date(b.criado_em || 0);
+            return dataB.getTime() - dataA.getTime(); // Mais recente primeiro
+          });
+          
+          setPedidosOriginal(pedidosOrdenados);
+          setPedidos(pedidosOrdenados);
           
           // Buscar os itens para cada pedido
-          if (data && data.length > 0) {
-            const pedidosIds = data.map(pedido => pedido.id);
+          if (pedidosOrdenados && pedidosOrdenados.length > 0) {
+            const pedidosIds = pedidosOrdenados.map(pedido => pedido.id);
             fetchPedidosItens(pedidosIds);
           } else {
             setPedidosItens({});
@@ -235,7 +289,14 @@ function AlterarPedido() {
             contacto.includes(termoLowerCase);
     });
     
-    setPedidos(resultados);
+    // Manter a ordenação por data/hora nos resultados filtrados
+    const resultadosOrdenados = resultados.sort((a, b) => {
+      const dataA = new Date(a.criado_em || 0);
+      const dataB = new Date(b.criado_em || 0);
+      return dataB.getTime() - dataA.getTime(); // Mais recente primeiro
+    });
+    
+    setPedidos(resultadosOrdenados);
     
   }, [termoPesquisa, pedidosOriginal]);
 
@@ -264,10 +325,10 @@ function AlterarPedido() {
       // Obter todos os IDs de itens para buscar os detalhes
       const itensIds = pedidosItensData?.map(item => item.item_id) || [];
       
-      // Buscar detalhes dos itens
+      // Buscar detalhes dos itens incluindo o campo iva
       const { data: itensData, error: itensError } = await supabase
         .from('itens')
-        .select('id, nome, preco')
+        .select('id, nome, preco, iva')
         .in('id', itensIds);
         
       if (itensError) {
@@ -365,195 +426,51 @@ function AlterarPedido() {
     }, 0).toFixed(2);
   };
 
-  // Componente de Card de Pedido com Modal
-  const CardPedido = ({ pedido }: { pedido: any }) => {
-    const itens = pedidosItens[pedido.id] || [];
-    const [modalAberto, setModalAberto] = useState(false);
-    
-    const abrirModal = () => setModalAberto(true);
-    const fecharModal = () => setModalAberto(false);
-    
-    // Modal de Detalhes do Pedido
-    const ModalDetalhesPedido = () => {
-      if (!modalAberto) return null;
-      
-      return (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(234, 242, 233, 0.9)' }}>
-          <div className="bg-[#FFFDF6] rounded-xl shadow-lg w-full max-w-md overflow-hidden">
-            {/* Cabeçalho do Modal */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-[#032221]">
-              <div className="flex items-center">
-                <div className="bg-[#FFFDF6] rounded-lg p-2 mr-3">
-                  <span className="text-[#032221] font-semibold text-lg">#{pedido.numero_diario}</span>
-                </div>
-                <h2 className="text-xl font-semibold text-[#FFFDF6]">Detalhes do Pedido</h2>
-              </div>
-              <button onClick={fecharModal} className="text-[#FFFDF6] hover:text-gray-300 cursor-pointer">
-                <IoClose size={24} />
-              </button>
-            </div>
-            
-            {/* Informações do Cliente */}
-            <div className="p-4">
-              <h3 className="text-[#032221] font-semibold text-lg">{pedido.nome_cliente}</h3>
-              <div className="text-sm text-gray-600 flex flex-col space-y-1">
-                <div className="flex items-center gap-1">
-                  <span className='font-semibold text-gray-700'>Contacto: </span><span>{pedido.contacto || 'N/A'}</span>
-                </div>
-                 <div className="flex items-center gap-1">
-                  <span className='font-semibold text-gray-700'>Tipo de pedido: </span><span>{pedido.tipo_de_pedido}</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="mr-1 font-semibold text-gray-700">Estado:</span>
-                  <span
-                    className={`py-1 px-2 rounded-lg text-xs font-medium flex items-center ${
-                      pedido.estado_validade === 'Confirmado' ? 'bg-[#DDEB9D]' : 'bg-[#f8d7da]'
-                    }`}
-                  >
-                    {pedido.estado_validade === 'Confirmado' ? (
-                      <>
-                        <IoCheckmarkDoneSharp size={12} className="mr-1" />
-                        {pedido.estado_validade}
-                      </>
-                    ) : (
-                      <>
-                        <IoClose size={12} className="mr-1" />
-                        {pedido.estado_validade}
-                      </>
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Data e Hora */}
-            <div className="w-full flex justify-between items-center px-4 py-2">
-              <span className="font-normal text-sm text-gray-600">
-                {formatarData(pedido.criado_em)}
-              </span>
-              <span className="font-normal text-sm text-gray-600">
-                {formatarHora(pedido.criado_em)}
-              </span>
-            </div>
-            
-            {/* Itens do Pedido */}
-            <div className="w-full px-4 py-3 border-t border-b border-gray-200">
-              <div className="w-full flex justify-between items-center mb-2">
-                <span className="font-normal text-sm w-3/5 text-gray-600">Itens</span>
-                <span className="font-normal text-sm w-1/5 text-center text-gray-600">Qty</span>
-                <span className="font-normal text-sm w-1/5 text-right text-gray-600">Preço</span>
-              </div>
-              
-              <div className="w-full max-h-60 overflow-y-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style> {/* Permite que haja scroll sem estar visivel a scroll bar */}
-                {itens.map((item) => (
-                  <div key={item.id} className="w-full flex justify-between items-center py-1">
-                    <span className="text-[#032221] font-medium text-sm w-3/5">
-                      {item.itens?.nome || 'Item não disponível'}
-                    </span>
-                    <span className="text-[#032221] font-medium text-sm w-1/5 text-center">{item.quantidade}</span>
-                    <span className="text-[#032221] font-medium text-sm w-1/5 text-right">
-                      {((item.itens?.preco || 0) * item.quantidade).toFixed(2)}€
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Total Faturado */}
-            <div className="w-full flex justify-between items-center pt-2 px-4">
-              <h3 className="text-[#032221] font-semibold text-lg">Total</h3>
-              <h3 className="text-[#032221] font-semibold text-lg">{calcularTotalPedido(pedido.id)}€</h3>
-            </div>
-            
-            {/* Botão de Fechar */}
-            <div className="flex justify-end p-4">
-              <button 
-                onClick={fecharModal}
-                className="bg-[#032221] text-[#FFFDF6] w-full py-2 px-6 rounded-md font-medium hover:bg-opacity-90 transition-colors cursor-pointer hover:bg-[#052e2d] transition-transform duration-300 hover:scale-102"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    };
-    
-    return (
-      <>
-        <div className='bg-[#FFFDF6] rounded-xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300 flex flex-col h-full'>
-          {/* Cabeçalho do Card */}
-          <div className='flex flex-row justify-between items-start w-full p-4 border-b border-gray-200'>
-            <div className='bg-[#032221] rounded-lg p-3 mr-3'>
-              <span className='text-[#FFFDF6] font-semibold text-lg'>#{pedido.numero_diario}</span>
-            </div>
-            <div className='flex flex-col justify-start items-start flex-grow px-2'>
-              <h1 className='text-[#032221] font-semibold text-lg truncate'>{pedido.nome_cliente}</h1>
-              <span className='font-medium text-xs' style={{ color: "rgba(3, 34, 33, 0.6)" }}>
-                {pedido.contacto || 'N/A'} / {pedido.tipo_de_pedido}
-              </span>
-            </div>
-            <div className={`flex flex-row justify-center items-center h-7 gap-1 py-1 px-2 rounded-lg ${
-              pedido.estado_validade === 'Confirmado' ? 'bg-[#DDEB9D]' : 'bg-[#f8d7da]'
-            }`}>
-              {pedido.estado_validade === 'Confirmado' ? (
-                <IoCheckmarkDoneSharp size={12} className='text-[#032221] font-semibold text-xs'/>
-              ) : (
-                <IoClose size={12} className='text-[#032221] font-semibold text-xs'/>
-              )}
-              <span className='text-[#032221] font-medium text-xs'>{pedido.estado_validade}</span>
-            </div>
-          </div>
+  // Função para lidar com a mudança de evento no select
+  const handleEventoChange = (value: string) => {
+    setIdEventoSelecionado(value);
+    // Limpar a pesquisa quando mudar de evento
+    setTermoPesquisa('');
+    // Limpar pedidos expandidos
+    setPedidosExpandidos({});
+  };
 
-          {/* Botões de Ação */}
-          <div className='p-4 mt-auto'>
-            <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={() => editarPedido(pedido.id)}
-                className="bg-[#DDEB9D] text-[#032221] cursor-pointer py-2 px-4 rounded-md font-medium hover:bg-opacity-80 transition-colors flex items-center justify-center cursor-pointer transition-transform duration-300 hover:-translate-y-1"
-                disabled={pedido.estado_validade === 'Anulado'}
-              >
-                <MdOutlineEdit className="mr-1 h-4 w-4" /> Editar
-              </button>
-              
-              <button 
-                onClick={() => iniciarAnulacaoPedido(pedido.id)}
-                className="bg-[rgba(210,102,90,0.1)] cursor-pointer text-[#D2665A] py-2 px-4 rounded-md font-medium hover:bg-[rgba(210,102,90,0.15)] transition-colors flex items-center justify-center cursor-pointer transition-transform duration-300 hover:-translate-y-1"
-                disabled={pedido.estado_validade === 'Anulado'}
-              >
-                <RiDeleteBin6Line className="mr-1 h-4 w-4" /> Anular
-              </button>
-            </div>
-            
-            <button 
-              onClick={abrirModal}
-              className="w-full mt-3 bg-[#032221] text-[#FFFDF6] py-2 px-4 rounded-md font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center cursor-pointer hover:bg-[#052e2d] transition-transform duration-300 hover:scale-102"
-            >
-              <FaEye className="mr-1" /> Ver Detalhes
-            </button>
-          </div>
-        </div>
-        
-        {/* Modal de Detalhes do Pedido */}
-        <ModalDetalhesPedido />
-      </>
-    );
+  // Função para formatar o texto do evento no select
+  const formatarEventoSelect = (evento: any) => {
+    const dataInicio = evento.data_inicio ? 
+      new Date(evento.data_inicio).toLocaleDateString('pt-PT') : '';
+    const dataFim = evento.data_fim ? 
+      new Date(evento.data_fim).toLocaleDateString('pt-PT') : '';
+    
+    let textoEvento = evento.nome;
+    
+    if (dataInicio && dataFim) {
+      textoEvento += ` (${dataInicio} - ${dataFim})`;
+    } else if (dataInicio) {
+      textoEvento += ` (${dataInicio})`;
+    }
+    
+    if (evento.em_execucao) {
+      textoEvento += ' • Em Execução';
+    }
+    
+    return textoEvento;
+  };
+
+  const aplicarFiltroValidade = (filtro: string) => {
+    setFiltroValidade(filtro);
   };
 
   return (
-    <main className="w-full h-full px-6 py-6 bg-[#eaf2e9] flex flex-col overflow-y-hidden">
+    <main className="w-full h-full px-6 py-6 bg-[#eaf2e9] flex flex-col overflow-y-hidden space-y-1">
       {/* Componente de erro (será exibido somente quando houver erro) */}
       {erro && <MensagemErro />}
-      
-      {/* Modal de confirmação */}
-      <ModalConfirmacao />
-      
-      {/* Primeira linha */}
-      <div className='w-full min-h-12 flex flex-1 flex-row justify-between items-center gap-2'>
+
+      {/* Primeiro Linha */}
+      <div className='w-full min-h-12 flex flex-row justify-between items-center gap-2'>
         {/* Título da Página */}
         <div className='min-w-116 min-h-15 flex items-center justify-start pl-2'>
-          <h1 className='font-bold text-2xl text-[#032221]'>Alteração de Pedidos</h1>
+          <h1 className='font-bold text-2xl text-[#032221]'>Gerir Pedidos - Edição ou Exclusão</h1>
         </div>
 
         {/* Search Bar */}
@@ -575,6 +492,61 @@ function AlterarPedido() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Segunda Linha */}
+      <div className='w-full min-h-12 flex flex-row justify-between items-center'>
+        {/* Botões */}
+        <div className='space-x-4 flex flex-row items-center'>
+          <Button 
+            variant={filtroValidade === 'Todos' ? 'darkselecionado' : 'dark'} 
+            onClick={() => aplicarFiltroValidade('Todos')}
+          >
+            <MdOutlineStoreMallDirectory size={20}/>Todos
+          </Button>
+          <Button 
+            variant={filtroValidade === 'Confirmado' ? 'confirmarselecionado' : 'confirmar'} 
+            onClick={() => aplicarFiltroValidade('Confirmado')}
+          >
+            <IoCheckmarkDoneOutline size={20}/>Confirmados
+          </Button>
+          <Button 
+            variant={filtroValidade === 'Anulado' ? 'anularselecionado' : 'anular'} 
+            onClick={() => aplicarFiltroValidade('Anulado')}
+          >
+            <IoClose size={20}/>Anulados
+          </Button>
+          <Button variant="anular"><RiDeleteBin6Line size={20}/></Button>
+        </div>
+
+        {/* Evento */}
+        <div>
+          <Select value={idEventoSelecionado} onValueChange={handleEventoChange}>
+            <SelectTrigger className="w-[480px] bg-[#032221] text-[#FFFDF6] cursor-pointer [&_svg]:text-[#FFFDF6] data-[placeholder]:text-[#FFFDF6]">
+              <SelectValue 
+                className="text-[#FFFDF6] placeholder:text-[#FFFDF6]" 
+                placeholder="Selecionar Evento"
+              />
+            </SelectTrigger>
+            <SelectContent className='bg-[#032221] text-[#FFFDF6] max-h-60'>
+              {eventos.length === 0 ? (
+                <SelectItem value="sem-eventos" disabled>
+                  Nenhum evento disponível
+                </SelectItem>
+              ) : (
+                eventos.map((evento) => (
+                  <SelectItem 
+                    key={evento.id} 
+                    value={evento.id.toString()}
+                    className="text-[#FFFDF6] hover:bg-[#1a4443] cursor-pointer"
+                  >
+                    {formatarEventoSelect(evento)}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Data Atual */}
         <div className='min-w-110 min-h-15 flex items-center justify-center'>
@@ -582,71 +554,162 @@ function AlterarPedido() {
         </div>
       </div>
 
-      {/* Filtro e Lista de Pedidos */}
-      <div className='flex w-full h-full flex-col gap-2 mt-4'>
-        {/* Filtros */}
-        <div className='w-full h-12 flex flex-row justify-between items-center px-2 gap-4'>
-          <div className='flex flex-row w-110 h-full justify-between items-center'>
-            {filtros.map((filtro) => (
-              <button
-                key={filtro}
-                onClick={() => {
-                  setFiltroValidade(filtro);
-                  setFiltroAtivo(filtro);
-                }}
-                className={`w-35 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer
-                  ${
-                    filtroAtivo === filtro
-                      ? 'bg-[#032221] text-[#FFFDF6]'
-                      : 'bg-[#FFFDF6] text-[#032221] hover:bg-[#dce6e7]'
-                  }`}
+      {/* Terceira linha - Lista de Pedidos */}
+      <div className='w-full h-full flex flex-col items-center overflow-y-auto space-y-2 py-1' 
+           style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+              <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
+        {/* Verificar se há pedidos para mostrar */}
+        {pedidos.length === 0 ? (
+          <div className='w-full h-32 flex items-center justify-center'>
+            <p className='text-gray-500 text-lg'>
+              {idEventoSelecionado ? 'Nenhum pedido encontrado para este evento.' : 'Selecione um evento para ver os pedidos.'}
+            </p>
+          </div>
+        ) : (
+          pedidos.map((pedido, index) => (
+            <div key={pedido.id} className='w-full mt-2 flex flex-col rounded-2xl bg-[#FFFDF6] shadow-md'>
+              {/* Linha principal do pedido - CLICÁVEL */}
+              <div 
+                className='w-full min-h-24 flex flex-row justify-between items-center cursor-pointer hover:bg-gray-50 rounded-2xl transition-colors'
+                onClick={() => toggleExpansaoPedido(pedido.id)}
               >
-                {filtro}
-              </button>
-            ))}
-          </div>
+                {/* Checkbox, icon, título e data*/}
+                <div className='min-w-10 h-full flex flex-row justify-between items-center space-x-3 p-4'>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Checkbox className="size-5 border-2 border-[#032221] data-[state=checked]:bg-[#032221] data-[state=checked]:border-[#032221]"/>
+                  </div>
+                  <FcTodoList size={36} className="text-[#FFFDF6]" />
+                  <div className='flex flex-col justify-between items-start'>
+                    <h3 className='font-semibold text-[#032221] text-base'>
+                      Pedido #{pedido.numero_diario || 'N/A'} - {pedido.nome_cliente || 'Cliente não informado'}
+                    </h3>
+                    <span className='font-normal text-sm text-gray-500'>
+                      {pedido.criado_em ? formatarData(pedido.criado_em) + ' às ' + formatarHora(pedido.criado_em) : 'Data não disponível'}
+                    </span>
+                  </div>
+                </div>
 
-          <div className="relative flex flex-row items-center">
-            <label className="mr-3 text-md font-semibold text-[#032221]">Selecionar Evento:</label>
-            <select
-              value={idEventoSelecionado}
-              onChange={(e) => setIdEventoSelecionado(e.target.value)}
-              className="bg-[#032221] text-[#FFFDF6] font-semibold rounded-lg px-20 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)] appearance-none"
-            >
-              <option value="" disabled hidden>Selecione...</option>
-              {eventos.map((evento) => (
-                <option key={evento.id} value={evento.id}>
-                  {evento.nome}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#FFFDF6]">
-              <MdKeyboardArrowDown size={4} className='fill-current h-4 w-4'/>
-            </div>
-          </div>
-        </div>
+                {/* Estado, contacto e tipo de pedido*/}
+                <div className='min-w-10 h-full flex flex-col justify-center items-center'>
+                  <span className={`flex flex-row items-center space-x-2 ${
+                    pedido.estado_validade === 'Confirmado' ? 'text-[#A4B465]' : 'text-red-500'
+                  }`}>
+                    {pedido.estado_validade === 'Confirmado' ? 
+                      <IoCheckmarkDoneOutline size={14} /> : 
+                      <IoClose size={14} />
+                    }
+                    {pedido.estado_validade || 'N/A'}
+                  </span>
+                  <span className='text-sm text-gray-500'>
+                    {pedido.contacto || 'N/A'} / {pedido.tipo_de_pedido || 'N/A'}
+                  </span>
+                </div>
 
-        {/* Lista de Pedidos - Agora com 3 colunas e layout adaptável */}
-        <div className='w-full h-full p-2 overflow-y-auto'>
-          {pedidos.length > 0 ? (
-            <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-              {pedidos.map((pedido) => (
-                <CardPedido key={pedido.id} pedido={pedido} />
-              ))}
+                {/* Evento e Criado por*/}
+                <div className='min-w-10 h-full flex flex-col justify-center items-center'>
+                  <span className='text-[#032221] font-semibold text-sm'>Evento: {nomeEventoSelecionado}</span>
+                  <span className='text-gray-500 font-medium text-sm'>
+                    Criado Por: {pedido.profiles?.nome || 'N/A'}
+                  </span>
+                </div>
+
+                {/* Editar & Eliminar*/}
+                <div className='min-w-10 h-full flex flex-row justify-center items-center space-x-3 p-4'>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Button variant="confirmar" onClick={() => editarPedido(pedido.id)}>Editar</Button>
+                  </div>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Button variant="anular" onClick={() => iniciarAnulacaoPedido(pedido.id)}>Eliminar</Button>
+                  </div>
+                  {pedidosExpandidos[pedido.id] ? (
+                    <MdKeyboardArrowUp 
+                      size={20} 
+                      className='text-[#032221] hover:text-[#A4B465] transition-colors'
+                    />
+                  ) : (
+                    <MdKeyboardArrowDown 
+                      size={20} 
+                      className='text-[#032221] hover:text-[#A4B465] transition-colors'
+                    />
+                  )}
+                </div>
+              </div>
+              
+              {/* Seção expandida com detalhes dos itens */}
+              {pedidosExpandidos[pedido.id] && (
+              <div className='w-full px-6 pb-4 border-t border-gray-200'>
+                <div className='mt-4'>
+                  <h4 className='font-normal text-sm text-gray-500 mb-2 px-2'>
+                    <b className='text-[#032221]'>Notas:</b> {pedido.nota || 'Sem Informações'}
+                  </h4>
+                  {pedidosItens[pedido.id] && pedidosItens[pedido.id].length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[60px]">Imagem</TableHead>
+                          <TableHead>Item</TableHead>
+                          <TableHead className="text-center w-[100px]">Quantidade</TableHead>
+                          <TableHead className="text-right w-[100px]">Preço Unit.</TableHead>
+                          <TableHead className="text-right w-[80px]">IVA (%)</TableHead>
+                          <TableHead className="text-right w-[100px]">Subtotal</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pedidosItens[pedido.id].map((item, itemIndex) => (
+                          <TableRow key={itemIndex}>
+                            <TableCell>
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage 
+                                  src={`/api/placeholder/32/32`} 
+                                  alt={item.itens?.nome || 'Item'} 
+                                />
+                                <AvatarFallback className="bg-[#032221] text-[#FFFDF6] text-xs">
+                                  {(item.itens?.nome || 'IT').substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                            </TableCell>
+                            <TableCell className="text-[#032221]">
+                              {item.itens?.nome || 'Item não encontrado'}
+                            </TableCell>
+                            <TableCell className="text-center text-[#032221]">
+                              {item.quantidade}
+                            </TableCell>
+                            <TableCell className="text-right text-[#032221]">
+                              €{(item.itens?.preco || 0).toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-right text-[#032221]">
+                              {item.itens?.iva || 23}%
+                            </TableCell>
+                            <TableCell className="text-right text-[#032221] font-medium">
+                              €{((item.itens?.preco || 0) * item.quantidade).toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                      <TableFooter>
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-right font-bold text-[#032221] text-lg">
+                            Total:
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-[#032221] text-lg">
+                            €{calcularTotalPedido(pedido.id)}
+                          </TableCell>
+                        </TableRow>
+                      </TableFooter>
+                    </Table>
+                  ) : (
+                    <p className='text-gray-500'>Nenhum item encontrado para este pedido.</p>
+                  )}
+                </div>
+              </div>
+            )}
             </div>
-          ) : (
-            <div className='flex justify-center items-center p-8 bg-[#FFFDF6] rounded-xl'>
-              <p className='text-[#032221] font-medium text-lg'>
-                {idEventoSelecionado && termoPesquisa
-                  ? 'Nenhum pedido encontrado para este termo de pesquisa.'
-                  : idEventoSelecionado 
-                    ? 'Nenhum pedido encontrado para este evento e filtro.' 
-                    : 'Selecione um evento para visualizar os pedidos.'}
-              </p>
-            </div>
-          )}
-        </div>
+          ))
+        )}
       </div>
+
+      {/* Modal de confirmação */}
+      <ModalAnular />
     </main>
   );
 }
