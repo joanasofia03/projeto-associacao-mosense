@@ -1,13 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
-import Toast from '../components/toast';
+import { toast } from "sonner";
+import { Toaster } from 'sonner';
 
 // Import de icons
 import { RiDeleteBin6Line } from "react-icons/ri";
-import { MdOutlineEdit, MdClose, MdSave } from "react-icons/md";
+import { MdOutlineEdit, MdClose, MdSave, MdSearch } from "react-icons/md";
+
+// Shadcn/ui imports
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Evento = {
   id: string;
@@ -21,20 +54,20 @@ type Evento = {
 function AlterarEvento() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const [editingEvento, setEditingEvento] = useState<Evento | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToastMessage(message);
-    setToastType(type);
-    setToastVisible(true);
-  };
+  // Filtrar eventos baseado na pesquisa
+  const filteredEventos = useMemo(() => {
+    if (!searchQuery.trim()) return eventos;
+    
+    return eventos.filter(evento =>
+      evento.nome.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [eventos, searchQuery]);
 
   useEffect(() => {
     const fetchEventos = async () => {
@@ -46,13 +79,13 @@ function AlterarEvento() {
 
         if (error) {
           console.error('Erro ao buscar eventos:', error);
-          showToast('Erro ao carregar eventos', 'error');
+          toast.error('Erro ao carregar eventos');
         } else {
           setEventos(data || []);
         }
       } catch (err) {
         console.error('Erro inesperado ao buscar eventos:', err);
-        showToast('Erro inesperado ao carregar eventos', 'error');
+        toast.error('Erro inesperado ao carregar eventos');
       } finally {
         setLoading(false);
       }
@@ -76,9 +109,17 @@ function AlterarEvento() {
     });
   };
 
+  const handleCheckboxChange = (checked: boolean) => {
+    if (!editingEvento) return;
+    setEditingEvento({ 
+      ...editingEvento, 
+      em_execucao: checked 
+    });
+  };
+
   const handleSave = async () => {
     if (!editingEvento || !editingEvento.nome || !editingEvento.data_fim || !editingEvento.data_inicio) {
-      showToast('Preencha todos os campos obrigatórios', 'error');
+      toast.error('Preencha todos os campos obrigatórios');
       return;
     }
 
@@ -93,13 +134,13 @@ function AlterarEvento() {
         .neq('id', editingEvento.id);
 
       if (checkError) {
-        showToast('Erro ao verificar eventos existentes.', 'error');
+        toast.error('Erro ao verificar eventos existentes.');
         setSaving(false);
         return;
       }
 
       if (existingEvents && existingEvents.length > 0) {
-        showToast('Já existe outro evento com esse nome.', 'error');
+        toast.error('Já existe outro evento com esse nome.');
         setSaving(false);
         return;
       }
@@ -116,38 +157,36 @@ function AlterarEvento() {
 
       if (error) {
         if (error.message.includes('unico_evento_em_execucao')) {
-          showToast('Já existe um evento em execução. Finalize-o antes de marcar este como ativo.', 'error');
+          toast.error('Já existe um evento em execução. Finalize-o antes de marcar este como ativo.');
         } else {
-          showToast('Erro ao atualizar evento', 'error');
+          toast.error('Erro ao atualizar evento');
         }
         console.error('Erro ao atualizar evento:', error);
       } else {
         setEventos(eventos.map(ev => ev.id === editingEvento.id ? { ...editingEvento } : ev));
-        showToast('Evento atualizado com sucesso!', 'success');
+        toast.success('Evento atualizado com sucesso!');
         setIsModalOpen(false);
         setEditingEvento(null);
       }
     } catch (err) {
       console.error('Erro ao guardar evento:', err);
-      showToast('Erro desconhecido ao guardar o evento', 'error');
+      toast.error('Erro desconhecido ao guardar o evento');
     }
 
     setSaving(false);
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir este evento?')) return;
-
     try {
       const { error } = await supabase.from('eventos').delete().eq('id', id);
       if (error) {
-        showToast('Erro ao excluir evento', 'error');
+        toast.error('Erro ao excluir evento');
       } else {
         setEventos(eventos.filter(e => e.id !== id));
-        showToast('Evento excluído com sucesso!', 'success');
+        toast.success('Evento excluído com sucesso!');
       }
     } catch (err) {
-      showToast('Erro inesperado ao excluir', 'error');
+      toast.error('Erro inesperado ao excluir');
     }
   };
 
@@ -170,192 +209,224 @@ function AlterarEvento() {
 
   return (
     <div className="min-h-screen bg-[#eaf2e9] px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+      <Toaster position="bottom-right" />
+      <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-[#032221] text-center">
           Gerir Eventos - Edição ou Exclusão
         </h1>
 
-        {eventos.length === 0 ? (
+        {/* Barra de Pesquisa */}
+        <div className="mb-6 flex justify-center items-center">
+          <div className="relative w-full">
+            <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#032221]/60 h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Pesquisar eventos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-[#FFFDF6] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+            />
+          </div>
+        </div>
+
+        {filteredEventos.length === 0 ? (
           <div className="bg-[#FFFDF6] rounded-lg p-8 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] text-center">
-            <p className="text-[#032221] text-lg">Nenhum evento encontrado.</p>
+            <p className="text-[#032221] text-lg">
+              {searchQuery.trim() ? 'Nenhum evento encontrado para a pesquisa.' : 'Nenhum evento encontrado.'}
+            </p>
           </div>
         ) : (
-          <div className="grid gap-4">
-            {eventos.map((evento) => (
-              <div
-                key={evento.id}
-                className="bg-[#FFFDF6] rounded-lg p-6 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] 
-                         hover:shadow-[2px_2px_6px_rgba(3,34,33,0.15)] transition-all duration-200"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-[#032221] mb-2">
+          <div className="bg-[#FFFDF6] rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)] overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-[#032221]/10">
+                  <TableHead className="text-[#032221] font-semibold">Nome do Evento</TableHead>
+                  <TableHead className="text-[#032221] font-semibold">Data Início</TableHead>
+                  <TableHead className="text-[#032221] font-semibold">Data Fim</TableHead>
+                  <TableHead className="text-[#032221] font-semibold">Criado em</TableHead>
+                  <TableHead className="text-[#032221] font-semibold">Estado</TableHead>
+                  <TableHead className="text-[#032221] font-semibold text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEventos.map((evento) => (
+                  <TableRow 
+                    key={evento.id} 
+                    className="border-b border-[#032221]/5 hover:bg-[#eaf2e9]/30 transition-colors duration-200"
+                  >
+                    <TableCell className="font-medium text-[#032221]">
                       {evento.nome}
-                    </h3>
-                    <div className="space-y-1 text-sm text-[#032221]/70">
-                      <p>
-                        <span className="font-medium">Início:</span> {formatDate(evento.data_inicio)}
-                      </p>
-                      <p>
-                        <span className="font-medium">Fim:</span> {formatDate(evento.data_fim)}
-                      </p>
-                      <p>
-                        <span className="font-medium">Criado em:</span> {formatDate(evento.criando_em)}
-                      </p>
-                    </div>
-                    <div className="mt-3">
-                      <span 
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                          evento.em_execucao 
-                            ? 'bg-[#DDEB9D] text-[#032221] font-semibold text-xs' 
-                            : 'bg-[#f8d7da] text-[#032221] font-semibold text-xs'
-                        }`}
+                    </TableCell>
+                    <TableCell className="text-[#032221]/70">
+                      {formatDate(evento.data_inicio)}
+                    </TableCell>
+                    <TableCell className="text-[#032221]/70">
+                      {formatDate(evento.data_fim)}
+                    </TableCell>
+                    <TableCell className="text-[#032221]/70">
+                      {formatDate(evento.criando_em)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={evento.em_execucao ? "default" : "secondary"}
+                        className={evento.em_execucao 
+                          ? 'bg-[#DDEB9D] text-[#032221] hover:bg-[#DDEB9D]/80' 
+                          : 'bg-[#f8d7da] text-[#032221] hover:bg-[#f8d7da]/80'
+                        }
                       >
-                        {evento.em_execucao ? 'Em Execução' : 'Não ativo' }
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEditClick(evento)}
-                      className="p-2 bg-[#DDEB9D] text-[#032221] rounded-lg hover:bg-opacity-80 
-                               transition-all duration-200 hover:scale-105 flex flex-row justify-between items-center gap-1 text-base cursor-pointer"
-                      title="Editar evento"
-                    >Editar
-                      <MdOutlineEdit size={16} /> 
-                    </button>
-                    <button
-                      onClick={() => handleDelete(evento.id)}
-                      className="p-2 bg-[rgba(210,102,90,0.12)] text-[#D2665A] rounded-lg hover:bg-[rgba(210,102,90,0.17)] 
-                               transition-all duration-200 hover:scale-105 flex flex-row justify-between items-center gap-1 text-base cursor-pointer"
-                      title="Excluir evento"
-                    >Eliminar
-                      <RiDeleteBin6Line size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                        {evento.em_execucao ? 'Em Execução' : 'Não ativo'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          onClick={() => handleEditClick(evento)}
+                          size="sm"
+                          className="bg-[#DDEB9D] text-[#032221] hover:bg-[#DDEB9D]/80 hover:scale-105 transition-all duration-200"
+                        >
+                          <MdOutlineEdit className="w-4 h-4 mr-1" />
+                          Editar
+                        </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-[#D2665A]/30 text-[#D2665A] hover:bg-[#D2665A]/10 hover:border-[#D2665A] hover:scale-105 transition-all duration-200"
+                            >
+                              <RiDeleteBin6Line className="w-4 h-4 mr-1" />
+                              Eliminar
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-[#FFFDF6]">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-[#032221]">
+                                Confirmar exclusão
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-[#032221]/70">
+                                Tem certeza que deseja excluir o evento "{evento.nome}"? 
+                                Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="border-[#032221]/20 text-[#032221] hover:bg-[#032221]/5">
+                                Cancelar
+                              </AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDelete(evento.id)}
+                                className="bg-[#D2665A] hover:bg-[#D2665A]/90 text-white"
+                              >
+                                Confirmar exclusão
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
 
         {/* Modal de Edição */}
-        {isModalOpen && editingEvento && (
-          <div className="fixed inset-0 flex items-center justify-center p-4 z-50" style={{ backgroundColor: 'rgba(234, 242, 233, 0.9)' }}>
-            <div className="bg-[#FFFDF6] rounded-lg p-8 w-full max-w-md shadow-[4px_4px_12px_rgba(3,34,33,0.2)]">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold text-[#032221]">Editar Evento</h2>
-                <button
-                  onClick={handleCloseModal}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                >
-                  <MdClose size={24} className="text-[#032221]" />
-                </button>
-              </div>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="bg-[#FFFDF6] max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold text-[#032221]">
+                Editar Evento
+              </DialogTitle>
+            </DialogHeader>
 
+            {editingEvento && (
               <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
-                <div>
-                  <label htmlFor="nome" className="block text-sm font-medium text-[#032221] mb-1">
+                <div className="space-y-2">
+                  <Label htmlFor="nome" className="text-sm font-medium text-[#032221]">
                     Nome do Evento
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     type="text"
                     id="nome"
                     name="nome"
                     value={editingEvento.nome}
                     onChange={handleInputChange}
-                    className="w-full border border-[#032221] rounded-lg px-3 py-2 
-                             focus:outline-none focus:ring-2 focus:ring-[#032221]/20"
+                    className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
                     required
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="data_inicio" className="block text-sm font-medium text-[#032221] mb-1">
+                <div className="space-y-2">
+                  <Label htmlFor="data_inicio" className="text-sm font-medium text-[#032221]">
                     Data de Início
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     type="date"
                     id="data_inicio"
                     name="data_inicio"
                     value={editingEvento.data_inicio}
                     onChange={handleInputChange}
-                    className="w-full border border-[#032221] rounded-lg px-3 py-2 
-                             focus:outline-none focus:ring-2 focus:ring-[#032221]/20"
+                    className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
                     required
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="data_fim" className="block text-sm font-medium text-[#032221] mb-1">
+                <div className="space-y-2">
+                  <Label htmlFor="data_fim" className="text-sm font-medium text-[#032221]">
                     Data de Fim
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     type="date"
                     id="data_fim"
                     name="data_fim"
                     value={editingEvento.data_fim}
                     onChange={handleInputChange}
-                    className="w-full border border-[#032221] rounded-lg px-3 py-2 
-                             focus:outline-none focus:ring-2 focus:ring-[#032221]/20"
+                    className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
                     required
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
+                <div className="flex items-center space-x-2">
+                  <Checkbox
                     id="em_execucao"
-                    name="em_execucao"
                     checked={editingEvento.em_execucao}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 text-[#032221] rounded focus:ring-[#032221]"
+                    onCheckedChange={handleCheckboxChange}
+                    className="border-[#032221]/30 data-[state=checked]:bg-[#032221] data-[state=checked]:border-[#032221]"
                   />
-                  <label htmlFor="em_execucao" className="text-sm text-[#032221]">
+                  <Label htmlFor="em_execucao" className="text-sm text-[#032221]">
                     Evento está em execução?
-                  </label>
+                  </Label>
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={handleCloseModal}
-                    className="flex-1 py-2 px-4 text-[#032221] rounded-lg cursor-pointer
-                               transition-all duration-200 bg-[rgba(3,98,76,0.2)] hover:-translate-y-1"
+                    className="flex-1 border-[#032221]/20 text-[#032221] hover:bg-[#032221]/5"
                   >
                     Cancelar
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={saving}
-                    className={`flex-1 py-2 px-4 bg-[#032221] text-[#FFFDF6] rounded-lg 
-                             hover:bg-[#052e2d] transition-all duration-200 hover:-translate-y-1 
-                             flex items-center justify-center gap-2 cursor-pointer ${
-                               saving ? 'opacity-60 cursor-not-allowed' : ''
-                             }`}
+                    className="flex-1 bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] disabled:opacity-60"
                   >
                     {saving ? (
                       'Guardando...'
                     ) : (
                       <>
-                        <MdSave size={18} />
+                        <MdSave className="w-4 h-4 mr-1" />
                         Guardar
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </form>
-            </div>
-          </div>
-        )}
-
-        {/* Toast */}
-        <Toast
-          message={toastMessage}
-          visible={toastVisible}
-          onClose={() => setToastVisible(false)}
-          type={toastType}
-        />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
