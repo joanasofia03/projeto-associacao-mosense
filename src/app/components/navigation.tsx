@@ -6,6 +6,16 @@ import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
+// shadcn/ui components
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Card, CardContent } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 // Icons
 import { MdOutlineMenu } from "react-icons/md";
 import { LuNotebookPen, LuNotebook } from "react-icons/lu";
@@ -18,6 +28,7 @@ import { IoIosLogOut } from "react-icons/io";
 import { TbProgressHelp } from "react-icons/tb";
 import { FaUserLarge } from "react-icons/fa6";
 import { MdOutlineEmojiEvents, MdOutlineEventRepeat } from "react-icons/md";
+import { Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const Navigation = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -29,10 +40,8 @@ export const Navigation = () => {
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const router = useRouter();
 
-  // Tamanho fixo para todos os ícones
   const iconSize = 20;
 
-  // Quando a sessão finaliza -> forçar a expansão da navbar
   useEffect(() => {
     if (!isLoggedIn) {
       setIsExpanded(true);
@@ -40,24 +49,14 @@ export const Navigation = () => {
   }, [isLoggedIn]);
 
   const toggleSidebar = () => {
-    // Só permitir encolher a navbar se o utilizador estiver logado
     if (isLoggedIn && !isTransitioning) {
       setIsTransitioning(true);
       setIsExpanded(!isExpanded);
-      // Remover o estado de transição após a animação completar
       setTimeout(() => {
         setIsTransitioning(false);
-      }, 600); // Tempo igual à duração da transição CSS
+      }, 400);
     }
   };
-
-  // Classes para os links com alinhamento consistente e espaçamento fixo
-  const linkClass = useMemo(() => 
-    isExpanded 
-      ? "flex items-center gap-3 w-full px-4 py-3 text-[#032221] hover:text-[#FFFDF6] hover:bg-[#032221] rounded-lg transition-all duration-200 hover:-translate-y-[4px]" 
-      : "flex justify-center items-center w-full px-4 py-3 text-[#032221] hover:text-[#FFFDF6] hover:bg-[#032221] rounded-lg transition-all duration-200 hover:-translate-y-[4px]",
-    [isExpanded]
-  );
 
   useEffect(() => {
     const checkSession = async () => {
@@ -144,13 +143,23 @@ export const Navigation = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#FFFDF6]">
-        <div className="animate-pulse text-[#032221]">A carregar...</div>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="animate-pulse text-muted-foreground">A carregar...</div>
       </div>
     );
   }
 
-  // Menu item com notificação opcional
+  const getUserTypeColor = (type: string | null) => {
+    switch (type) {
+      case 'Administrador':
+        return 'text-[#B2533E]';
+      case 'Funcionario de Banca':
+        return 'text-[#186F65]';
+      default:
+        return 'text-gray-800';
+    }
+  };
+
   const MenuItem = ({ 
     href, 
     icon, 
@@ -161,25 +170,56 @@ export const Navigation = () => {
     icon: React.ReactNode; 
     label: string; 
     notifications?: string | null 
-  }) => (
-    <Link href={href} className={linkClass}>
-      <div className="relative">
-        {icon}
-        {notifications && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center text-xs bg-blue-500 text-white rounded-full">
-            {notifications}
-          </span>
-        )}
-      </div>
-      <span className={`whitespace-nowrap transition-all duration-300 ease-in-out ease-out ${
-        isExpanded 
-          ? 'opacity-100 max-w-[200px]' 
-          : 'opacity-0 max-w-0 overflow-hidden'
-      }`}>
-        {label}
-      </span>
-    </Link>
-  );
+  }) => {
+    const content = (
+      <Link href={href} className="w-full">
+        <Button
+          variant="ghost"
+          className={`w-full ${
+            isExpanded 
+              ? 'justify-start gap-3 px-3 py-2 h-auto' 
+              : 'justify-center p-2 h-10 w-10'
+          } text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-300 hover:scale-105 group`}
+        >
+          <div className="relative flex items-center">
+            <div className="transition-transform duration-300 group-hover:rotate-3">
+              {icon}
+            </div>
+            {notifications && (
+              <Badge 
+                variant="secondary" 
+                className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center text-xs bg-blue-500 text-white"
+              >
+                {notifications}
+              </Badge>
+            )}
+          </div>
+          {isExpanded && (
+            <span className="whitespace-nowrap text-base font-normal text-[#032221] transition-opacity duration-300 cursor-pointer">
+              {label}
+            </span>
+          )}
+        </Button>
+      </Link>
+    );
+
+    if (!isExpanded) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {content}
+            </TooltipTrigger>
+            <TooltipContent side="right" className="ml-2">
+              <p>{label}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    return content;
+  };
 
   const MenuSection = ({ 
     title = null, 
@@ -188,192 +228,222 @@ export const Navigation = () => {
     title?: string | null; 
     children: React.ReactNode 
   }) => (
-    <div className={`w-full ${isExpanded ? 'space-y-1' : 'space-y-5'}`}>
+    <div className="w-full space-y-1">
       {title && (
-        <div className={`transition-all duration-300 ease-in-out ease-out ${
-          isExpanded 
-            ? 'px-4 mt-6 mb-2' 
-            : 'px-2 mt-6 mb-2'
-        }`}>
+        <div className="px-3 py-2 group">
           {isExpanded ? (
-            <h3 className="text-xs font-medium text-gray-500 uppercase">
-              {title}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm text-[#186F65] font-medium uppercase tracking-wider transition-colors duration-200">
+                {title}
+              </h3>
+              <div className="flex-1 h-px bg-border transition-colors duration-200 group-hover:bg-accent-foreground/20"></div>
+            </div>
           ) : (
-            <div className="w-full h-px bg-gray-300 rounded"></div>
+            <Separator className="my-2 transition-colors duration-200 group-hover:bg-accent-foreground/20" />
           )}
         </div>
       )}
-      {children}
+      <div className="space-y-1">
+        {children}
+      </div>
     </div>
   );
 
   return (
-    <nav 
-      className={`flex flex-col justify-between sticky top-0 left-0 h-screen bg-[#FFFDF6] transition-all duration-600 ease-in-out ease-out ${
-        isExpanded ? 'w-[240px]' : 'w-[70px]'
-      } shadow-md z-10`}
-    >
-      {/* Header */}
-      <div className="px-4 py-6 border-b border-[rgba(114,120,133,0.1)]">
-        <div className="flex items-center justify-between">
-          <div className={`overflow-hidden transition-all duration-600 ease-in-out ease-out ${
-            isExpanded ? 'opacity-100 max-w-[150px]' : 'opacity-0 max-w-0'
+    <TooltipProvider>
+      <nav 
+        className={`flex flex-col h-screen bg-[#FFFDF6] border-r border-border transition-all duration-400 ease-in-out ${
+          isExpanded ? 'w-[280px]' : 'w-[70px]'
+        } shadow-lg relative overflow-hidden`}
+      >
+        {/* Subtle gradient overlay for smooth transitions */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/5 to-transparent pointer-events-none opacity-50" />
+        
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border relative z-10">
+          <div className={`overflow-hidden transition-all duration-400 ease-out ${
+            isExpanded ? 'opacity-100 max-w-[200px] transform translate-x-0' : 'opacity-0 max-w-0 transform -translate-x-4'
           }`}>
-            <Link href="/">
+            <Link href="/" className="block">
               <Image 
                 src="/OsMosenses.png" 
                 alt="Logo" 
-                width={120} 
-                height={40} 
+                width={140} 
+                height={45} 
                 priority 
-                className="transition-all duration-300"
+                className="transition-all duration-300 hover:scale-105"
               />
             </Link>
           </div>
+          
           {isLoggedIn && (
-            <button 
-              onClick={toggleSidebar} 
-              className={`text-[#032221] hover:bg-gray-200 p-1 rounded-full transition-all ${
-                isExpanded ? '' : 'mx-auto'
-              }`}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSidebar}
+              className={`p-2 hover:bg-accent transition-all duration-300 hover:scale-110 ${!isExpanded ? 'mx-auto' : ''}`}
               disabled={isTransitioning}
             >
-              <CgArrowLeftO
-                size={iconSize}
-                className={`transition-transform duration-600 ease-in-out ease-out ${
-                  !isExpanded ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
+              <div className={`transition-transform duration-400 ${isTransitioning ? 'rotate-180' : ''}`}>
+                {isExpanded ? (
+                  <ChevronLeft size={18} />
+                ) : (
+                  <ChevronRight size={18} />
+                )}
+              </div>
+            </Button>
           )}
         </div>
-      </div>
 
-      {/* Exibição do Menu */}
-      <div className="flex-1 flex flex-col py-4 px-2 overflow-hidden">
-        {/* Principais */}
-        <MenuSection>
-          <MenuItem 
-            href="/menu" 
-            icon={<MdOutlineMenu size={iconSize} />} 
-            label="Menu" 
-          />
-        </MenuSection>
+        {/* Menu Content */}
+        <ScrollArea className="flex-1 px-2 py-4 relative z-10">
+          <div className="space-y-4">
+            {/* Principais */}
+            <MenuSection>
+              <MenuItem 
+                href="/menu" 
+                icon={<MdOutlineMenu size={iconSize} />} 
+                label="Menu Principal" 
+              />
+            </MenuSection>
 
-        {/* Eventos - Apenas para Administradores */}
-        {userType === 'Administrador' && (
-          <MenuSection title="Gestão de Eventos">
-            <MenuItem 
-              href="/adicionarevento" 
-              icon={<MdOutlineEmojiEvents size={iconSize} />} 
-              label="Adicionar Evento" 
-            />
-            <MenuItem 
-              href="/alterarevento" 
-              icon={<MdOutlineEventRepeat size={iconSize} />} 
-              label="Editar Evento" 
-            />
-          </MenuSection>
-        )}
+            {/* Eventos - Apenas para Administradores */}
+            {userType === 'Administrador' && (
+              <MenuSection title="Gestão de Eventos">
+                <MenuItem 
+                  href="/adicionarevento" 
+                  icon={<MdOutlineEmojiEvents size={iconSize} />} 
+                  label="Adicionar Evento" 
+                />
+                <MenuItem 
+                  href="/alterarevento" 
+                  icon={<MdOutlineEventRepeat size={iconSize} />} 
+                  label="Editar Evento" 
+                />
+              </MenuSection>
+            )}
 
-        {/* Pedidos - Apenas para Administradores e Funcionarios de Banca */}
-        {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
-          <MenuSection title="Gestão de Pedidos">
-            <MenuItem 
-              href="/registarpedido" 
-              icon={<LuNotebook size={iconSize} />} 
-              label="Adicionar Pedido" 
-            />
-            <MenuItem 
-              href="/anularpedido" 
-              icon={<LuNotebookPen size={iconSize} />} 
-              label="Editar Pedido" 
-            />
-          </MenuSection>
-        )}
+            {/* Pedidos */}
+            {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
+              <MenuSection title="Gestão de Pedidos">
+                <MenuItem 
+                  href="/registarpedido" 
+                  icon={<LuNotebook size={iconSize} />} 
+                  label="Adicionar Pedido" 
+                />
+                <MenuItem 
+                  href="/anularpedido" 
+                  icon={<LuNotebookPen size={iconSize} />} 
+                  label="Editar Pedido" 
+                />
+              </MenuSection>
+            )}
 
-        {/* Inventário - Apenas para Administradores */}
-        {userType === 'Administrador' && (
-          <MenuSection title="Gestão de Inventário">
-            <MenuItem 
-              href="/adicionaritem" 
-              icon={<IoAddCircleOutline size={iconSize} />} 
-              label="Adicionar Produto" 
-            />
-            <MenuItem 
-              href="/alteraritem" 
-              icon={<MdOutlineChangeCircle size={iconSize} />} 
-              label="Editar Produto" 
-            />
-          </MenuSection>
-        )}
+            {/* Inventário */}
+            {userType === 'Administrador' && (
+              <MenuSection title="Gestão de Inventário">
+                <MenuItem 
+                  href="/adicionaritem" 
+                  icon={<IoAddCircleOutline size={iconSize} />} 
+                  label="Adicionar Produto" 
+                />
+                <MenuItem 
+                  href="/alteraritem" 
+                  icon={<MdOutlineChangeCircle size={iconSize} />} 
+                  label="Editar Produto" 
+                />
+              </MenuSection>
+            )}
 
-        {/* Administração - Apenas para Administradores */}
-        {userType === 'Administrador' && (
-          <MenuSection title="Administração">
-            <MenuItem 
-              href="/adicionarutilizador" 
-              icon={<AiOutlineUserAdd size={iconSize} />} 
-              label="Adicionar Utilizador" 
-            />
-            <MenuItem 
-              href="/verestatisticas" 
-              icon={<FaRegEye size={iconSize} />} 
-              label="Consutar Estatísticas" 
-            />
-          </MenuSection>
-        )}
+            {/* Administração */}
+            {userType === 'Administrador' && (
+              <MenuSection title="Administração">
+                <MenuItem 
+                  href="/adicionarutilizador" 
+                  icon={<AiOutlineUserAdd size={iconSize} />} 
+                  label="Adicionar Utilizador" 
+                />
+                <MenuItem 
+                  href="/verestatisticas" 
+                  icon={<FaRegEye size={iconSize} />} 
+                  label="Consultar Estatísticas" 
+                />
+              </MenuSection>
+            )}
 
-        {/* Login */}
-        {!isLoggedIn && (
-          <div className="px-2 mt-6">
-            <Link 
-              href="/login" 
-              className="block w-full text-center px-4 py-2 rounded-md bg-[#03624c] text-[#f1f7f6] hover:opacity-90 transition-all duration-200"
-            >
-              Iniciar Sessão
-            </Link>
+            {/* Ajuda */}
+            <MenuSection title="Suporte">
+              <MenuItem 
+                href="/help" 
+                icon={<TbProgressHelp size={iconSize} />} 
+                label="Ajuda & Suporte" 
+              />
+            </MenuSection>
           </div>
-        )}
-      </div>
+        </ScrollArea>
 
-      {/* Footer */}
-      <div className="border-t border-[rgba(114,120,133,0.1)] pt-3 pb-4 px-3 mt-auto">
-        {/* Ajuda */}
-        <MenuItem 
-          href="/help" 
-          icon={<TbProgressHelp size={iconSize} />} 
-          label="Ajuda" 
-        />
+        {/* Footer */}
+        <div className="p-3 mt-auto space-y-1 relative z-10">
+          {!isLoggedIn ? (
+            <Link href="/login" className="block w-full">
+              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:scale-105">
+                Iniciar Sessão
+              </Button>
+            </Link>
+          ) : (
+            <div className="bg-card/50 backdrop-blur-sm rounded-lg py-2 transition-all duration-300 hover:bg-card/70">
+              <div className="flex justify-between items-center gap-3">
+                <Avatar className="h-10 w-10 border-2 border-border transition-all duration-300 hover:border-primary/50">
+                  <AvatarImage src="" alt={userName || ''} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {userName?.charAt(0)?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                
+                {isExpanded && (
+                  <div className={`flex-1 min-w-0 transition-all duration-400 ${
+                    isExpanded ? 'opacity-100 transform translate-x-0' : 'opacity-0 transform -translate-x-4'
+                  }`}>
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {userName}
+                    </p>
+                    <Badge 
+                      variant="default" 
+                      className={`bg-transparent text-xs transition-colors duration-200 ${getUserTypeColor(userType)}`}
+                    >
+                      {userType}
+                    </Badge>
+                  </div>
+                )}
 
-        {isLoggedIn && (
-          <div className={`flex items-center ${
-            isExpanded ? 'justify-between' : 'justify-center'
-          } px-2 py-2 mt-3 bg-gray-100 rounded-lg hover:bg-[rgba(3,98,76,0.1)] transition-colors cursor-pointer`}>
-            <Link
-              href={`/editarperfil/${encodeURIComponent(userName || '')}`}
-              className={`flex items-center ${
-                isExpanded ? 'opacity-100 max-w-[200px]' : 'opacity-0 max-w-0'
-              } transition-all duration-600 ease-in-out ease-out overflow-hidden`}
-            >
-              <FaUserLarge size={25} className='text-[#032221]'/>
-              <div className="ml-3 truncate">
-                <p className="text-xs font-semibold text-[#032221] truncate">{userName}</p>
-                <p className="text-xs text-[#032221] opacity-75 truncate">{userType}</p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 transition-all duration-300 hover:scale-110 hover:bg-accent">
+                      <Settings size={16} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/editarperfil/${encodeURIComponent(userName || '')}`}>
+                        <FaUserLarge size={14} className="mr-2" />
+                        Editar Perfil
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <IoIosLogOut size={16} className="mr-2" />
+                      Terminar Sessão
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </Link>
-
-            <button
-              onClick={handleLogout}
-              className="p-1 text-[#032221] hover:text-[#dc3545] hover:bg-gray-200 rounded-full transition-all"
-              title="Terminar sessão"
-            >
-              <IoIosLogOut size={iconSize} />
-            </button>
-          </div>
-        )}
-      </div>
-    </nav>
+            </div>
+          )}
+        </div>
+      </nav>
+    </TooltipProvider>
   );
 };

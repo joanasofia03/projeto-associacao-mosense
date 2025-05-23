@@ -122,16 +122,13 @@ MAJOR ALTERAÇÕES:
         - Adicionar um textarea do shadcn para as notas;
         - Adicionar um carousel do shadcn para os filtros dos itens;
 
-    -> ADICIONAR PRODUTO;
-        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
-        - Modificar a estilização com shadcn;
-
-    -> ADICIONAR UTILIZADOR;
-        - Corrigir backend;
-
     -> ANULAR/ALTERAR PEDIDO;
         - Fazer o editar - Na base de dados é anulado o pedido e é criado um novo;
         - Adicionar um pagination (shadcn) para não carregar tudo na mesma página - limitar a 10 pedidos por página;
+
+    -> ADICIONAR PRODUTO;
+        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
+        - Modificar a estilização com shadcn;
 
     -> VER ESTATÍSTICAS;
         - Exportar resumo dos eventos em pdf (Janela de popup a perguntar se tem a certeza que quer exportar);
@@ -140,12 +137,11 @@ MAJOR ALTERAÇÕES:
         - Estilizar a exibição dos pedidos com uma data table do shadcn;
         - Utilizar um sheet do shadcn para os filtros por itens;
 
-    -> NAVIGATION;
-        - Modificar a estilização com shadcn;
-        - Usar tooltip do shadcn para os icons;
-
     -> EDITAR PERFIL;
-        - Usar um chart do shadcn para ver  histórico de login da conta do utilizador em causa;
+        - Estlizar com shadcn o edit dos dados;
+    
+    -> NAVIGATION;
+        - Estlizar os tooltips;
     
     -> AJUDA - FAQS;
 
