@@ -127,8 +127,7 @@ MAJOR ALTERAÇÕES:
         - Modificar a estilização com shadcn;
 
     -> ADICIONAR UTILIZADOR;
-        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
-        - Modificar a estilização com shadcn;
+        - Corrigir backend;
 
     -> ANULAR/ALTERAR PEDIDO;
         - Fazer o editar - Na base de dados é anulado o pedido e é criado um novo;

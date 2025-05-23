@@ -1,155 +1,337 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabaseClient';
-import { FaUserPlus } from 'react-icons/fa';
-import Toast from '../components/toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Toaster } from 'sonner';
+import { Eye, EyeOff, UserPlus } from 'lucide-react';
 
-export default function SignUp() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [nome, setNome] = useState('');
-  const [telemovel, setTelemovel] = useState('');
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+// Interfaces para type safety
+interface FormData {
+  nome: string;
+  email: string;
+  telemovel: string;
+  password: string;
+  confirmPassword: string;
+}
 
-  const router = useRouter();
+// Estado inicial do formulário
+const INITIAL_FORM_STATE: FormData = {
+  nome: '',
+  email: '',
+  telemovel: '',
+  password: '',
+  confirmPassword: '',
+};
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToastMessage(message);
-    setToastType(type);
-    setToastVisible(true);
+// Mensagens de erro centralizadas
+const ERROR_MESSAGES = {
+  CAMPOS_OBRIGATORIOS: 'Por favor, preencha todos os campos obrigatórios.',
+  EMAIL_INVALIDO: 'Por favor, insira um email válido.',
+  PASSWORDS_NAO_COINCIDEM: 'As palavras-passe não coincidem.',
+  PASSWORD_FRACA: 'A palavra-passe deve ter pelo menos 6 caracteres.',
+  ERRO_REGISTRO: 'Erro ao registar. Tente novamente.',
+  ERRO_INESPERADO: 'Ocorreu um erro ao registar.',
+} as const;
+
+// Mensagens de sucesso
+const SUCCESS_MESSAGES = {
+  REGISTRO_SUCESSO: 'Utilizador criado com sucesso! Verifique o seu e-mail para confirmar o registo.',
+} as const;
+
+// Hook customizado para gerenciar o formulário
+function useSignUpForm() {
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const updateField = useCallback(<K extends keyof FormData>(
+    field: K,
+    value: FormData[K]
+  ) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const resetForm = useCallback(() => {
+    setFormData(INITIAL_FORM_STATE);
+  }, []);
+
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
+
+  const toggleConfirmPasswordVisibility = useCallback(() => {
+    setShowConfirmPassword(prev => !prev);
+  }, []);
+
+  return {
+    formData,
+    loading,
+    showPassword,
+    showConfirmPassword,
+    setLoading,
+    updateField,
+    resetForm,
+    togglePasswordVisibility,
+    toggleConfirmPasswordVisibility,
   };
+}
 
-  const handleSignUp = async (e: React.FormEvent) => {
+// Validações extraídas
+function validateForm(formData: FormData): string | null {
+  const { nome, email, password, confirmPassword } = formData;
+
+  if (!nome.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+    return ERROR_MESSAGES.CAMPOS_OBRIGATORIOS;
+  }
+
+  // Validação básica de email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.trim())) {
+    return ERROR_MESSAGES.EMAIL_INVALIDO;
+  }
+
+  if (password.length < 6) {
+    return ERROR_MESSAGES.PASSWORD_FRACA;
+  }
+
+  if (password !== confirmPassword) {
+    return ERROR_MESSAGES.PASSWORDS_NAO_COINCIDEM;
+  }
+
+  return null;
+}
+
+// Funções de API extraídas
+async function signUpUser(formData: FormData): Promise<any> {
+  const { nome, email, password, telemovel } = formData;
+
+  const { data, error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password: password,
+    options: {
+      data: {
+        nome: nome.trim(),
+        tipo: 'Cliente',
+        aceitou_TU_e_PP: 'Sim',
+        telemovel: telemovel ? Number(telemovel) : null,
+      },
+    },
+  });
+
+  if (error) {
+    console.error(error.message);
+    throw new Error(ERROR_MESSAGES.ERRO_REGISTRO);
+  }
+
+  return data;
+}
+
+function SignUp() {
+  const router = useRouter();
+  const {
+    formData,
+    loading,
+    showPassword,
+    showConfirmPassword,
+    setLoading,
+    updateField,
+    resetForm,
+    togglePasswordVisibility,
+    toggleConfirmPasswordVisibility,
+  } = useSignUpForm();
+
+  // Handler principal otimizado
+  const handleSignUp = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (password !== confirmPassword) {
-      showToast('As palavras-passe não coincidem.', 'error');
-      return;
-    }
+    setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            nome,
-            tipo: 'Cliente',
-            aceitou_TU_e_PP: 'Sim',
-            telemovel: telemovel ? Number(telemovel) : null,
-          },
-        },
-      });
-
-      if (error) {
-        console.error(error.message);
-        showToast('Erro ao registar. Tente novamente.', 'error');
+      // Validação
+      const validationError = validateForm(formData);
+      if (validationError) {
+        toast.error(validationError);
         return;
       }
 
-      showToast('Utilizador criado com sucesso! Verifique o seu e-mail para confirmar o registo.', 'success');
-    } catch (err) {
-      console.error(err);
-      showToast('Ocorreu um erro ao registar.', 'error');
+      // Registar utilizador
+      await signUpUser(formData);
+
+      // Toast de sucesso
+      toast.success(SUCCESS_MESSAGES.REGISTRO_SUCESSO);
+
+      // Limpar formulário
+      resetForm();
+
+    } catch (error) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : ERROR_MESSAGES.ERRO_INESPERADO;
+      
+      console.error('Erro ao registar:', error);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [formData, setLoading, resetForm]);
 
   return (
-    <div className="w-full overflow-hidden flex items-center justify-center flex-col bg-[#eaf2e9] min-h-screen">
-      <div className="w-full max-w-lg rounded-2xl bg-[#FFFDF6] text-[#032221] shadow-md p-10">
-        <h1 className="text-2xl text-[#032221] font-semibold mb-6">Criar uma nova conta</h1>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
+      <Toaster position="bottom-right" />
+      <Card className="w-full max-w-md bg-[#FFFDF6] shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold text-[#032221]">
+            Criar uma nova conta
+          </CardTitle>
+          <CardDescription className="text-[#032221]/70">
+            Preencha os dados para criar a sua conta
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="nome" className="text-sm font-medium text-[#032221]">
+                Nome
+              </Label>
+              <Input
+                type="text"
+                id="nome"
+                value={formData.nome}
+                onChange={(e) => updateField('nome', e.target.value)}
+                className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+                placeholder="Seu nome completo"
+                required
+              />
+            </div>
 
-        <form onSubmit={handleSignUp} className="space-y-4">
-          <div>
-            <label htmlFor="nome" className="block mb-1 text-sm font-medium text-[#032221]">Nome</label>
-            <input
-              type="text"
-              id="nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-[#032221]">
+                Email
+              </Label>
+              <Input
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={(e) => updateField('email', e.target.value)}
+                className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+                placeholder="seu.email@exemplo.com"
+                required
+              />
+            </div>
 
-          <div>
-            <label htmlFor="email" className="block mb-1 text-sm font-medium text-[#032221]">E-mail</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="telemovel" className="text-sm font-medium text-[#032221]">
+                Telemóvel (opcional)
+              </Label>
+              <Input
+                type="tel"
+                id="telemovel"
+                value={formData.telemovel}
+                onChange={(e) => updateField('telemovel', e.target.value)}
+                className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+                placeholder="912345678"
+                pattern="[0-9]*"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="telemovel" className="block mb-1 text-sm font-medium text-[#032221]">Telemóvel (opcional)</label>
-            <input
-              type="tel"
-              id="telemovel"
-              value={telemovel}
-              onChange={(e) => setTelemovel(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              pattern="[0-9]*"
-              inputMode="numeric"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-[#032221]">
+                Palavra-passe
+              </Label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  value={formData.password}
+                  onChange={(e) => updateField('password', e.target.value)}
+                  className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none pr-10"
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-[#032221]" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-[#032221]" />
+                  )}
+                </Button>
+              </div>
+            </div>
 
-          <div>
-            <label htmlFor="password" className="block mb-1 text-sm font-medium text-[#032221]">Palavra-passe</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-[#032221]">
+                Confirmar palavra-passe
+              </Label>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={(e) => updateField('confirmPassword', e.target.value)}
+                  className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none pr-10"
+                  placeholder="Repita a palavra-passe"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={toggleConfirmPasswordVisibility}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-[#032221]" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-[#032221]" />
+                  )}
+                </Button>
+              </div>
+            </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block mb-1 text-sm font-medium text-[#032221]">Confirmar palavra-passe</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full border border-[#032221] rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              required
-            />
-          </div>
+            <div className="text-sm text-[#032221] pt-2">
+              Ao criar uma conta está automaticamente a concordar com os{' '}
+              <Link href="/termsofuseprivacypolicy" className="underline text-[#3F7D58] hover:text-[#032221] transition-colors duration-200">
+                Termos de Utilização e Política de Privacidade
+              </Link>.
+            </div>
 
-          <div className="text-sm text-[#032221] mt-2">
-            Ao criar uma conta está automaticamente a concordar com os{' '}
-            <Link href="/termsofuseprivacypolicy" className="underline text-[#3F7D58] hover:text-[#032221]">
-              Termos de Utilização e Política de Privacidade
-            </Link>.
-          </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] cursor-pointer transition-all duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              {loading ? 'Registando...' : 'Registar'}
+              <UserPlus className="ml-2 h-4 w-4" />
+            </Button>
 
-          <button
-            type="submit"
-            className="w-full py-2 rounded flex items-center justify-center rounded-lg gap-2 bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d]"
-          >
-            Registar
-            <FaUserPlus size={18} />
-          </button>
-        </form>
-      </div>
-
-      <Toast
-        message={toastMessage}
-        visible={toastVisible}
-        onClose={() => setToastVisible(false)}
-        type={toastType}
-      />
+            {/* Link para login */}
+            <div className="text-sm text-[#032221]/70 text-center pt-4">
+              Já tem conta?{' '}
+              <Link 
+                href="/login" 
+                className="text-[#032221] hover:text-[#052e2d] font-medium transition-colors duration-200"
+              >
+                Iniciar sessão
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
+export default SignUp;

@@ -1,178 +1,419 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
-import { FaUserPlus } from 'react-icons/fa';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { UserPlus, Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
+import { Toaster } from 'sonner';
+
+// Interfaces para type safety
+interface FormData {
+  nome: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  tipo: string;
+  telemovel: string;
+  aceitouTermos: boolean;
+}
+
+// Estado inicial do formulário
+const INITIAL_FORM_STATE: FormData = {
+  nome: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  tipo: '',
+  telemovel: '',
+  aceitouTermos: false,
+};
+
+// Constantes
+const USER_TYPES = ['Administrador', 'Funcionario de Banca', 'Cliente'] as const;
+
+const ERROR_MESSAGES = {
+  PASSWORD_MISMATCH: 'As palavras-passe não coincidem.',
+  USER_CREATION_ERROR: 'Erro ao criar o utilizador.',
+  UNKNOWN_ERROR: 'Erro desconhecido ao tentar criar o utilizador.',
+  FILL_ALL_FIELDS: 'Por favor, preencha todos os campos obrigatórios.',
+  SELECT_USER_TYPE: 'Por favor, selecione um tipo de utilizador.',
+  ACCEPT_TERMS: 'Deve aceitar os Termos de Utilização e Política de Privacidade.',
+  PASSWORD_WEAK: 'A palavra-passe deve ter pelo menos 6 caracteres.',
+} as const;
+
+const SUCCESS_MESSAGE = 'Utilizador criado com sucesso! Verifique o e-mail do utilizador para confirmar o registo.';
+
+// Hook customizado para gerenciar o formulário
+function useUserForm() {
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const updateField = useCallback(<K extends keyof FormData>(
+    field: K,
+    value: FormData[K]
+  ) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const resetForm = useCallback(() => {
+    setFormData(INITIAL_FORM_STATE);
+  }, []);
+
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
+
+  const toggleConfirmPasswordVisibility = useCallback(() => {
+    setShowConfirmPassword(prev => !prev);
+  }, []);
+
+  return {
+    formData,
+    loading,
+    setLoading,
+    showPassword,
+    showConfirmPassword,
+    updateField,
+    resetForm,
+    togglePasswordVisibility,
+    toggleConfirmPasswordVisibility,
+  };
+}
+
+// Validações
+function validateForm(formData: FormData): string | null {
+  const { nome, email, password, confirmPassword, tipo, telemovel, aceitouTermos } = formData;
+
+  if (!nome.trim() || !email.trim() || !password || !confirmPassword) {
+    return ERROR_MESSAGES.FILL_ALL_FIELDS;
+  }
+
+  if (!tipo) {
+    return ERROR_MESSAGES.SELECT_USER_TYPE;
+  }
+
+  if (password.length < 6) {
+    return ERROR_MESSAGES.PASSWORD_WEAK;
+  }
+
+  if (password !== confirmPassword) {
+    return ERROR_MESSAGES.PASSWORD_MISMATCH;
+  }
+
+  if (telemovel && (!/^\d+$/.test(telemovel) || telemovel.length < 9)) {
+    return 'Número de telemóvel deve ter pelo menos 9 dígitos.';
+  }
+
+  if (!aceitouTermos) {
+    return ERROR_MESSAGES.ACCEPT_TERMS;
+  }
+
+  return null;
+}
+
+// Função para criar utilizador - CORRIGIDA para usar a mesma abordagem do código de registar
+async function createUser(formData: FormData): Promise<void> {
+  const { nome, email, password, tipo, telemovel } = formData;
+
+  // Usar a mesma abordagem do código de registar
+  const { data, error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password: password,
+    options: {
+      data: {
+        nome: nome.trim(),
+        tipo: tipo,
+        aceitou_TU_e_PP: 'Sim', // Usar 'Sim' como no código de registar
+        telemovel: telemovel ? Number(telemovel) : null,
+      },
+    },
+  });
+
+  if (error) {
+    console.error('Erro ao criar utilizador:', error.message);
+    throw new Error(ERROR_MESSAGES.USER_CREATION_ERROR);
+  }
+
+  if (!data) {
+    throw new Error(ERROR_MESSAGES.UNKNOWN_ERROR);
+  }
+}
+
+// Componente para input de password com toggle de visibilidade
+interface PasswordInputProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  showPassword: boolean;
+  onToggleVisibility: () => void;
+  required?: boolean;
+  placeholder?: string;
+}
+
+function PasswordInput({
+  id,
+  label,
+  value,
+  onChange,
+  showPassword,
+  onToggleVisibility,
+  required = false,
+  placeholder = '',
+}: PasswordInputProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="text-sm font-medium text-[#032221]">
+        {label}
+      </Label>
+      <div className="relative">
+        <Input
+          type={showPassword ? 'text' : 'password'}
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none pr-10"
+          required={required}
+          placeholder={placeholder}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+          onClick={onToggleVisibility}
+        >
+          {showPassword ? (
+            <EyeOff className="h-4 w-4 text-[#032221]" />
+          ) : (
+            <Eye className="h-4 w-4 text-[#032221]" />
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Componente para seleção de tipo de utilizador
+interface UserTypeSelectorProps {
+  selectedType: string;
+  onTypeSelect: (type: string) => void;
+}
+
+function UserTypeSelector({ selectedType, onTypeSelect }: UserTypeSelectorProps) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium text-[#032221]">
+        Tipo de Utilizador
+      </Label>
+      <div className="bg-[rgba(3,98,76,0.2)] w-full h-14 flex flex-row justify-between items-center rounded-3xl border border-[rgba(209,213,219,0.3)]">
+        {USER_TYPES.map((opcao) => (
+          <Button
+            key={opcao}
+            type="button"
+            variant="ghost"
+            onClick={() => onTypeSelect(opcao)}
+            className={`text-sm font-semibold flex-1 flex items-center justify-center text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 rounded-3xl h-14 ${
+              selectedType === opcao
+                ? 'bg-[#032221] text-[#FFFDF6] hover:bg-[#032221] hover:text-[#FFFDF6]'
+                : 'bg-transparent text-[#032221] hover:bg-transparent'
+            }`}
+          >
+            {opcao}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function AdicionarUtilizador() {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [tipo, setTipo] = useState('');
-  const [telemovel, setTelemovel] = useState('');
-  const [erro, setErro] = useState<string | null>(null);
-  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
-  const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
+  const {
+    formData,
+    loading,
+    setLoading,
+    showPassword,
+    showConfirmPassword,
+    updateField,
+    resetForm,
+    togglePasswordVisibility,
+    toggleConfirmPasswordVisibility,
+  } = useUserForm();
 
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    setErro(null);
-    setMensagemSucesso(null);
-
-    if (password !== confirmPassword) {
-      setErro('As palavras-passe não coincidem.');
-      return;
-    }
+    setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            nome,
-            tipo,
-            aceitou_TU_e_PP: 'Sim',
-            telemovel: telemovel ? Number(telemovel) : null,
-          },
-        },
-      });
-
-
-      if (error) {
-        setErro('Erro ao criar o utilizador.');
-        console.error(error.message);
+      // Validação
+      const validationError = validateForm(formData);
+      if (validationError) {
+        toast.error(validationError);
         return;
       }
 
-      const user = data?.user;
+      // Criar utilizador
+      await createUser(formData);
 
-      if (!user) {
-        setErro('Utilizador criado, mas não foi possível obter o ID.');
-        return;
-      }
+      // Sucesso
+      toast.success(SUCCESS_MESSAGE);
+      resetForm();
 
-      setMensagemSucesso('Utilizador criado com sucesso! Verifique o e-mail do utilizador para confirmar o registo.');
-      setNome('');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      setTipo('');
-      setTelemovel('');
-      setOpcaoSelecionada(null);
-    } catch (err) {
-      setErro('Erro desconhecido ao tentar criar o utilizador.');
-      console.error(err);
+    } catch (error) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : ERROR_MESSAGES.UNKNOWN_ERROR;
+      
+      console.error('Erro ao criar utilizador:', error);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [formData, setLoading, resetForm]);
+
+  // Memoização dos componentes mais pesados
+  const passwordInput = useMemo(() => (
+    <PasswordInput
+      id="password"
+      label="Palavra-passe"
+      value={formData.password}
+      onChange={(value) => updateField('password', value)}
+      showPassword={showPassword}
+      onToggleVisibility={togglePasswordVisibility}
+      required
+      placeholder="Mínimo 6 caracteres"
+    />
+  ), [formData.password, showPassword, updateField, togglePasswordVisibility]);
+
+  const confirmPasswordInput = useMemo(() => (
+    <PasswordInput
+      id="confirmPassword"
+      label="Confirmar palavra-passe"
+      value={formData.confirmPassword}
+      onChange={(value) => updateField('confirmPassword', value)}
+      showPassword={showConfirmPassword}
+      onToggleVisibility={toggleConfirmPasswordVisibility}
+      required
+      placeholder="Repita a palavra-passe"
+    />
+  ), [formData.confirmPassword, showConfirmPassword, updateField, toggleConfirmPasswordVisibility]);
+
+  const userTypeSelector = useMemo(() => (
+    <UserTypeSelector
+      selectedType={formData.tipo}
+      onTypeSelect={(type) => updateField('tipo', type)}
+    />
+  ), [formData.tipo, updateField]);
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center bg-[#eaf2e9] px-4">
-      <div className="w-full max-w-lg rounded-2xl bg-[#FFFDF6] text-[#032221] shadow-md p-10">
-        <h1 className="text-2xl font-semibold mb-6">Adicionar Utilizador</h1>
-
-        {erro && <p className="text-red-500 text-sm mb-4">{erro}</p>}
-        {mensagemSucesso && <p className="text-green-600 text-sm mb-4">{mensagemSucesso}</p>}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="nome" className="block mb-1 text-sm font-medium">Nome</label>
-            <input
-              type="text"
-              id="nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className="w-full border border-[#032221] rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block mb-1 text-sm font-medium">E-mail</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-[#032221] rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="telemovel" className="block mb-1 text-sm font-medium">Telemóvel (opcional)</label>
-            <input
-              type="tel"
-              id="telemovel"
-              value={telemovel}
-              onChange={(e) => setTelemovel(e.target.value)}
-              className="w-full border border-[#032221] rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              pattern="[0-9]*"
-              inputMode="numeric"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block mb-1 text-sm font-medium">Palavra-passe</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-[#032221] rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="block mb-1 text-sm font-medium">Confirmar palavra-passe</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full border border-[#032221] rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#032221]"
-              required
-            />
-          </div>
-
-          <div className='bg-[rgba(3,98,76,0.2)] w-full h-14 flex flex-row justify-between items-center rounded-3xl border border-[rgba(209,213,219,0.3)]'>
-          {['Administrador', 'Funcionario de Banca', 'Cliente'].map((opcao) => (
-            <h1
-              key={opcao}
-              onClick={() => setOpcaoSelecionada(opcao)}
-              className={`text-sm font-semibold flex-1 flex items-center justify-center text-center cursor-pointer transition-transform duration-300 hover:-translate-y-1
-                rounded-3xl
-                ${
-                  opcaoSelecionada === opcao
-                    ? 'bg-[#032221] text-[#FFFDF6] h-14'
-                    : 'bg-transparent text-[#032221] h-14'
-                }`}
-            >
-              {opcao}
-            </h1>
-          ))}
-          </div>
-
-          <p className="text-sm mt-2">
-            Ao criar uma conta está automaticamente a concordar com os{' '}
-            <a href="/termsofuseprivacypolicy" className="underline text-[#3F7D58] hover:text-[#032221]">
-              Termos de Utilização e Política de Privacidade
-            </a>.
-          </p>
-
-          <button
-            type="submit"
-            className="w-full py-2 flex items-center justify-center gap-2 rounded-lg bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] transition-transform duration-200 hover:scale-101 cursor-pointer"
-          >
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
+      <Toaster position="bottom-right" />
+      <Card className="w-full max-w-lg bg-[#FFFDF6] shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold text-[#032221]">
             Adicionar Utilizador
-            <FaUserPlus size={18} />
-          </button>
-        </form>
-      </div>
+          </CardTitle>
+          <CardDescription className="text-[#032221]/70">
+            Crie uma nova conta de utilizador no sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="nome" className="text-sm font-medium text-[#032221]">
+                Nome
+              </Label>
+              <Input
+                type="text"
+                id="nome"
+                value={formData.nome}
+                onChange={(e) => updateField('nome', e.target.value)}
+                className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+                placeholder="Nome completo do utilizador"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-[#032221]">
+                E-mail
+              </Label>
+              <Input
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={(e) => updateField('email', e.target.value)}
+                className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+                placeholder="email@exemplo.com"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="telemovel" className="text-sm font-medium text-[#032221]">
+                Telemóvel (opcional)
+              </Label>
+              <Input
+                type="tel"
+                id="telemovel"
+                value={formData.telemovel}
+                onChange={(e) => updateField('telemovel', e.target.value)}
+                className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+                pattern="[0-9]*"
+                inputMode="numeric"
+                placeholder="912345678"
+              />
+            </div>
+
+            {passwordInput}
+            {confirmPasswordInput}
+            {userTypeSelector}
+
+            <div className="flex items-start space-x-2">
+              <Checkbox
+                id="aceitouTermos"
+                checked={formData.aceitouTermos}
+                onCheckedChange={(checked) => updateField('aceitouTermos', checked as boolean)}
+                className="border-[#1a4d4a] data-[state=checked]:bg-[#032221] data-[state=checked]:border-[#032221] mt-1"
+              />
+              <Label htmlFor="aceitouTermos" className="text-sm text-[#032221] leading-5">
+                Aceito os{' '}
+                <a 
+                  href="/termsofuseprivacypolicy" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-[#3F7D58] hover:text-[#032221] transition-colors"
+                >
+                  Termos de Utilização e Política de Privacidade
+                </a>
+              </Label>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] cursor-pointer transition-all duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              {loading ? (
+                'Criando utilizador...'
+              ) : (
+                <>
+                  Adicionar Utilizador
+                  <UserPlus className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
