@@ -6,6 +6,37 @@ import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import Image from 'next/image';
 import Toast from '../components/toast';
 
+// Import shadcn/ui components
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+
 //Import de Icons
 import { GoSearch } from "react-icons/go";
 import { CiEdit } from "react-icons/ci";
@@ -36,8 +67,12 @@ function RegistarPedido() {
   const [erro, setErro] = useState<string | null>(null);
   const [nomeCliente, setNomeCliente] = useState('');
   const [contactoCliente, setContactoCliente] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [campoEditavel, setCampoEditavel] = useState<"nome" | "contacto" | null>(null);
+  
+  // Estados para o dialog
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [tempNome, setTempNome] = useState('');
+  const [tempContacto, setTempContacto] = useState('');
+  
   const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
   const [filtroSelecionado, setFiltroSelecionado] = useState<string | null>("todos");
   const [contagemPorTipo, setContagemPorTipo] = useState<Record<string, number>>({});
@@ -48,6 +83,9 @@ function RegistarPedido() {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // 4 colunas x 2 linhas
 
   const filtros = [ //Organização dos filtros
     { nome: 'Todos os itens', id: 'todos', icon: PiSquaresFour },
@@ -63,12 +101,23 @@ function RegistarPedido() {
     setNotas(event.target.value);
   };
 
-  const handleNomeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNomeCliente(event.target.value);
+  // Funções para o dialog
+  const handleOpenDialog = () => {
+    setTempNome(nomeCliente);
+    setTempContacto(contactoCliente);
+    setDialogOpen(true);
   };
 
-  const handleContactoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setContactoCliente(event.target.value);
+  const handleSaveChanges = () => {
+    setNomeCliente(tempNome);
+    setContactoCliente(tempContacto);
+    setDialogOpen(false);
+  };
+
+  const handleCancelChanges = () => {
+    setTempNome(nomeCliente);
+    setTempContacto(contactoCliente);
+    setDialogOpen(false);
   };
 
   useEffect(() => {
@@ -326,6 +375,16 @@ function RegistarPedido() {
 
   }
 
+  //Cálculos de paginação (adicionar após o useEffect dos filtros)
+  const totalPages = Math.ceil(itensFiltrados.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const itensParaExibir = itensFiltrados.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filtroSelecionado, searchQuery]);
+
   return (
     <div className='flex flex-row w-full h-full'>
       {/* Coluna 1 - Lado Esquerdo */}
@@ -343,167 +402,231 @@ function RegistarPedido() {
         </div>
 
         {/* Filtros */}
-        <div className='w-full h-50 grid grid-cols-7 gap-5'>
-          {filtros.map((filtro) => {
-            const Icone = filtro.icon;
-            const isActive = filtroSelecionado === filtro.id;
+        <div className='w-full h-45'>
+          <div className="relative">
+            <Carousel className="w-full px-10"> {/* Adiciona padding horizontal para dar espaço às setas */}
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {filtros.map((filtro) => {
+                  const Icone = filtro.icon;
+                  const isActive = filtroSelecionado === filtro.id;
 
-            return (
-              <div
-                key={filtro.id}
-                onClick={() => setFiltroSelecionado(filtro.id)}
-                className={`cursor-pointer w-full flex flex-col justify-between py-4 px-5 rounded-3xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] transition-transform duration-300 hover:-translate-y-1
-                  ${isActive ? 'bg-[#032221]' : 'bg-[#FFFDF6] hover:bg-[rgba(220,230,231,0.5)]'}`}
-              >
-                <Icone size={45} className={isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'} />
-                <div className='flex flex-col justify-between'>
-                  <h1 className={`font-semibold text-lg truncate ${isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'}`}>
-                    {filtro.nome}
-                  </h1>
-                  <span className={`font-normal text-xs ${isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'}`}>
-                      {filtro.id === 'todos'
-                        ? `${contagemPorTipo["Todos"] || 0} itens`
-                        : `${contagemPorTipo[filtro.id] || 0} itens`}
-                    </span>
-                </div>
-              </div>
-            );
-          })}
+                  return (
+                    <CarouselItem key={filtro.id} className="pl-2 md:pl-4 basis-1/5">
+                      <div
+                        onClick={() => setFiltroSelecionado(filtro.id)}
+                        className={`cursor-pointer w-full flex flex-col justify-between py-4 px-5 rounded-3xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] transition-transform duration-300 hover:-translate-y-1
+                          ${isActive ? 'bg-[#032221]' : 'bg-[#FFFDF6] hover:bg-[rgba(220,230,231,0.5)]'}`}
+                      >
+                        <Icone size={45} className={isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'} />
+                        <div className='flex flex-col justify-between'>
+                          <h1 className={`font-semibold text-lg truncate ${isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'}`}>
+                            {filtro.nome}
+                          </h1>
+                          <span className={`font-normal text-xs ${isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'}`}>
+                            {filtro.id === 'todos'
+                              ? `${contagemPorTipo["Todos"] || 0} itens`
+                              : `${contagemPorTipo[filtro.id] || 0} itens`}
+                          </span>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+              {/* Posicionamento absoluto das setas para não sobrepor aos filtros */}
+              <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2" />
+              <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2" />
+            </Carousel>
+          </div>
         </div>
 
         {/* Itens - Integração do Menu aqui */}
-        <div className='w-full h-200 overflow-y-auto'>
-          <div className='grid grid-cols-4 gap-4 w-full'>
-            {itensFiltrados.map((item) => (
-                              <div 
-                key={item.id} 
-                className={`flex flex-col justify-start bg-[#FFFDF6] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] cursor-pointer ${itensSelecionados[item.id] ? 'ring-1 ring-[#03624c] ring-inset' : ''}`}
-                onClick={() => !itensSelecionados[item.id] && adicionarItem(item)}
-              >
-                {/* Imagem do item */}
-                <div className="relative w-full h-40 rounded-2xl overflow-hidden">
-                  {item.imagem_url ? (
-                    <Image 
-                      src={item.imagem_url}
-                      alt={item.nome} 
-                      fill
-                      className="object-cover rounded-2xl" 
-                      unoptimized={true}
-                    />
+        <div className='w-full h-full flex flex-col'>
+          <div className='flex-1 overflow-hidden'>
+            <div className='grid grid-cols-4 gap-4 w-full h-full grid-rows-2'>
+              {itensParaExibir.map((item) => (
+                <div 
+                  key={item.id} 
+                  className={`flex flex-col justify-between bg-[#FFFDF6] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] cursor-pointer ${itensSelecionados[item.id] ? 'ring-1 ring-[#03624c] ring-inset' : ''}`}
+                  onClick={() => !itensSelecionados[item.id] && adicionarItem(item)}
+                >
+                  {/* Conteúdo do item */}
+                  <div className="relative w-full flex-1 rounded-2xl overflow-hidden mb-3">
+                    {item.imagem_url ? (
+                      <Image 
+                        src={item.imagem_url}
+                        alt={item.nome} 
+                        fill
+                        className="object-cover rounded-2xl" 
+                        unoptimized={true}
+                      />
+                    ) : (
+                      <Image 
+                        src="/CaldoVerde.jpg"
+                        alt={item.nome} 
+                        fill
+                        className="object-cover rounded-2xl" 
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex justify-start mb-2">
+                    <h1 className='text-[#032221] text-xl font-semibold'>{item.nome}</h1>
+                  </div>
+
+                  <div className="flex flex-row justify-between items-center mb-3">
+                    <span className='text-[#3F7D58] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
+                    <span className='flex flex-row items-center justify-center text-black font-normal text-base gap-2 text-gray-500'>
+                      {getIconByType(item.tipo)}
+                      <span className="relative top-[1px]">{item.tipo}</span>
+                    </span>
+                  </div>
+
+                  {itensSelecionados[item.id] ? (
+                    <div className="flex items-center justify-between bg-[rgba(3,98,76,0.15)] rounded-lg p-2">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          diminuirQuantidade(item.id);
+                        }}
+                        className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl"
+                      >
+                        -
+                      </button>
+                      <span className="font-semibold text-[#032221]">
+                        {itensSelecionados[item.id]?.quantidade || 0}
+                      </span>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          aumentarQuantidade(item.id);
+                        }}
+                        className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl transition-transform duration-300 hover:scale-103 cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
                   ) : (
-                    <Image 
-                      src="/CaldoVerde.jpg"
-                      alt={item.nome} 
-                      fill
-                      className="object-cover rounded-2xl" 
-                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        adicionarItem(item);
+                      }}
+                      className="w-full py-2 bg-[#032221] text-[#FFFDF6] rounded-lg font-medium hover:bg-[#052e2d] transition-transform duration-300 hover:scale-105 cursor-pointer"
+                    >
+                      Adicionar ao pedido
+                    </button>
                   )}
                 </div>
-
-                {/* Título (nome do item) */}
-                <div className="flex justify-start py-1">
-                  <h1 className='text-[#032221] text-xl font-semibold'>{item.nome}</h1>
-                </div>
-
-                {/* Preço e Categoria */}
-                <div className="flex flex-row justify-between items-center">
-                  <span className='text-[#3F7D58] text-base font-semibold'>€{item.preco.toFixed(2)}</span>
-                  <span className='flex flex-row items-center justify-center text-black font-normal text-base gap-2 text-gray-500'>
-                    {getIconByType(item.tipo)}
-                    <span className="relative top-[1px]">{item.tipo}</span>
-                  </span>
-                </div>
-
-                {/* Botão de Adicionar ou Controles de Quantidade */}
-                {itensSelecionados[item.id] ? (
-                  <div className="mt-2 flex items-center justify-between bg-[rgba(3,98,76,0.15)] rounded-lg p-2">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        diminuirQuantidade(item.id);
-                      }}
-                      className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl"
-                    >
-                      -
-                    </button>
-                    <span className="font-semibold text-[#032221]">
-                      {itensSelecionados[item.id]?.quantidade || 0}
-                    </span>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        aumentarQuantidade(item.id);
-                      }}
-                      className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl transition-transform duration-300 hover:scale-103 cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      adicionarItem(item);
-                    }}
-                    className="mt-2 w-full py-2 bg-[#032221] text-[#FFFDF6] rounded-lg font-medium hover:bg-[#052e2d] transition-transform duration-300 hover:scale-105 cursor-pointer"
-                  >
-                    Adicionar ao pedido
-                  </button>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+          
+          {/* Paginação */}
+          <div className="mt-4 flex justify-center h-10"> {/* Altura fixa para evitar desformatação */}
+            {totalPages > 1 ? (
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            ) : (
+              // Espaço invisível quando há apenas uma página para manter a formatação consistente
+              <div className="h-10 w-full"></div>
+            )}
           </div>
         </div>
       </div>
       
       {/* Coluna 2 - Lado Direito */}
       <div className='flex flex-col justify-between gap-4 w-[400px] pt-3 px-3 pb-4 h-full bg-[#FFFDF6]'>
-        {/* Nome */}
+        {/* Nome com Dialog */}
         <div className='w-full h-20 p-2 flex flex-1 flex-row justify-between'>
           <div className="flex flex-col w-full justify-start">
-            {isEditing ? (
-              <>
-                <input
-                  type="text"
-                  placeholder="Nome & Sobrenome"
-                  value={nomeCliente}
-                  onChange={handleNomeChange}
-                  className="text-[#032221] min-w-65 text-lg font-semibold px-2 border border-transparent bg-[rgba(3,98,76,0.05)] rounded-t-lg focus:outline-none focus:ring-2 focus:ring-[#044a39]"
-                />
-                <input
-                  type="text"
-                  placeholder="Contacto"
-                  value={contactoCliente}
-                  onChange={handleContactoChange}
-                  className="text-[#032221] min-w-65 text-sm font-normal px-2 border border-transparent bg-[rgba(3,98,76,0.05)] rounded-b-lg focus:outline-none focus:ring-2 focus:ring-[#044a39]"
-                />
-              </>
-            ) : (
-              <>
-                <h1 className="min-w-65 text-[#032221] text-lg font-semibold px-2 border border-transparent">
-                  {nomeCliente || "Nome & Sobrenome"}
-                </h1>
-                <span className="min-w-65 text-gray-500 text-sm font-normal px-2 border border-transparent">
-                  {contactoCliente || "Contacto"}
-                </span>
-              </>
-            )}
+            <h1 className="min-w-65 text-[#032221] text-lg font-semibold px-2 border border-transparent">
+              {nomeCliente || "Nome & Sobrenome"}
+            </h1>
+            <span className="min-w-65 text-gray-500 text-sm font-normal px-2 border border-transparent">
+              {contactoCliente || "Contacto"}
+            </span>
           </div>
 
           <div className='flex w-full justify-end items-center'>
-            {isEditing ? (
-              <IoCheckmarkOutline
-                size={40}
-                className='bg-[#03624c] text-[#FFFDF6] p-2 font-bold rounded-xl cursor-pointer'
-                onClick={() => setIsEditing(false)}
-              />
-            ) : (
-              <CiEdit
-                size={40}
-                className='bg-gray-200 p-2 text-[#032221] font-bold rounded-xl cursor-pointer'
-                onClick={() => setIsEditing(true)}
-              />
-            )}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <CiEdit
+                  size={40}
+                  className='bg-gray-200 p-2 text-[#032221] font-bold rounded-xl cursor-pointer hover:bg-gray-300 transition-colors'
+                  onClick={handleOpenDialog}
+                />
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Editar Informações do Cliente</DialogTitle>
+                  <DialogDescription>
+                    Atualize o nome e contacto do cliente aqui. Clique em guardar quando terminar.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="nome" className="text-right">
+                      Nome
+                    </Label>
+                    <Input
+                      id="nome"
+                      value={tempNome}
+                      onChange={(e) => setTempNome(e.target.value)}
+                      placeholder="Nome & Sobrenome"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="contacto" className="text-right">
+                      Contacto
+                    </Label>
+                    <Input
+                      id="contacto"
+                      value={tempContacto}
+                      onChange={(e) => setTempContacto(e.target.value)}
+                      placeholder="Número de telefone ou email"
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={handleCancelChanges}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" onClick={handleSaveChanges} className="bg-[#032221] hover:bg-[#052e2d]">
+                    Guardar alterações
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -584,14 +707,14 @@ function RegistarPedido() {
         </div>
 
         {/* Notas */}
-      <div className="w-full h-25 py-2 rounded-lg">
-        <textarea
-          className="w-full h-full p-3 border border-[rgba(3,98,76,0.4)] rounded-md text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-[rgba(3,98,76,0.5)] shadow-[1px_1px_3px_rgba(3,34,33,0.2)]"
-          placeholder="Adicione notas sobre o pedido..."
-          value={notas}
-          onChange={handleNotasChange}
-        />
-      </div>
+        <div className="w-full h-25 py-2 rounded-lg">
+          <textarea
+            className="w-full h-full p-3 border border-[rgba(3,98,76,0.4)] rounded-md text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-[rgba(3,98,76,0.5)] shadow-[1px_1px_3px_rgba(3,34,33,0.2)]"
+            placeholder="Adicione notas sobre o pedido..."
+            value={notas}
+            onChange={handleNotasChange}
+          />
+        </div>
 
         {/* Total a Pagar */}
         <div className='bg-[rgba(3,98,76,0.05)] w-full h-30 py-3 px-6 rounded-lg flex flex-col justify-around shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
