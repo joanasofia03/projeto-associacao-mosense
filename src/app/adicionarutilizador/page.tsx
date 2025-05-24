@@ -400,7 +400,8 @@ function AdicionarUtilizador() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] cursor-pointer transition-all duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100"
+              variant="botaoadicionar"
+              className="w-full"
             >
               {loading ? (
                 'Criando utilizador...'

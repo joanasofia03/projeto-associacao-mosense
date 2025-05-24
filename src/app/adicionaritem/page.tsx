@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Toaster } from 'sonner';
 
+import { IoAddCircleOutline } from "react-icons/io5";
+
 // Interfaces para type safety
 interface Item {
   id?: string;
@@ -406,7 +408,7 @@ function AdicionarItem() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAddItem} className="space-y-4">
+          <form onSubmit={handleAddItem} className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="nome" className="text-sm font-medium text-[#032221]">
                 Nome do Item
@@ -547,9 +549,10 @@ function AdicionarItem() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] cursor-pointer transition-all duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100"
+              variant="botaoadicionar"
+              className="w-full"
             >
-              {loading ? 'Guardando...' : 'Adicionar Item'}
+              {loading ? 'Guardando...' : 'Adicionar Item'}<IoAddCircleOutline />
             </Button>
           </form>
         </CardContent>
