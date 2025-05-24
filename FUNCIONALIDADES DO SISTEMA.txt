@@ -117,28 +117,29 @@ PEQUENAS ALTERAÇÕES A EFETUAR:
 MAJOR ALTERAÇÕES:
     -> REGISTAR PEDIDO;
         - Implementar a função de impressão das senhas;
-        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
+        - Adicionar um sonner (toast) do shadcn para quando for criado um pedido com sucesso;
+        - Alterar as bordas e/ou shadows do dialog dos inputs do nome e do contacto;
         - Modificar a estilização com shadcn;
         - Adicionar um textarea do shadcn para as notas;
-        - Adicionar um carousel do shadcn para os filtros dos itens;
 
     -> ANULAR/ALTERAR PEDIDO;
         - Fazer o editar - Na base de dados é anulado o pedido e é criado um novo;
-        - Adicionar um pagination (shadcn) para não carregar tudo na mesma página - limitar a 10 pedidos por página;
 
-    -> ADICIONAR PRODUTO;
-        - Adicionar um sonner (toast) do shadcn para quando for criado um evento com sucesso;
-        - Modificar a estilização com shadcn;
+    -> EDITAR PRODUTO;
+        - Editar cores do botão de editar e eliminar, iguais ao "editar evento" (certificar-me do uso da mesma cor);
+        - Editar cores do botão de alertdialog do cancelar (e do editar evento e pedido - colocar a mesma cor);
+        - Adicionar um avatar do shadcn junto ao título do item;
+        - Modificar os paddings dos cartões individuais dos itens;
 
     -> VER ESTATÍSTICAS;
-        - Exportar resumo dos eventos em pdf (Janela de popup a perguntar se tem a certeza que quer exportar);
+        - Exportar resumo dos eventos em pdf (AlertDialog do shadcn a perguntar se tem a certeza que quer exportar);
         - Imprimir as senhas dos pedidos selecionados com a checkbox;
         - Utilizar a mesma estrutura do alterarpedido (substituir a posição do searchbar e a data);
         - Estilizar a exibição dos pedidos com uma data table do shadcn;
         - Utilizar um sheet do shadcn para os filtros por itens;
 
     -> EDITAR PERFIL;
-        - Estlizar com shadcn o edit dos dados;
+        - Estilizar com shadcn o edit dos dados;
     
     -> NAVIGATION;
         - Estlizar os tooltips;

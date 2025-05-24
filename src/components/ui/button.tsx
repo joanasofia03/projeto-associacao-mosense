@@ -23,18 +23,26 @@ const buttonVariants = cva(
           "text-primary underline-offset-4 hover:underline",
 
         botaoadicionar: 
-          "bg-[#032221] text-[#FFFDF6] text-sm font-semibold rounded-lg cursor-pointer transition-all duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100",
+          "bg-[#032221] text-[#FFFDF6] hover:bg-[#032221]/90 cursor-pointer",
+        botaoeditar:
+          "bg-[#032221] text-[#FFFDF6] hover:bg-[#032221]/90 hover:scale-105 transition-all duration-200 cursor-pointer",
+        botaoeliminar:
+          "border border-[#7D0A0A]/30 text-[#7D0A0A] bg-transparent hover:bg-[#7D0A0A]/10 hover:border-[#7D0A0A] hover:scale-105 transition-all duration-200 cursor-pointer",
+        botaocancelar: 
+          "border border-[#032221]/30 text-[#032221] hover:bg-[#032221]/5 cursor-pointer",
+        botaoguardar:
+          "bg-[#032221] text-[#FFFDF6] hover:bg-[#032221]/90 cursor-pointer",
 
 
   
         anular:
-          "bg-[#FFFDF6] text-[#032221] hover:bg-[#A31D1D] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
+          "bg-[#FFFDF6] text-[#032221] hover:bg-[#7D0A0A] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
         anularselecionado:
-          "bg-[#A31D1D] text-[#FFFDF6] hover:bg-[#A31D1D] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
+          "bg-[#7D0A0A] text-[#FFFDF6] hover:bg-[#7D0A0A] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
         confirmar: 
-          "bg-[#FFFDF6] text-[#032221] hover:bg-[#537D5D] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
+          "bg-[#FFFDF6] text-[#032221] hover:bg-[#1B4D3E] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
         confirmarselecionado: 
-          "bg-[#537D5D] text-[#FFFDF6] hover:bg-[#537D5D] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
+          "bg-[#1B4D3E] text-[#FFFDF6] hover:bg-[#1B4D3E] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
         dark: 
           "bg-[#FFFDF6] text-[#032221] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",
         darkhover: 

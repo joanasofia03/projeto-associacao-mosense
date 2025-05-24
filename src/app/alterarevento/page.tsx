@@ -282,7 +282,7 @@ function AlterarEvento() {
                         <Button
                           onClick={() => handleEditClick(evento)}
                           size="sm"
-                          className="bg-[#DDEB9D] text-[#032221] hover:bg-[#DDEB9D]/80 hover:scale-105 transition-all duration-200"
+                          variant="botaoeditar"
                         >
                           <MdOutlineEdit className="w-4 h-4 mr-1" />
                           Editar
@@ -292,8 +292,7 @@ function AlterarEvento() {
                           <AlertDialogTrigger asChild>
                             <Button
                               size="sm"
-                              variant="outline"
-                              className="border-[#D2665A]/30 text-[#D2665A] hover:bg-[#D2665A]/10 hover:border-[#D2665A] hover:scale-105 transition-all duration-200"
+                              variant="botaoeliminar"
                             >
                               <RiDeleteBin6Line className="w-4 h-4 mr-1" />
                               Eliminar
@@ -310,12 +309,12 @@ function AlterarEvento() {
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel className="border-[#032221]/20 text-[#032221] hover:bg-[#032221]/5">
+                              <AlertDialogCancel className="border-[#032221]/30 text-[#032221] hover:bg-[#032221]/5 cursor-pointer">
                                 Cancelar
                               </AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => handleDelete(evento.id)}
-                                className="bg-[#D2665A] hover:bg-[#D2665A]/90 text-white"
+                                className="bg-[#7D0A0A] hover:bg-[#7D0A0A]/90 text-[#FFFDF6] cursor-pointer"
                               >
                                 Confirmar exclusão
                               </AlertDialogAction>
@@ -402,16 +401,17 @@ function AlterarEvento() {
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="button"
-                    variant="outline"
                     onClick={handleCloseModal}
-                    className="flex-1 border-[#032221]/20 text-[#032221] hover:bg-[#032221]/5"
+                    variant="botaocancelar"
+                    className="flex-1"
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
                     disabled={saving}
-                    className="flex-1 bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] disabled:opacity-60"
+                    variant="botaoguardar"
+                    className="flex-1"
                   >
                     {saving ? (
                       'Guardando...'

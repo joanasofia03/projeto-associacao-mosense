@@ -158,7 +158,7 @@ function AlterarPedido() {
             <AlertDialogTitle className="text-[#032221]">
               Tem a certeza absoluta?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600">
+            <AlertDialogDescription className="text-[#032221]/70">
               {isAnulacaoMultipla 
                 ? `Esta ação não pode ser desfeita. Isto irá alterar permanentemente o estado de ${quantidadePedidos} pedido${quantidadePedidos > 1 ? 's' : ''} para anulado.`
                 : 'Esta ação não pode ser desfeita. Isto irá alterar permanentemente o estado do pedido para anulado.'
@@ -167,7 +167,7 @@ function AlterarPedido() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
-              className="bg-gray-100 text-[#032221] hover:bg-gray-200"
+              className="border-[#032221]/20 text-[#032221] hover:[#032221]/5 cursor-pointer"
               onClick={() => {
                 setMostrarModal(false);
                 setPedidoParaAnular(null);
@@ -176,7 +176,7 @@ function AlterarPedido() {
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction 
-              className="bg-red-600 text-white hover:bg-red-700"
+              className="bg-[#7D0A0A] text-[#FFFDF6] hover:bg-[#7D0A0A]/90 cursor-pointer"
               onClick={handleConfirmar}
               disabled={loading}
             >
