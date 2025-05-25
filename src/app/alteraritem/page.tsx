@@ -125,16 +125,15 @@ const ImageUpload = ({
             type="button"
             variant="outline"
             onClick={handleFileSelect}
-            className="flex-grow border-[#032221] hover:bg-[rgba(3,98,76,0.1)]"
+            className="flex-grow border-[#032221] hover:bg-[rgba(3,98,76,0.1)] cursor-pointer transition-all duration-200"
           >
             {imagem ? 'Trocar Imagem' : 'Selecionar Imagem'}
           </Button>
           {hasImage && (
             <Button
               type="button"
-              variant="destructive"
               onClick={onImageRemove}
-              className="bg-[#D2665A] hover:bg-[#D2665A]/90"
+              className='border border-[#7D0A0A]/30 text-[#7D0A0A] bg-transparent hover:bg-[#7D0A0A]/10 hover:border-[#7D0A0A] cursor-pointer transition-all duration-200'
             >
               Remover
             </Button>
@@ -158,7 +157,7 @@ const ImageUpload = ({
   );
 };
 
-// Componente de Card de Item otimizado
+// Componente CardItem
 const ItemCard = ({ 
   item, 
   onEdit, 
@@ -180,17 +179,47 @@ const ItemCard = ({
   const handleDelete = useCallback(() => onDelete(item.id, item.nome), [onDelete, item.id, item.nome]);
 
   return (
-    <Card className="bg-[#FFFDF6] shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-      <CardHeader className="text-[#032221] border-b border-[rgba(32,41,55,0.1)]">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-xl text-[#032221] truncate">{item.nome}</CardTitle>
-          <span className="px-3 py-1 bg-[#DDEB9D] text-[#032221] text-xs font-medium rounded-full">
+    <Card className="bg-[#FFFDF6] shadow-lg border border-[#032221]/10 hover:shadow-xl transition-shadow duration-300">
+      <CardHeader className="text-[#032221] border-b border-[rgba(32,41,55,0.15)]">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {/* Avatar da imagem */}
+            <div className="flex-shrink-0">
+              {item.imagem_url ? (
+                <img
+                  src={item.imagem_url}
+                  alt={`Imagem de ${item.nome}`}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-[#032221]/10"
+                  onError={(e) => {
+                    // Fallback para quando a imagem não carrega
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              {/* Fallback avatar quando não há imagem */}
+              <div className={`w-10 h-10 rounded-full bg-[#DDEB9D] border-2 border-[#032221]/10 flex items-center justify-center ${item.imagem_url ? 'hidden' : ''}`}>
+                <span className="text-[#032221] font-medium text-sm">
+                  {item.nome.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            </div>
+            
+            {/* Nome do item */}
+            <CardTitle className="text-xl text-[#032221] truncate flex-1 min-w-0">
+              {item.nome}
+            </CardTitle>
+          </div>
+          
+          {/* Badge do tipo */}
+          <span className="px-3 py-1 bg-[#DDEB9D] text-[#032221] text-xs font-medium rounded-full flex-shrink-0">
             {item.tipo}
           </span>
         </div>
       </CardHeader>
       
-      <CardContent className="p-5 flex-grow">
+      <CardContent className="px-5 flex-grow">
         <div className="space-y-3 mb-4">
           <div className="flex justify-between items-center">
             <span className="text-[#032221]">Preço:</span>
@@ -206,12 +235,12 @@ const ItemCard = ({
           
           <div className="flex justify-between items-center">
             <span className="text-[#032221]">Menu:</span>
-            <span className={`font-medium ${item.isMenu ? 'text-[#A4B465]' : 'text-[#D2665A]'}`}>
+            <span className={`font-medium ${item.isMenu ? 'text-[#1B4D3E]' : 'text-[#7D0A0A]'}`}>
               {item.isMenu ? 'Incluído' : 'Não incluído'}
             </span>
           </div>
           
-          <div className="flex justify-between items-center text-sm text-gray-500">
+          <div className="flex justify-between items-center text-sm text-[#032221]/70">
             <span>Criado em:</span>
             <span>{formatDateTime.data} às {formatDateTime.hora}</span>
           </div>
@@ -221,7 +250,7 @@ const ItemCard = ({
         <div className="mt-4 grid grid-cols-2 gap-3">
           <Button
             onClick={handleEdit}
-            className="bg-[#DDEB9D] text-[#032221] hover:bg-[#c9d685] transition-all duration-200 hover:scale-105"
+            variant="botaoeditar"
           >
             <MdOutlineEdit className="h-4 w-4 mr-1"/>
             Editar
@@ -230,8 +259,7 @@ const ItemCard = ({
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
-                variant="destructive"
-                className="bg-[rgba(210,102,90,0.12)] text-[#D2665A] hover:bg-[rgba(210,102,90,0.17)] transition-all duration-200 hover:scale-105"
+                variant="botaoeliminar"
               >
                 <RiDeleteBin6Line className="h-4 w-4 mr-1"/>
                 Excluir
@@ -249,12 +277,12 @@ const ItemCard = ({
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className="border-[#032221] text-[#032221] hover:bg-[rgba(3,98,76,0.1)]">
+                <AlertDialogCancel className="border-[#032221]/20 text-[#032221] hover:bg-[#032221]/5 cursor-pointer">
                   Cancelar
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDelete}
-                  className="bg-[#D2665A] text-white hover:bg-[#D2665A]/90"
+                  className="bg-[#7D0A0A] text-[#FFFDF6] hover:bg-[#7D0A0A]/90 cursor-pointer"
                 >
                   Excluir
                 </AlertDialogAction>
@@ -544,7 +572,7 @@ function AlterarItem() {
             <Button
               key={category}
               onClick={() => setActiveFilter(category)}
-              variant="botaoadicionar"
+              variant="dark"
               className={`px-3 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-1 cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.2)] ${
                 activeFilter === category
                   ? 'bg-[#032221] text-[#FFFDF6]'
@@ -566,7 +594,7 @@ function AlterarItem() {
         ) : filteredItems.length === 0 ? (
           <Card className="bg-[#FFFDF6] shadow-md">
             <CardContent className="p-8 text-center">
-              <p className="text-lg text-gray-600">Nenhum item encontrado para esta categoria.</p>
+              <p className="text-lg text-[#032221]/70">Nenhum item encontrado para esta categoria.</p>
             </CardContent>
           </Card>
         ) : (
@@ -595,7 +623,7 @@ function AlterarItem() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="edit-nome" className="text-sm font-medium text-[#032221]">
                 Nome do Item
@@ -689,21 +717,20 @@ function AlterarItem() {
               </Label>
             </div>
             
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-end space-x-3 pt-2">
               <Button
-                variant="outline"
+                variant="botaocancelar"
                 onClick={handleCloseDialog}
-                className="border-[#032221] text-[#032221] hover:bg-[rgba(3,98,76,0.1)]"
                 disabled={saving}
               >
                 Cancelar
               </Button>
               <Button
+                variant="botaoguardar"
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] cursor-pointer transition-all duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {saving ? 'Salvando...' : 'Salvar Alterações'}
+                {saving ? 'A processar...' : 'Guardar Alterações'}
               </Button>
             </div>
           </div>
