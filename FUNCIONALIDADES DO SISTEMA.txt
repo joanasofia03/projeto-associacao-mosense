@@ -125,12 +125,6 @@ MAJOR ALTERAÇÕES:
     -> ANULAR/ALTERAR PEDIDO;
         - Fazer o editar - Na base de dados é anulado o pedido e é criado um novo;
 
-    -> EDITAR PRODUTO;
-        - Editar cores do botão de editar e eliminar, iguais ao "editar evento" (certificar-me do uso da mesma cor);
-        - Editar cores do botão de alertdialog do cancelar (e do editar evento e pedido - colocar a mesma cor);
-        - Adicionar um avatar do shadcn junto ao título do item;
-        - Modificar os paddings dos cartões individuais dos itens;
-
     -> VER ESTATÍSTICAS;
         - Exportar resumo dos eventos em pdf (AlertDialog do shadcn a perguntar se tem a certeza que quer exportar);
         - Imprimir as senhas dos pedidos selecionados com a checkbox;
@@ -140,9 +134,6 @@ MAJOR ALTERAÇÕES:
 
     -> EDITAR PERFIL;
         - Estilizar com shadcn o edit dos dados;
-    
-    -> NAVIGATION;
-        - Estlizar os tooltips;
     
     -> AJUDA - FAQS;
 
