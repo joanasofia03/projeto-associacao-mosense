@@ -133,7 +133,7 @@ MAJOR ALTERAÇÕES:
         - Utilizar um sheet do shadcn para os filtros por itens;
 
     -> EDITAR PERFIL;
-        - Estilizar com shadcn o edit dos dados;
+        - Corrigir funcionalidade de editar o perfil - backend;
     
     -> AJUDA - FAQS;
 

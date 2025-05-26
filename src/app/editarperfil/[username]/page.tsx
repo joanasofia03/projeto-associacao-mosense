@@ -10,6 +10,21 @@ import { GoSearch } from "react-icons/go";
 import { MdOutlineFiberNew } from "react-icons/md";
 import { IoCheckmarkDoneOutline, IoChevronDown, IoChevronUp } from "react-icons/io5";
 
+// Shadcn imports
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { toast as sonnerToast } from 'sonner';
+import { Toaster } from 'sonner';
+
 // Types
 type Item = {
   id: number;
@@ -49,6 +64,22 @@ interface Toast {
   visible: boolean;
 }
 
+interface FormData {
+  nome: string;
+  email: string;
+  telemovel: string;
+}
+
+// Mensagens de erro centralizadas
+const ERROR_MESSAGES = {
+  CAMPOS_OBRIGATORIOS: 'Por favor, preencha todos os campos obrigatórios.',
+  EMAIL_INVALIDO: 'Por favor, insira um email válido.',
+  TELEMOVEL_INVALIDO: 'Por favor, insira um número de telemóvel válido.',
+  ERRO_ATUALIZAR: 'Erro ao atualizar o perfil.',
+  UTILIZADOR_NAO_AUTENTICADO: 'Utilizador não autenticado.',
+  ERRO_INESPERADO: 'Erro inesperado.',
+} as const;
+
 // Custom hooks
 const useUser = () => {
   const [user, setUser] = useState<any>(null);
@@ -66,38 +97,38 @@ const useUser = () => {
   return { user, loading };
 };
 
-  const useProfile = (userId: string | null) => {
-    const [profile, setProfile] = useState<Profile>({ nome: '', tipo: '', telemovel: '' });
-    const [email, setEmail] = useState('');
-    const [originalEmail, setOriginalEmail] = useState('');
-    const [loading, setLoading] = useState(true);
+const useProfile = (userId: string | null) => {
+  const [profile, setProfile] = useState<Profile>({ nome: '', tipo: '', telemovel: '' });
+  const [email, setEmail] = useState('');
+  const [originalEmail, setOriginalEmail] = useState('');
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-      if (!userId) return;
+  useEffect(() => {
+    if (!userId) return;
 
-      const fetchProfile = async () => {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('nome, tipo, telemovel')
-          .eq('id', userId)
-          .single();
+    const fetchProfile = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('nome, tipo, telemovel')
+        .eq('id', userId)
+        .single();
 
-        if (!error && data) {
-          setProfile({
-            nome: data.nome || '',
-            tipo: data.tipo || '',
-            telemovel: data.telemovel || '' // Ensure it's always a string
-          });
-        }
-        setLoading(false);
-      };
+      if (!error && data) {
+        setProfile({
+          nome: data.nome || '',
+          tipo: data.tipo || '',
+          telemovel: data.telemovel || ''
+        });
+      }
+      setLoading(false);
+    };
 
-      fetchProfile();
-    }, [userId]);
+    fetchProfile();
+  }, [userId]);
 
-    return { profile, setProfile, email, setEmail, originalEmail, setOriginalEmail, loading };
-  };
+  return { profile, setProfile, email, setEmail, originalEmail, setOriginalEmail, loading };
+};
 
 const usePedidos = (userId: string | null) => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -212,40 +243,89 @@ const useToast = () => {
   return { toast, showToast, hideToast };
 };
 
+// Hook customizado para gerenciar o formulário de edição
+function useProfileForm(initialProfile: Profile, initialEmail: string) {
+  const [formData, setFormData] = useState<FormData>({
+    nome: '',
+    email: '',
+    telemovel: ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Atualizar formData quando os dados iniciais mudarem
+  useEffect(() => {
+    setFormData({
+      nome: initialProfile.nome,
+      email: initialEmail,
+      telemovel: initialProfile.telemovel
+    });
+  }, [initialProfile, initialEmail]);
+
+  const updateField = useCallback(<K extends keyof FormData>(
+    field: K,
+    value: FormData[K]
+  ) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const resetForm = useCallback(() => {
+    setFormData({
+      nome: initialProfile.nome,
+      email: initialEmail,
+      telemovel: initialProfile.telemovel
+    });
+  }, [initialProfile, initialEmail]);
+
+  return {
+    formData,
+    loading,
+    setLoading,
+    updateField,
+    resetForm,
+  };
+}
+
+// Validações
+function validateForm(formData: FormData): string | null {
+  const { nome, email, telemovel } = formData;
+
+  if (!nome.trim() || !email.trim()) {
+    return ERROR_MESSAGES.CAMPOS_OBRIGATORIOS;
+  }
+
+  // Validação básica de email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return ERROR_MESSAGES.EMAIL_INVALIDO;
+  }
+
+  // Validação básica de telemóvel (se preenchido)
+  if (telemovel && !/^\d{9}$/.test(telemovel.replace(/\s+/g, ''))) {
+    return ERROR_MESSAGES.TELEMOVEL_INVALIDO;
+  }
+
+  return null;
+}
+
 // Components
 const ProfileField = ({ 
   label, 
   value, 
-  isEditing, 
-  type = 'text',
-  onChange,
   readOnly = false 
 }: {
   label: string;
   value: string;
-  isEditing: boolean;
-  type?: string;
-  onChange?: (value: string) => void;
   readOnly?: boolean;
 }) => (
   <div className="flex flex-col">
     <label className="text-sm text-gray-600">{label}</label>
-    {isEditing && !readOnly ? (
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-        className="mt-1 p-2 rounded-lg border border-gray-300 bg-[#FFFDF6] focus:outline-none"
-      />
-    ) : (
-      <span className={`${readOnly ? 'text-sm text-gray-400 bg-[rgba(3,98,76,0.05)] rounded-lg p-2' : isEditing ? 'text-lg font-semibold text-[#032221]' : 'text-sm text-gray-600'}`}>
-        {value || '—'}
-      </span>
-    )}
+    <span className={`${readOnly ? 'text-sm text-gray-400 bg-[rgba(3,98,76,0.05)] rounded-lg p-2' : 'text-sm text-gray-600'}`}>
+      {value || '—'}
+    </span>
   </div>
 );
 
-// Componente de Timeline de Pedidos com funcionalidade expansível corrigida
+// Componente de Timeline de Pedidos com funcionalidade expansível
 const PedidoTimelineItem = ({ 
   pedido,
   itens,
@@ -368,9 +448,193 @@ const PedidoTimelineItem = ({
   );
 };
 
+// Componente do Dialog de Edição
+const EditProfileDialog = ({ 
+  user, 
+  profile, 
+  email, 
+  originalEmail, 
+  onProfileUpdate 
+}: {
+  user: any;
+  profile: Profile;
+  email: string;
+  originalEmail: string;
+  onProfileUpdate: () => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const {
+    formData,
+    loading,
+    setLoading,
+    updateField,
+    resetForm,
+  } = useProfileForm(profile, email);
+
+  // Handler para salvar o perfil
+  const handleSaveProfile = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Validação
+      const validationError = validateForm(formData);
+      if (validationError) {
+        sonnerToast.error(validationError);
+        return;
+      }
+
+      if (!user?.id) {
+        sonnerToast.error(ERROR_MESSAGES.UTILIZADOR_NAO_AUTENTICADO);
+        return;
+      }
+
+      const telemovelValue = formData.telemovel ? Number(formData.telemovel) : null;
+
+      // Update profile
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          nome: formData.nome.trim(), 
+          telemovel: telemovelValue 
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Update email if changed
+      if (formData.email !== originalEmail) {
+        const { error: emailError } = await supabase.auth.updateUser(
+          { email: formData.email },
+          { emailRedirectTo: 'http://localhost:3000/confirmar-email' }
+        );
+
+        if (emailError) throw emailError;
+
+        sonnerToast.success(
+          'Perfil atualizado com sucesso. Verifica ambas as caixas de email para confirmar a alteração.'
+        );
+      } else {
+        sonnerToast.success('Perfil atualizado com sucesso!');
+      }
+
+      // Fechar dialog e atualizar dados
+      setOpen(false);
+      onProfileUpdate();
+
+    } catch (error) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : ERROR_MESSAGES.ERRO_INESPERADO;
+      
+      console.error('Erro ao atualizar perfil:', error);
+      sonnerToast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [formData, user, originalEmail, setLoading, onProfileUpdate]);
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (open) {
+      resetForm();
+    }
+  }, [open, resetForm]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <CiEdit
+          size={36}
+          className="bg-[#032221]/10 text-[#032221] p-2 rounded-xl cursor-pointer transition hover:bg-[#032221]/15"
+        />
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md bg-[#FFFDF6]">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-semibold text-[#032221]">
+            Editar Perfil
+          </DialogTitle>
+          <DialogDescription className="text-[#032221]/70">
+            Atualize as suas informações pessoais
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSaveProfile} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="nome" className="text-sm font-medium text-[#032221]">
+              Nome
+            </Label>
+            <Input
+              type="text"
+              id="nome"
+              value={formData.nome}
+              onChange={(e) => updateField('nome', e.target.value)}
+              className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm font-medium text-[#032221]">
+              Email
+            </Label>
+            <Input
+              type="email"
+              id="email"
+              value={formData.email}
+              onChange={(e) => updateField('email', e.target.value)}
+              className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="telemovel" className="text-sm font-medium text-[#032221]">
+              Telemóvel
+            </Label>
+            <Input
+              type="tel"
+              id="telemovel"
+              value={formData.telemovel}
+              onChange={(e) => updateField('telemovel', e.target.value)}
+              className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
+              placeholder="912345678"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-[#032221]">
+              Tipo de Utilizador
+            </Label>
+            <div className="text-sm text-gray-400 bg-[rgba(3,98,76,0.05)] rounded-lg p-2">
+              {profile.tipo || '—'}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              type="button"
+              variant="botaocancelar"
+              onClick={() => setOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="botaoguardar"
+              disabled={loading}
+            >
+              {loading ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 //Componente Principal
 export default function EditarPerfilCard() {
-  const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { user, loading: userLoading } = useUser();
   const { 
@@ -406,55 +670,11 @@ export default function EditarPerfilCard() {
     );
   }, [processedPedidos, searchTerm]);
 
-  const handleSave = useCallback(async () => {
-    if (!user?.id) {
-      showToast('Utilizador não autenticado.', 'error');
-      return;
-    }
-
-    const telemovelValue = profile.telemovel ? Number(profile.telemovel) : null;
-
-    try {
-      // Update profile
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          nome: profile.nome, 
-          telemovel: telemovelValue 
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      // Update email if changed
-      if (email !== originalEmail) {
-        const { error: emailError } = await supabase.auth.updateUser(
-          { email },
-          { emailRedirectTo: 'http://localhost:3000/confirmar-email' }
-        );
-
-        if (emailError) throw emailError;
-
-        showToast(
-          'Perfil atualizado com sucesso. Verifica ambas as caixas de email para confirmar a alteração.',
-          'success'
-        );
-      } else {
-        showToast('Perfil atualizado com sucesso.', 'success');
-      }
-
-      setOriginalEmail(email);
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      showToast('Erro ao atualizar perfil.', 'error');
-    }
-  }, [user, profile, email, originalEmail, showToast, setOriginalEmail]);
-
-  const handleCancel = useCallback(() => {
-    setEmail(originalEmail);
-    setIsEditing(false);
-  }, [originalEmail, setEmail]);
+  // Função para recarregar os dados do perfil
+  const handleProfileUpdate = useCallback(() => {
+    // Força recarregamento dos dados do perfil
+    window.location.reload();
+  }, []);
 
   const loading = userLoading || profileLoading;
 
@@ -476,68 +696,27 @@ export default function EditarPerfilCard() {
 
   return (
     <div className="min-h-screen bg-[#eaf2e9] p-4">
+      <Toaster position="bottom-right" />
       <div className="flex flex-row justify-center items-start w-full pt-2 gap-8 max-w-6xl mx-auto">
         {/* Seção do Perfil */}
         <div className="bg-[#FFFDF6] w-full max-w-md p-6 rounded-2xl shadow-lg flex flex-col gap-6 h-fit sticky top-4">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-bold text-[#032221]">Perfil</h1>
-            {!isEditing && (
-              <CiEdit
-                size={36}
-                className="bg-gray-200 text-[#032221] p-2 rounded-xl cursor-pointer transition hover:bg-gray-300"
-                onClick={() => setIsEditing(true)}
-              />
-            )}
+            <EditProfileDialog
+              user={user}
+              profile={profile}
+              email={email}
+              originalEmail={originalEmail}
+              onProfileUpdate={handleProfileUpdate}
+            />
           </div>
 
           <div className="flex flex-col gap-4">
-            <ProfileField
-              label="Nome"
-              value={profile.nome}
-              isEditing={isEditing}
-              onChange={(value) => setProfile(prev => ({ ...prev, nome: value }))}
-            />
-
-            <ProfileField
-              label="Email"
-              value={email}
-              isEditing={isEditing}
-              type="email"
-              onChange={setEmail}
-            />
-
-            <ProfileField
-              label="Telemóvel"
-              value={profile.telemovel}
-              isEditing={isEditing}
-              type="tel"
-              onChange={(value) => setProfile(prev => ({ ...prev, telemovel: value }))}
-            />
-
-            <ProfileField
-              label="Tipo de Utilizador"
-              value={profile.tipo}
-              isEditing={isEditing}
-              readOnly
-            />
+            <ProfileField label="Nome" value={profile.nome} />
+            <ProfileField label="Email" value={email} />
+            <ProfileField label="Telemóvel" value={profile.telemovel} />
+            <ProfileField label="Tipo de Utilizador" value={profile.tipo} readOnly />
           </div>
-
-          {isEditing && (
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={handleCancel}
-                className="px-4 py-2 rounded-lg bg-gray-200 text-[#032221] font-medium hover:bg-gray-300 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 rounded-lg bg-[#032221] text-[#FFFDF6] font-medium hover:bg-[#052e2d] transition-colors"
-              >
-                Guardar
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Seção dos Pedidos - Timeline */}
