@@ -113,14 +113,12 @@ PEQUENAS ALTERAÇÕES A EFETUAR:
     -> Integrar shadcn para melhorias de estilização e otimização de código;
     -> Realizar testes unitários e outros;
     -> Melhorar a velocidade do website;
+    -> Esudar a importância e eventual utilização do ZOD neste projeto;
 
 MAJOR ALTERAÇÕES:
     -> REGISTAR PEDIDO;
         - Implementar a função de impressão das senhas;
-        - Adicionar um sonner (toast) do shadcn para quando for criado um pedido com sucesso;
-        - Alterar as bordas e/ou shadows do dialog dos inputs do nome e do contacto;
-        - Modificar a estilização com shadcn;
-        - Adicionar um textarea do shadcn para as notas;
+        - Verificar div dos filtros e o padding;
 
     -> ANULAR/ALTERAR PEDIDO;
         - Fazer o editar - Na base de dados é anulado o pedido e é criado um novo;
@@ -131,9 +129,6 @@ MAJOR ALTERAÇÕES:
         - Utilizar a mesma estrutura do alterarpedido (substituir a posição do searchbar e a data);
         - Estilizar a exibição dos pedidos com uma data table do shadcn;
         - Utilizar um sheet do shadcn para os filtros por itens;
-
-    -> EDITAR PERFIL;
-        - Corrigir funcionalidade de editar o perfil - backend;
     
     -> AJUDA - FAQS;
 

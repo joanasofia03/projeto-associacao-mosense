@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import Image from 'next/image';
-import Toast from '../components/toast';
 
 // Import shadcn/ui components
 import {
@@ -37,10 +36,13 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { Toaster } from 'sonner';
+
 //Import de Icons
 import { GoSearch } from "react-icons/go";
 import { CiEdit } from "react-icons/ci";
-import { IoCheckmarkOutline } from "react-icons/io5";
 import { PiSquaresFour } from "react-icons/pi";
 import { LuSoup } from "react-icons/lu";
 import { IoFastFoodOutline } from "react-icons/io5";
@@ -80,9 +82,6 @@ function RegistarPedido() {
   const [eventoEmExecucao, setEventoEmExecucao] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [notas, setNotas] = useState<string>('');
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8; // 4 colunas x 2 linhas
@@ -128,9 +127,7 @@ function RegistarPedido() {
 
       if (error) {
         setErro('Erro ao carregar itens do menu.');
-        setToastMessage('Erro ao carregar itens do menu.');
-        setToastType('error');
-        setToastVisible(true);
+        toast.error('Erro ao carregar itens do menu.');
       } else {
         setItensMenu(data || []);
         setItensFiltrados(data || []);
@@ -183,9 +180,7 @@ function RegistarPedido() {
 
       if (error) {
         setErro("Erro ao procurar evento");
-        setToastMessage('Erro ao procurar evento.');
-        setToastType('error');
-        setToastVisible(true);
+        toast.error('Erro ao procurar evento.');
       } else {
         setEventoEmExecucao(data);
       }
@@ -198,9 +193,7 @@ function RegistarPedido() {
         setUserId(user.id);
       } else {
         setErro('Utilizador não autenticado');
-        setToastMessage('Utilizador não autenticado.');
-        setToastType('error');
-        setToastVisible(true);
+        toast.error('Utilizador não autenticado.');
       }
     };
 
@@ -304,18 +297,12 @@ function RegistarPedido() {
 
   const efetuarPedido = async () => {
     if (!nomeCliente.trim()) {
-      setErro('O nome do cliente é obrigatório.');
-      setToastMessage('O nome do cliente é obrigatório.');
-      setToastType('error');
-      setToastVisible(true);
+      toast.error('O nome do cliente é obrigatório.');
       return;
     }
 
     if (Object.keys(itensSelecionados).length === 0) {
-      setErro('Nenhum item selecionado.');
-      setToastMessage('Nenhum item selecionado.');
-      setToastType('error');
-      setToastVisible(true);
+      toast.error('Nenhum item selecionado.');
       return;
     }
     
@@ -329,51 +316,46 @@ function RegistarPedido() {
       id_evento: eventoEmExecucao.id,
     };
 
-    const { data: pedidoInserido, error: erroPedido } = await supabase
-      .from('pedidos')
-      .insert([novoPedido])
-      .select()
-      .single();
+    try {
+      const { data: pedidoInserido, error: erroPedido } = await supabase
+        .from('pedidos')
+        .insert([novoPedido])
+        .select()
+        .single();
 
-    if (erroPedido) {
-      console.error(erroPedido.message);
-      setErro('Erro ao registrar o pedido.');
-      setToastMessage('Erro ao registar pedido!');
-      setToastType('error');
-      setToastVisible(true);
-      return;
+      if (erroPedido) {
+        throw new Error('Erro ao registrar o pedido.');
+      }
+
+      const itensPedido = Object.values(itensSelecionados).map(item => ({
+        pedido_id: pedidoInserido.id,
+        item_id: item.id,
+        quantidade: item.quantidade,
+      }));
+
+      const { error: erroItens } = await supabase
+        .from('pedidos_itens')
+        .insert(itensPedido);
+
+      if (erroItens) {
+        throw new Error('Erro ao registrar itens do pedido.');
+      }
+
+      toast.success(`Pedido para ${nomeCliente} registado com sucesso!`);
+
+      // Limpar formulário
+      limparTodosPedidos();
+      setNomeCliente('');
+      setContactoCliente('');
+      setNotas('');
+      setOpcaoSelecionada(null);
+
+    } catch (error) {
+      console.error('Erro ao efetuar pedido:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao registar pedido.';
+      toast.error(errorMessage);
     }
-
-    const itensPedido = Object.values(itensSelecionados).map(item => ({
-      pedido_id: pedidoInserido.id,
-      item_id: item.id,
-      quantidade: item.quantidade,
-    }));
-
-    const { error: erroItens } = await supabase
-      .from('pedidos_itens')
-      .insert(itensPedido);
-
-    if (erroItens) {
-      console.error(erroItens.message);
-      setErro('Erro ao registrar itens do pedido.');
-      setToastMessage('Erro ao registar itens do pedido!');
-      setToastType('error');
-      setToastVisible(true);
-      return;
-    }
-
-    setToastMessage('Pedido registado com sucesso!');
-    setToastType('success');
-    setToastVisible(true);
-
-    limparTodosPedidos();
-    setNomeCliente('');
-    setContactoCliente('');
-    setNotas('');
-    setOpcaoSelecionada(null);
-
-  }
+  };
 
   //Cálculos de paginação (adicionar após o useEffect dos filtros)
   const totalPages = Math.ceil(itensFiltrados.length / itemsPerPage);
@@ -387,6 +369,7 @@ function RegistarPedido() {
 
   return (
     <div className='flex flex-row w-full h-full'>
+      <Toaster position="top-center" />
       {/* Coluna 1 - Lado Esquerdo */}
       <div className="flex flex-col justify-between gap-4 flex-1 pt-1 pb-4 px-6 min-w-150 h-full bg-[#eaf2e9] transition-all duration-500">
         {/* Barra de Pesquisa */}
@@ -447,7 +430,7 @@ function RegistarPedido() {
               {itensParaExibir.map((item) => (
                 <div 
                   key={item.id} 
-                  className={`flex flex-col justify-between bg-[#FFFDF6] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] cursor-pointer ${itensSelecionados[item.id] ? 'ring-1 ring-[#03624c] ring-inset' : ''}`}
+                  className={`flex flex-col justify-between bg-[#FFFDF6] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] ${itensSelecionados[item.id] ? 'ring-1 ring-[#03624c] ring-inset' : ''}`}
                   onClick={() => !itensSelecionados[item.id] && adicionarItem(item)}
                 >
                   {/* Conteúdo do item */}
@@ -489,7 +472,7 @@ function RegistarPedido() {
                           e.stopPropagation();
                           diminuirQuantidade(item.id);
                         }}
-                        className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl"
+                        className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl cursor-pointer"
                       >
                         -
                       </button>
@@ -501,21 +484,22 @@ function RegistarPedido() {
                           e.stopPropagation();
                           aumentarQuantidade(item.id);
                         }}
-                        className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl transition-transform duration-300 hover:scale-103 cursor-pointer"
+                        className="w-8 h-8 flex items-center justify-center bg-[#032221] text-[#FFFDF6] rounded-full font-bold text-xl cursor-pointer"
                       >
                         +
                       </button>
                     </div>
                   ) : (
-                    <button
+                    <Button
                       onClick={(e) => {
                         e.stopPropagation();
                         adicionarItem(item);
                       }}
-                      className="w-full py-2 bg-[#032221] text-[#FFFDF6] rounded-lg font-medium hover:bg-[#052e2d] transition-transform duration-300 hover:scale-105 cursor-pointer"
+                      variant="botaoadicionar"
+                      className="w-full h-12 py-2 text-base cursor-pointer"
                     >
                       Adicionar ao pedido
-                    </button>
+                    </Button>
                   )}
                 </div>
               ))}
@@ -563,9 +547,9 @@ function RegistarPedido() {
       </div>
       
       {/* Coluna 2 - Lado Direito */}
-      <div className='flex flex-col justify-between gap-4 w-[400px] pt-3 px-3 pb-4 h-full bg-[#FFFDF6]'>
+      <div className='flex flex-col justify-between gap-3 w-[400px] pt-3 px-3 pb-4 h-full bg-[#FFFDF6]'>
         {/* Nome com Dialog */}
-        <div className='w-full h-20 p-2 flex flex-1 flex-row justify-between'>
+        <div className='w-full h-20 px-2 py-1 flex flex-1 flex-row justify-between'>
           <div className="flex flex-col w-full justify-start">
             <h1 className="min-w-65 text-[#032221] text-lg font-semibold px-2 border border-transparent">
               {nomeCliente || "Nome & Sobrenome"}
@@ -601,7 +585,7 @@ function RegistarPedido() {
                       value={tempNome}
                       onChange={(e) => setTempNome(e.target.value)}
                       placeholder="Nome & Sobrenome"
-                      className="col-span-3"
+                      className="col-span-3 border-1 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
@@ -613,7 +597,7 @@ function RegistarPedido() {
                       value={tempContacto}
                       onChange={(e) => setTempContacto(e.target.value)}
                       placeholder="Número de telefone ou email"
-                      className="col-span-3"
+                      className="col-span-3 border-1 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                   </div>
                 </div>
@@ -650,7 +634,7 @@ function RegistarPedido() {
         </div>
 
         {/* Resumo do Pedido */}
-        <div className='w-full h-200 px-4 py-3 overflow-y-auto bg-[rgba(3,98,76,0.05)] rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
+        <div className='w-full h-full px-4 py-3 overflow-y-auto bg-[rgba(3,98,76,0.05)] rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.2)]'>
           <div className='flex flex-row justify-between mb-2 pb-1 border-b border-[rgba(3,98,76,0.1)] items-center'>
             <h2 className="font-semibold text-lg text-[#032221]">Resumo do Pedido</h2>
             <MdDeleteOutline 
@@ -707,12 +691,12 @@ function RegistarPedido() {
         </div>
 
         {/* Notas */}
-        <div className="w-full h-25 py-2 rounded-lg">
-          <textarea
-            className="w-full h-full p-3 border border-[rgba(3,98,76,0.4)] rounded-md text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-[rgba(3,98,76,0.5)] shadow-[1px_1px_3px_rgba(3,34,33,0.2)]"
+        <div className="w-full h-27 py-2 rounded-lg">
+          <Textarea
             placeholder="Adicione notas sobre o pedido..."
             value={notas}
             onChange={handleNotasChange}
+            className="min-h-[100px] border-[#032221]/40 focus-visible:ring-1 focus-visible:ring-[#032221]/50 focus-visible:ring-offset-0 shadow-[1px_1px_3px_rgba(3,34,33,0.2)]"
           />
         </div>
 
@@ -737,19 +721,13 @@ function RegistarPedido() {
         
         {/* Botão de Place Order */}
         <div className='w-full h-20'>
-          <button
+          <Button
             onClick={efetuarPedido}
-            className="w-full bg-[#032221] text-[#FFFDF6] text-sm font-semibold py-4 rounded-lg hover:bg-[#052e2d] transition-transform duration-300 hover:scale-103 cursor-pointer" 
+            variant="botaoadicionar"
+            className="w-full h-12 text-base"
           >
             Efetuar Pedido
-          </button>
-
-           <Toast
-            message={toastMessage}
-            visible={toastVisible}
-            type={toastType}
-            onClose={() => setToastVisible(false)}
-            />
+          </Button>
         </div>
       </div>
     </div>
