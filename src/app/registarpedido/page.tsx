@@ -371,7 +371,7 @@ function RegistarPedido() {
     <div className='flex flex-row w-full h-full'>
       <Toaster position="top-center" />
       {/* Coluna 1 - Lado Esquerdo */}
-      <div className="flex flex-col justify-between gap-4 flex-1 pt-1 pb-4 px-6 min-w-150 h-full bg-[#eaf2e9] transition-all duration-500">
+      <div className="flex flex-col justify-between gap-2 flex-1 pt-1 pb-4 px-6 min-w-150 h-full bg-[#eaf2e9] transition-all duration-500">
         {/* Barra de Pesquisa */}
         <div className='h-10 p-4 mt-4 flex justify-between gap-1 items-center bg-[#FFFDF6] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
           <GoSearch size={20}/>
@@ -385,19 +385,19 @@ function RegistarPedido() {
         </div>
 
         {/* Filtros */}
-        <div className='w-full h-45'>
-          <div className="relative">
-            <Carousel className="w-full px-10"> {/* Adiciona padding horizontal para dar espaço às setas */}
-              <CarouselContent className="-ml-2 md:-ml-4">
+        <div className='w-full h-45 flex justify-between items-center'>
+          <div className="relative w-full h-full flex justify-between items-center">
+            <Carousel className="w-full px-10" opts={{ align: "start", loop: false }}> {/* Adiciona padding horizontal para dar espaço às setas */}
+              <CarouselContent className="-ml-2 md:-ml-4 w-full h-full flex justify-between items-center p-2">
                 {filtros.map((filtro) => {
                   const Icone = filtro.icon;
                   const isActive = filtroSelecionado === filtro.id;
 
                   return (
-                    <CarouselItem key={filtro.id} className="pl-2 md:pl-4 basis-1/5">
+                    <CarouselItem key={filtro.id} className="w-full h-full pl-2 md:pl-4 basis-1/6">
                       <div
                         onClick={() => setFiltroSelecionado(filtro.id)}
-                        className={`cursor-pointer w-full flex flex-col justify-between py-4 px-5 rounded-3xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] transition-transform duration-300 hover:-translate-y-1
+                        className={`cursor-pointer w-full h-full flex flex-col justify-between py-3 px-5 rounded-2xl shadow-[1px_1px_3px_rgba(3,34,33,0.1)] transition-transform duration-300 hover:-translate-y-1
                           ${isActive ? 'bg-[#032221]' : 'bg-[#FFFDF6] hover:bg-[rgba(220,230,231,0.5)]'}`}
                       >
                         <Icone size={45} className={isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'} />
@@ -405,7 +405,7 @@ function RegistarPedido() {
                           <h1 className={`font-semibold text-lg truncate ${isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'}`}>
                             {filtro.nome}
                           </h1>
-                          <span className={`font-normal text-xs ${isActive ? 'text-[#FFFDF6]' : 'text-[#032221]'}`}>
+                          <span className={`font-normal text-xs ${isActive ? 'text-[#FFFDF6]/80' : 'text-[#032221]/80'}`}>
                             {filtro.id === 'todos'
                               ? `${contagemPorTipo["Todos"] || 0} itens`
                               : `${contagemPorTipo[filtro.id] || 0} itens`}
