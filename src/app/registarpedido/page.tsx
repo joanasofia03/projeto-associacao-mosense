@@ -95,6 +95,76 @@ function RegistarPedido() {
     { nome: 'Brindes', id: 'Brindes', icon: GoGift },
   ];
 
+  //ALTERAÇÂO PNP
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [pedidoOriginalId, setPedidoOriginalId] = useState<number | null>(null);
+  const [pedidoOriginal, setPedidoOriginal] = useState<any>(null);
+
+  //useEffect para carregar dados do pedido quando em modo edição ALTERAÇÂO PNP
+  useEffect(() => {
+    const carregarPedidoParaEdicao = async () => {
+      // Verificar se há parâmetros na URL para modo edição
+      const urlParams = new URLSearchParams(window.location.search);
+      const pedidoId = urlParams.get('editarPedido');
+      
+      if (pedidoId) {
+        try {
+          // Buscar dados do pedido
+          const { data: pedidoData, error: pedidoError } = await supabase
+            .from('pedidos')
+            .select('*')
+            .eq('id', pedidoId)
+            .single();
+
+          if (pedidoError) throw pedidoError;
+
+          // Buscar itens do pedido
+          const { data: itensData, error: itensError } = await supabase
+            .from('pedidos_itens')
+            .select(`
+              *,
+              itens (*)
+            `)
+            .eq('pedido_id', pedidoId);
+
+          if (itensError) throw itensError;
+
+          // Configurar modo edição
+          setModoEdicao(true);
+          setPedidoOriginalId(parseInt(pedidoId));
+          setPedidoOriginal(pedidoData);
+
+          // Carregar dados do cliente
+          setNomeCliente(pedidoData.nome_cliente);
+          setContactoCliente(pedidoData.contacto || '');
+          setNotas(pedidoData.nota || '');
+          setOpcaoSelecionada(pedidoData.tipo_de_pedido);
+
+          // Carregar itens selecionados
+          const itensCarregados: Record<number, MenuItem> = {};
+          itensData.forEach(item => {
+            if (item.itens) {
+              itensCarregados[item.itens.id] = {
+                ...item.itens,
+                quantidade: item.quantidade
+              };
+            }
+          });
+          setItensSelecionados(itensCarregados);
+
+          toast.success('Pedido carregado para edição!');
+        } catch (error) {
+          console.error('Erro ao carregar pedido para edição:', error);
+          toast.error('Erro ao carregar pedido para edição.');
+          // Limpar parâmetros da URL em caso de erro
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+      }
+    };
+
+    carregarPedidoParaEdicao();
+  }, []);
+
   const handleNotasChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNotas(event.target.value);
   };
@@ -323,7 +393,7 @@ function RegistarPedido() {
       return;
     }
     
-    const novoPedido = {
+    const dadosPedido = {
       nome_cliente: nomeCliente,
       contacto: contactoCliente || null,
       nota: notas || null,
@@ -334,44 +404,98 @@ function RegistarPedido() {
     };
 
     try {
-      const { data: pedidoInserido, error: erroPedido } = await supabase
-        .from('pedidos')
-        .insert([novoPedido])
-        .select()
-        .single();
+      // Começar transação
+      if (modoEdicao && pedidoOriginalId) {
+        // MODO EDIÇÃO: Anular pedido anterior e criar novo
+        
+        // 1. Anular pedido original
+        const { error: errorAnular } = await supabase
+          .from('pedidos')
+          .update({ estado_validade: 'Anulado' })
+          .eq('id', pedidoOriginalId);
 
-      if (erroPedido) {
-        throw new Error('Erro ao registrar o pedido.');
+        if (errorAnular) {
+          throw new Error('Erro ao anular pedido original.');
+        }
+
+        // 2. Criar novo pedido com dados atualizados
+        const { data: novoPedido, error: errorNovo } = await supabase
+          .from('pedidos')
+          .insert([dadosPedido])
+          .select()
+          .single();
+
+        if (errorNovo) {
+          throw new Error('Erro ao criar pedido atualizado.');
+        }
+
+        // 3. Inserir novos itens
+        const itensPedido = Object.values(itensSelecionados).map(item => ({
+          pedido_id: novoPedido.id,
+          item_id: item.id,
+          quantidade: item.quantidade,
+        }));
+
+        const { error: errorItens } = await supabase
+          .from('pedidos_itens')
+          .insert(itensPedido);
+
+        if (errorItens) {
+          throw new Error('Erro ao registrar itens do pedido atualizado.');
+        }
+
+        toast.success(`Pedido de ${nomeCliente} atualizado com sucesso!`);
+      } else {
+        // MODO NORMAL: Criar novo pedido
+        const { data: pedidoInserido, error: erroPedido } = await supabase
+          .from('pedidos')
+          .insert([dadosPedido])
+          .select()
+          .single();
+
+        if (erroPedido) {
+          throw new Error('Erro ao registrar o pedido.');
+        }
+
+        const itensPedido = Object.values(itensSelecionados).map(item => ({
+          pedido_id: pedidoInserido.id,
+          item_id: item.id,
+          quantidade: item.quantidade,
+        }));
+
+        const { error: erroItens } = await supabase
+          .from('pedidos_itens')
+          .insert(itensPedido);
+
+        if (erroItens) {
+          throw new Error('Erro ao registrar itens do pedido.');
+        }
+
+        toast.success(`Pedido para ${nomeCliente} registado com sucesso!`);
       }
 
-      const itensPedido = Object.values(itensSelecionados).map(item => ({
-        pedido_id: pedidoInserido.id,
-        item_id: item.id,
-        quantidade: item.quantidade,
-      }));
-
-      const { error: erroItens } = await supabase
-        .from('pedidos_itens')
-        .insert(itensPedido);
-
-      if (erroItens) {
-        throw new Error('Erro ao registrar itens do pedido.');
-      }
-
-      toast.success(`Pedido para ${nomeCliente} registado com sucesso!`);
-
-      // Limpar formulário
-      limparTodosPedidos();
-      setNomeCliente('');
-      setContactoCliente('');
-      setNotas('');
-      setOpcaoSelecionada(null);
+      // Limpar formulário e sair do modo edição
+      limparFormulario();
 
     } catch (error) {
-      console.error('Erro ao efetuar pedido:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao registar pedido.';
+      console.error('Erro ao processar pedido:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao processar pedido.';
       toast.error(errorMessage);
     }
+  };
+
+  const limparFormulario = () => {
+    limparTodosPedidos();
+    setNomeCliente('');
+    setContactoCliente('');
+    setNotas('');
+    setOpcaoSelecionada(null);
+    setModoEdicao(false);
+    setPedidoOriginalId(null);
+    setPedidoOriginal(null);
+    
+    // Limpar parâmetros da URL
+    window.history.replaceState({}, '', window.location.pathname);
   };
 
   //Cálculos de paginação (adicionar após o useEffect dos filtros)
@@ -737,14 +861,33 @@ function RegistarPedido() {
         </div>
         
         {/* Botão de Place Order */}
-        <div className='w-full h-20'>
-          <Button
-            onClick={efetuarPedido}
-            variant="botaoadicionar"
-            className="w-full h-12 text-base"
-          >
-            Efetuar Pedido
-          </Button>
+        <div className="w-full h-20 flex items-center justify-between gap-4">
+          {modoEdicao ? (
+            <>
+              <Button
+                onClick={limparFormulario}
+                variant="botaocancelar"
+                className="h-12 w-42 text-base"
+              >
+                Cancelar Pedido
+              </Button>
+              <Button
+                onClick={efetuarPedido}
+                variant="botaoadicionar"
+                className="h-12 w-42 text-base"
+              >
+                Alterar Pedido
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={efetuarPedido}
+              variant="botaoadicionar"
+              className="h-12 text-base w-full"
+            >
+              Efetuar Pedido
+            </Button>
+          )}
         </div>
       </div>
     </div>

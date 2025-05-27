@@ -114,14 +114,11 @@ PEQUENAS ALTERAÇÕES A EFETUAR:
     -> Realizar testes unitários e outros;
     -> Melhorar a velocidade do website;
     -> Esudar a importância e eventual utilização do ZOD neste projeto;
+    -> Introduzir debounce nas barras de pesquisas do projeto - Talvez implementar isso num ficheiro e chamar todas as vezes que se utiliza a barra;
 
 MAJOR ALTERAÇÕES:
     -> REGISTAR PEDIDO;
         - Implementar a função de impressão das senhas;
-        - Verificar div dos filtros e o padding;
-
-    -> ANULAR/ALTERAR PEDIDO;
-        - Fazer o editar - Na base de dados é anulado o pedido e é criado um novo;
 
     -> VER ESTATÍSTICAS;
         - Exportar resumo dos eventos em pdf (AlertDialog do shadcn a perguntar se tem a certeza que quer exportar);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
+import { useRouter } from 'next/navigation';
 
 // Import de Icons
 import { GoSearch } from "react-icons/go";
@@ -67,6 +68,9 @@ function AlterarPedido() {
     data_fim: string | null;
     em_execucao: boolean;
   }>>([]);
+  const router = useRouter();
+  const [mostrarModalEdicao, setMostrarModalEdicao] = useState(false);
+  const [pedidoParaEditar, setPedidoParaEditar] = useState<{id: number, nomeCliente: string} | null>(null);
   
   // Exibir mensagem de erro quando ocorrer
   const MensagemErro = () => {
@@ -181,6 +185,53 @@ function AlterarPedido() {
               disabled={loading}
             >
               {loading ? 'A anular...' : 'Continuar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  };
+
+  //ModalConfirmarEdicao para editar pedido;
+  const ModalConfirmarEdicao = () => {
+    const handleConfirmarEdicao = () => {
+      if (pedidoParaEditar) {
+        router.push(`./registarpedido?editarPedido=${pedidoParaEditar.id}`);
+        setMostrarModalEdicao(false);
+        setPedidoParaEditar(null);
+      }
+    };
+
+    return (
+      <AlertDialog open={mostrarModalEdicao} onOpenChange={setMostrarModalEdicao}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[#032221]">
+              Confirmar Edição de Pedido
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[#032221]/70">
+              Tem certeza que deseja editar o pedido de <strong>{pedidoParaEditar?.nomeCliente}</strong>?
+              <br />
+              <br />
+              O pedido original será anulado e um novo será criado com as alterações.
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              className="border-[#032221]/20 text-[#032221] hover:bg-[#032221]/5 cursor-pointer"
+              onClick={() => {
+                setMostrarModalEdicao(false);
+                setPedidoParaEditar(null);
+              }}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-[#1B4D3E] text-[#FFFDF6] hover:bg-[#1B4D3E] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg"
+              onClick={handleConfirmarEdicao}
+            >
+              Confirmar Edição
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -517,6 +568,10 @@ function AlterarPedido() {
     // Remover: setTodosSelecionados(false);
   }, [filtroValidade]); 
 
+  const confirmarEdicao = (pedidoId: number, nomeCliente: string) => {
+    setPedidoParaEditar({ id: pedidoId, nomeCliente });
+    setMostrarModalEdicao(true);
+  };
 
   return (
     <main className="w-full h-full px-6 py-6 bg-[#eaf2e9] flex flex-col overflow-y-hidden space-y-1">
@@ -687,7 +742,9 @@ function AlterarPedido() {
                 {/* Editar & Eliminar*/}
                 <div className='min-w-10 h-full flex flex-row justify-center items-center space-x-3 p-4'>
                   <div onClick={(e) => e.stopPropagation()}>
-                    <Button variant="darkhover" onClick={() => editarPedido(pedido.id)}>Editar</Button>
+                    <Button variant="darkhover" onClick={() => confirmarEdicao(pedido.id, pedido.nome_cliente)}>
+                      Editar
+                    </Button>
                   </div>
                   <div onClick={(e) => e.stopPropagation()}>
                     <Button 
@@ -785,8 +842,11 @@ function AlterarPedido() {
         )}
       </div>
 
-      {/* Modal de confirmação */}
+      {/* Modal de confirmação para anular */}
       <ModalAnular />
+
+      {/* Modal de confirmação para editar */}
+      <ModalConfirmarEdicao />
     </main>
   );
 }
