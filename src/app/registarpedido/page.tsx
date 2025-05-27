@@ -26,7 +26,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Pagination,
   PaginationContent,
@@ -149,6 +148,24 @@ function RegistarPedido() {
     fetchItens();
   }, []);
 
+  const useDebounce = (value: string, delay: number) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  };
+
+  const debouncedSearch = useDebounce(searchQuery, 300); // 300ms de delay
+
   // Filtrar itens baseado no filtro selecionado e pesquisa
   useEffect(() => {
     let itensFiltrados = itensMenu;
@@ -160,15 +177,15 @@ function RegistarPedido() {
       );
     }
 
-    // Filtrar por pesquisa
-    if (searchQuery) {
+    // Filtrar por pesquisa (usando debouncedSearch em vez de searchQuery)
+    if (debouncedSearch) {
       itensFiltrados = itensFiltrados.filter(item =>
-        item.nome.toLowerCase().includes(searchQuery.toLowerCase())
+        item.nome.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
     setItensFiltrados(itensFiltrados);
-  }, [filtroSelecionado, searchQuery, itensMenu]);
+  }, [filtroSelecionado, debouncedSearch, itensMenu]);
 
  useEffect(() => {
     const fetchEventoEmExecucao = async () => {
@@ -365,7 +382,7 @@ function RegistarPedido() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filtroSelecionado, searchQuery]);
+  }, [filtroSelecionado, debouncedSearch]);
 
   return (
     <div className='flex flex-row w-full h-full'>
