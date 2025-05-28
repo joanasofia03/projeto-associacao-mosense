@@ -17,15 +17,14 @@ import {
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "@/components/ui/sheet"
 import {
   Table,
   TableBody,
@@ -46,10 +45,8 @@ import { ImPrinter } from "react-icons/im";
 import { IoCheckmarkDoneOutline, IoClose, IoChevronDown, IoChevronUp, IoFilter } from 'react-icons/io5';
 import { FcTodoList } from "react-icons/fc";
 import { MdKeyboardArrowUp } from "react-icons/md";
-import { FaCheck } from "react-icons/fa6";
-import { RiDeleteBin6Line } from "react-icons/ri";
+import { IoFilterOutline } from "react-icons/io5";
 import { MdOutlineStoreMallDirectory } from "react-icons/md";
-
 
 function VerEstatisticas() {
   // Estados principais
@@ -58,7 +55,6 @@ function VerEstatisticas() {
   const [pedidosItens, setPedidosItens] = useState<{[key: string]: Array<any>}>({});
   const [filtroValidade, setFiltroValidade] = useState('Todos');
   const [dataAtual, setDataAtual] = useState('');
-  const [filtroAtivo, setFiltroAtivo] = useState("Todos");
   const [idEventoSelecionado, setIdEventoSelecionado] = useState('');
   const [nomeEventoSelecionado, setNomeEventoSelecionado] = useState('');
   const [erro, setErro] = useState<string | null>(null);
@@ -66,6 +62,7 @@ function VerEstatisticas() {
   const [totalFaturado, setTotalFaturado] = useState(0);
   const [termoPesquisa, setTermoPesquisa] = useState(''); // Novo estado para armazenar o termo de pesquisa
   const [totalPedidosConfirmados, setTotalPedidosConfirmados] = useState(0);
+  const [mostrarSheetFiltro, setMostrarSheetFiltro] = useState(false);
   const [totalFaturadoConfirmados, setTotalFaturadoConfirmados] = useState(0);
   const [itensAplicadosNoFiltro, setItensAplicadosNoFiltro] = useState<number[]>([]);
   const [pedidosSelecionados, setPedidosSelecionados] = useState<number[]>([]);
@@ -92,7 +89,6 @@ function VerEstatisticas() {
     imagem_url?: string;
   }>>([]);
   const [itensSelecionados, setItensSelecionados] = useState<number[]>([]);
-  const [mostrarFiltroItens, setMostrarFiltroItens] = useState(false);
 
   // Constantes
   const filtros = ["Todos", "Confirmado", "Anulado"];
@@ -619,7 +615,7 @@ function VerEstatisticas() {
       });
     }
 
-    // Aplicar filtro de itens - AGORA USA itensAplicadosNoFiltro
+    // Aplicar filtro de itens
     if (itensAplicadosNoFiltro.length > 0) {
       pedidosFiltrados = pedidosFiltrados.filter(pedido => {
         const itensPedido = pedidosItens[pedido.id] || [];
@@ -634,11 +630,7 @@ function VerEstatisticas() {
 
     setPedidos(pedidosFiltrados);
     setTotalPedidos(pedidosFiltrados.length);
-  }, [termoPesquisa, pedidosOriginal, filtroValidade, itensAplicadosNoFiltro, pedidosItens]); // Mudou aqui também
-
-  const toggleFiltroItens = () => {
-    setMostrarFiltroItens(!mostrarFiltroItens);
-  };
+  }, [termoPesquisa, pedidosOriginal, filtroValidade, itensAplicadosNoFiltro, pedidosItens]);
 
   const toggleItemSelecionado = (itemId: number) => {
     setItensSelecionados(prev => {
@@ -652,12 +644,11 @@ function VerEstatisticas() {
 
   const limparFiltroItens = () => {
     setItensSelecionados([]);
-    setItensAplicadosNoFiltro([]); // Limpar também os aplicados
+    setItensAplicadosNoFiltro([]);
   };
 
   const aplicarFiltroItens = () => {
-    setItensAplicadosNoFiltro([...itensSelecionados]); // Aplicar os itens selecionados
-    setMostrarFiltroItens(false);
+    setItensAplicadosNoFiltro([...itensSelecionados]);
   };
 
   const formatarEventoSelect = (evento: any) => {
@@ -681,92 +672,6 @@ function VerEstatisticas() {
     return textoEvento;
   };
 
-  //MODAL DA FILTRAGEM DOS PEDIDOS POR ITEM
-  const FiltroItens = () => {
-    if (!mostrarFiltroItens) return null;
-
-    return (
-      <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(234, 242, 233, 0.9)' }}>
-        <div className="bg-[#FFFDF6] rounded-xl shadow-lg w-96 max-h-150 flex flex-col">
-          {/* Cabeçalho */}
-          <div className="flex justify-between items-center p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-[#032221]">Filtrar por Itens</h3>
-            <button 
-              onClick={toggleFiltroItens}
-              className="text-gray-500 hover:text-[#052e2d] cursor-pointer"
-            >
-              <IoClose size={24} />
-            </button>
-          </div>
-
-          {/* Lista de itens */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-2">
-              {todosItens.map(item => (
-                <label 
-                  key={item.id} 
-                  className="flex items-center space-x-4 cursor-pointer hover:bg-[rgba(3,98,76,0.1)] p-2 rounded-lg"
-                >
-                  <input
-                    type="checkbox"
-                    checked={itensSelecionados.includes(item.id)}
-                    onChange={() => toggleItemSelecionado(item.id)}
-                    className="w-4 h-4 text-[#032221] rounded focus:ring-[#032221]"
-                  />
-                  <div className="flex items-center space-x-3 flex-1">
-                    {item.imagem_url ? (
-                      <div className="w-10 h-10 overflow-hidden pt-2">
-                        <Image
-                          src={item.imagem_url}
-                          alt={item.nome}
-                          width={32}
-                          height={32}
-                          className="object-cover rounded-full"
-                          unoptimized={true}
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-[#032221]">🍽️</span>
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <span className="text-lg font-medium text-[#032221] truncate">{item.nome}</span>
-                      <span className="text-xs text-gray-500 ml-2">{item.preco.toFixed(2)}€</span>
-                    </div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Rodapé com botões */}
-          <div className="flex justify-between items-center p-4 border-t border-gray-200">
-            <button
-              onClick={limparFiltroItens}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
-            >
-              Limpar ({itensSelecionados.length})
-            </button>
-            <div className="space-x-2">
-              <button
-                onClick={toggleFiltroItens}
-                className="px-4 py-2 text-sm font-medium text-[#032221] rounded-lg bg-[rgba(3,98,76,0.2)] hover:bg-[rgba(3,98,76,0.3)] transition-transform duration-300 hover:scale-102 cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={aplicarFiltroItens}
-                className="px-4 py-2 text-sm font-medium bg-[#032221] text-[#FFFDF6] rounded-lg hover:bg-[#052e2d] transition-transform duration-300 hover:scale-102 cursor-pointer"
-              >
-                Aplicar Filtro
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // Função para selecionar/desselecionar um pedido
   const togglePedidoSelecionado = (pedidoId: number) => {
@@ -1041,6 +946,142 @@ function VerEstatisticas() {
             <IoClose size={20}/>Anulados
           </Button>
 
+          <div className="border-r py-4 border-[#032221]/20 h-full w-1"></div>
+
+          <Sheet open={mostrarSheetFiltro} onOpenChange={setMostrarSheetFiltro}>
+            <SheetTrigger asChild>
+              <Button variant="dark">
+                <IoFilterOutline size={20}/>
+                {itensAplicadosNoFiltro.length > 0 && (
+                  <span className="ml-1 bg-[#A4B465] text-[#032221] rounded-full px-2 py-1 text-xs font-medium">
+                    {itensAplicadosNoFiltro.length}
+                  </span>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-[#FFFDF6]">
+              <SheetHeader>
+                <SheetTitle className="text-[#032221] text-lg font-medium">Filtrar Pedidos por Itens</SheetTitle>
+                <SheetDescription className="text-[#032221]/70">
+                  Selecione os itens para filtrar os pedidos que os contêm.
+                </SheetDescription>
+              </SheetHeader>
+              
+              <div className="flex flex-col h-200 px-4">
+                {/* Contador de itens selecionados */}
+                <div className="pb-1 border-b text-[#032221]/70">
+                  <p className="text-sm text-[#032221]/70">
+                    {itensSelecionados.length > 0 
+                      ? `${itensSelecionados.length} item(ns) selecionado(s)`
+                      : 'Nenhum item selecionado'
+                    }
+                  </p>
+                  {itensAplicadosNoFiltro.length > 0 && (
+                    <p className="text-xs text-[#84AE92] font-medium mt-1">
+                      Filtro ativo com {itensAplicadosNoFiltro.length} item(ns)
+                    </p>
+                  )}
+                </div>
+
+                {/* Lista de itens */}
+                <div className="flex-1 overflow-y-auto py-2">
+                  <div className="space-y-2">
+                    {todosItens.map(item => {
+                      const estaSelecionado = itensSelecionados.includes(item.id);
+                      const estaAplicado = itensAplicadosNoFiltro.includes(item.id);
+                      
+                      return (
+                        <div 
+                          key={item.id}
+                          className={`flex items-center space-x-4 p-3 rounded-lg cursor-pointer transition-colors ${
+                            estaSelecionado 
+                              ? 'bg-[rgba(3,98,76,0.1)] shadow-md' 
+                              : estaAplicado
+                              ? 'bg-[rgba(164,180,101,0.1)] shadow-md'
+                              : 'hover:bg-gray-50'
+                          }`}
+                          onClick={() => toggleItemSelecionado(item.id)}
+                        >
+                          <Checkbox
+                            checked={estaSelecionado}
+                            onClick={() => toggleItemSelecionado(item.id)}
+                            onCheckedChange={() => toggleItemSelecionado(item.id)}
+                            className="size-5 border-2 border-[#032221] data-[state=checked]:bg-[#032221] data-[state=checked]:border-[#032221] cursor-pointer"
+                          />
+                          
+                          <div className="flex items-center space-x-3 flex-1">
+                            {item.imagem_url ? (
+                              <div className="w-12 h-12 overflow-hidden rounded-full">
+                                <Image
+                                  src={item.imagem_url}
+                                  alt={item.nome}
+                                  width={48}
+                                  height={48}
+                                  className="object-cover w-full h-full"
+                                  unoptimized={true}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                                <span className="text-lg">🍽️</span>
+                              </div>
+                            )}
+                            
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-[#032221] truncate">{item.nome}</h4>
+                              <p className="text-sm text-gray-500">{item.preco.toFixed(2)}€</p>
+                              {estaAplicado && (
+                                <p className="text-xs text-[#84AE92] font-medium">• Filtro ativo</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Footer com botões */}
+                <SheetFooter className="border-t border-gray-200">
+                  <div className="flex flex-col justify-between w-full gap-2">
+                    <div className="flex flex-row justify-between w-full gap-2">
+                      <div className="w-full"> 
+                        <Button
+                          onClick={() => {
+                            limparFiltroItens();
+                          }}
+                          disabled={itensSelecionados.length === 0 && itensAplicadosNoFiltro.length === 0}
+                          className='w-full border border-[#7D0A0A]/30 text-[#7D0A0A] bg-transparent hover:bg-[#7D0A0A]/10 hover:border-[#7D0A0A] cursor-pointer'
+                        >
+                          Limpar Tudo
+                        </Button>
+                      </div>
+                      <div className="w-full"> 
+                        <Button
+                          className='w-full'
+                          variant="botaocancelar"
+                          onClick={() => setMostrarSheetFiltro(false)}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                    <Button
+                      variant="botaoguardar"
+                      onClick={() => {
+                        aplicarFiltroItens();
+                        setMostrarSheetFiltro(false);
+                      }}
+                      disabled={false} // Removido a condição que desabilitava o botão
+                    >
+                      Aplicar Filtro {itensSelecionados.length > 0 && `(${itensSelecionados.length})`}
+                    </Button>
+                  </div>
+                </SheetFooter>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           <Button variant="dark" >
             <FaRegFilePdf size={20}/>
           </Button>
@@ -1086,9 +1127,9 @@ function VerEstatisticas() {
       </div>
 
       {/* Histórico e Estatisticas Globais */}
-      <div className='w-full h-full flex flex-row justify-between items-center gap-2 overflow-y-hidden'>
+      <div className='w-full h-full flex flex-row justify-between items-center gap-4 overflow-y-hidden'>
         {/* Histórico Pedidos - Container com altura fixa e scroll */}
-        <div className="w-full h-full bg-transparent rounded-2xl px-2 flex flex-col overflow-y-auto" 
+        <div className="w-full h-full bg-transparent rounded-2xl flex flex-col overflow-y-auto" 
              style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
              <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
           {pedidos.length > 0 ? (
@@ -1107,11 +1148,11 @@ function VerEstatisticas() {
         </div>
         
         {/* Coluna 2 - Estatísticas */}
-        <div className='min-w-110 h-full flex flex-col jusitfy-between items-center gap-2'>
+        <div className='min-w-110 h-full flex flex-col jusitfy-between items-center gap-4'>
           {/* Estatísticas dos Pedidos */}
-          <div className='bg-[#032221] rounded-xl w-full min-h-32 flex flex-row items-center space-y-2 py-1'>
+          <div className='bg-[#032221] rounded-xl w-full min-h-20 flex flex-row items-center space-y-2 py-1'>
             {/* Total de Pedidos */}
-            <div className='w-full h-20 border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center p-2'>
+            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center p-2'>
               <h1 className='text-[#FFFDF6] font-normal text-xl'>Total de Pedidos</h1>
               <span className='text-[#DDEB9D] font-extralight text-xs'>
                 {nomeEventoSelecionado ? `* ${nomeEventoSelecionado}` : '* Selecione um evento'}
@@ -1192,7 +1233,6 @@ function VerEstatisticas() {
           </div>
         </div>
       </div>
-      <FiltroItens />
     </main>
   );
 }
