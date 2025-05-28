@@ -123,7 +123,6 @@ MAJOR ALTERAÇÕES:
     -> VER ESTATÍSTICAS;
         - Exportar resumo dos eventos em pdf (AlertDialog do shadcn a perguntar se tem a certeza que quer exportar);
         - Imprimir as senhas dos pedidos selecionados com a checkbox;
-        - Utilizar um sheet do shadcn para os filtros por itens;
     
     -> AJUDA - FAQS;
 
