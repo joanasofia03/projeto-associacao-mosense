@@ -6,6 +6,37 @@ import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import Image from 'next/image';
 import '../globals.css'
 
+//Import de Shadcn
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
 // Import de Icons
 import { GoSearch } from "react-icons/go";
 import { MdKeyboardArrowDown } from "react-icons/md";
@@ -14,7 +45,11 @@ import { FaRegFilePdf } from "react-icons/fa6";
 import { ImPrinter } from "react-icons/im";
 import { IoCheckmarkDoneOutline, IoClose, IoChevronDown, IoChevronUp, IoFilter } from 'react-icons/io5';
 import { FcTodoList } from "react-icons/fc";
+import { MdKeyboardArrowUp } from "react-icons/md";
 import { FaCheck } from "react-icons/fa6";
+import { RiDeleteBin6Line } from "react-icons/ri";
+import { MdOutlineStoreMallDirectory } from "react-icons/md";
+
 
 function VerEstatisticas() {
   // Estados principais
@@ -625,6 +660,27 @@ function VerEstatisticas() {
     setMostrarFiltroItens(false);
   };
 
+  const formatarEventoSelect = (evento: any) => {
+    const dataInicio = evento.data_inicio ? 
+      new Date(evento.data_inicio).toLocaleDateString('pt-PT') : '';
+    const dataFim = evento.data_fim ? 
+      new Date(evento.data_fim).toLocaleDateString('pt-PT') : '';
+    
+    let textoEvento = evento.nome;
+    
+    if (dataInicio && dataFim) {
+      textoEvento += ` (${dataInicio} - ${dataFim})`;
+    } else if (dataInicio) {
+      textoEvento += ` (${dataInicio})`;
+    }
+    
+    if (evento.em_execucao) {
+      textoEvento += ' • Em Execução';
+    }
+    
+    return textoEvento;
+  };
+
   //MODAL DA FILTRAGEM DOS PEDIDOS POR ITEM
   const FiltroItens = () => {
     if (!mostrarFiltroItens) return null;
@@ -737,233 +793,211 @@ function VerEstatisticas() {
     }
   };
 
+  
+  //Função para lidar com mudança de filtro de validade
+  const handleFiltroValidadeChange = (novoFiltro: string) => {
+    setFiltroValidade(novoFiltro);
+  };
+
+  //Função para lidar com mudança de evento
+  const handleEventoChange = (eventoId: string) => {
+    setIdEventoSelecionado(eventoId);
+  };
+
   const CardPedido = ({ pedido }: { pedido: any }) => {
     const itens = pedidosItens[pedido.id] || [];
     const [isExpanded, setIsExpanded] = useState(false);
-    const contentRef = useRef<HTMLDivElement>(null);
-    const [contentHeight, setContentHeight] = useState(0);
-    const [showAllItems, setShowAllItems] = useState(false);
-    
-    // Número máximo de itens para mostrar inicialmente
-    const MAX_ITENS_VISIBLE = 3;
     
     // Verificar se o pedido está selecionado
     const estaSelecionado = pedidosSelecionados.includes(pedido.id);
-    
-    // Calcular a altura real do conteúdo quando expande
-    useEffect(() => {
-      if (contentRef.current) {
-        setContentHeight(contentRef.current.scrollHeight);
-      }
-    }, [isExpanded, itens, showAllItems]);
 
     const toggleExpanded = () => {
       setIsExpanded(!isExpanded);
-      if (!isExpanded) {
-        // Reset para mostrar apenas os primeiros itens quando expande o card
-        setShowAllItems(false);
-      }
     };
-    
-    const toggleShowAllItems = (e: React.MouseEvent) => {
-      e.stopPropagation(); // Impedir que o card colapse quando clica no botão
-      setShowAllItems(!showAllItems);
-    };
-    
-    // Formatação de data completa para exibição
-    const formatarDataCompleta = (dateString: string) => {
-      const date = new Date(dateString);
-      
+
+    // Formatação de data para exibição (formato do AlterarPedido)
+    const formatarData = (dataString: string) => {
+      const data = new Date(dataString);
       const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
       const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
       
-      const diaSemana = diasSemana[date.getDay()];
-      const dia = date.getDate();
-      const mes = meses[date.getMonth()];
-      const ano = date.getFullYear();
-      
-      const horas = date.getHours().toString().padStart(2, '0');
-      const minutos = date.getMinutes().toString().padStart(2, '0');
-      
-      return `${diaSemana}, ${dia} ${mes}, ${ano} às ${horas}h${minutos}`;
+      return `${diasSemana[data.getDay()]}, ${data.getDate()} ${meses[data.getMonth()]}, ${data.getFullYear()}`;
     };
-    
-    // Determinar quais itens mostrar com base no estado showAllItems
-    const itensToShow = showAllItems ? itens : itens.slice(0, MAX_ITENS_VISIBLE);
-    const hasMoreItems = itens.length > MAX_ITENS_VISIBLE;
-    
+
+    // Formatação de hora para exibição (formato do AlterarPedido)
+    const formatarHora = (dataString: string) => {
+      const data = new Date(dataString);
+      return `${String(data.getHours()).padStart(2, '0')}:${String(data.getMinutes()).padStart(2, '0')}`;
+    };
+
+    // Função para calcular o total do pedido
+    const calcularTotalPedido = (pedidoId: number) => {
+      const itens = pedidosItens[pedidoId] || [];
+      return itens.reduce((total, item) => {
+        return total + ((item.itens?.preco || 0) * item.quantidade);
+      }, 0).toFixed(2);
+    };
+
+    const toggleSelecaoPedido = (pedidoId: number, checked: boolean) => {
+      if (checked) {
+        setPedidosSelecionados(prev => [...prev, pedidoId]);
+      } else {
+        setPedidosSelecionados(prev => prev.filter(id => id !== pedidoId));
+      }
+    };
+
     return (
-      <div className="relative w-full">
-        {/* Linha vertical de conexão entre cards */}
-        <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-[rgba(3,98,76,0.2)] z-10"></div>
-
-        <div className="w-full bg-[#FFFDF6] rounded-xl shadow-md overflow-hidden mb-4 relative z-10">
-          {/* Header clicável */}
-          <div className={`flex flex-row justify-between items-center p-4 transition-colors ${isExpanded ? 'rounded-t-xl bg-[rgba(3,34,33,1)]' : ''}`}>
-            {/* Checkbox para seleção + Ícone e dados do pedido */}
-            <div className="flex items-center space-x-3">
-              {/* Checkbox */}
-              <div 
-                className="w-6 h-6 flex items-center justify-center cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  togglePedidoSelecionado(pedido.id);
-                }}
-              >
-                <div className={`w-5 h-5 rounded border ${estaSelecionado ? 'bg-[#032221] border-[#032221]' : 'border-gray-400'} flex items-center justify-center`}>
-                  {estaSelecionado && (
-                    <FaCheck className="h-4 w-4 text-white"/>
-                  )}
-                </div>
-              </div>
-              
-              {/* Ícone do pedido */}
-              <div className="flex items-center justify-center">
-                <FcTodoList size={32} className="text-[#FFFDF6]"/>
-              </div>
-              
-              <div 
-                className={'flex flex-col cursor-pointer'}
-                onClick={toggleExpanded}
-              >
-                <h3 className={`font-semibold text-[#032221] text-base ${isExpanded ? 'text-[#FFFDF6]' : ''}`}>
-                  Pedido #{pedido.numero_diario} - {pedido.nome_cliente}
-                </h3>
-                <span className={`font-normal text-xs text-gray-500 ${isExpanded ? 'text-white' : ''}`}>
-                  {formatarDataCompleta(pedido.criado_em)}
-                </span>
-              </div>
+      <div className='w-full mt-2 flex flex-col rounded-2xl bg-[#FFFDF6] shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
+        {/* Linha principal do pedido - CLICÁVEL */}
+        <div 
+          className='w-full min-h-24 flex flex-row justify-between items-center cursor-pointer hover:bg-gray-50 rounded-2xl transition-colors'
+          onClick={toggleExpanded}
+        >
+          {/* Checkbox, icon, título e data*/}
+          <div className='min-w-10 h-full flex flex-row justify-between items-center space-x-3 p-4'>
+            <div onClick={(e) => e.stopPropagation()}>
+              <Checkbox 
+                className="size-5 border-2 border-[#032221] data-[state=checked]:bg-[#032221] data-[state=checked]:border-[#032221]"
+                checked={estaSelecionado}
+                onCheckedChange={(checked) => toggleSelecaoPedido(pedido.id, checked as boolean)}
+                disabled={pedido.estado_validade === 'Anulado'}
+              />
             </div>
-            
-            <div className="flex flex-row items-center gap-4">
-              {/* Coluna com estado e contacto */}
-              <div className="flex flex-col items-end">
-                {/* Estado do Pedido */}
-                <div className='flex items-center gap-1 py-1 px-2 rounded-lg'>
-                  {pedido.estado_validade === 'Confirmado' ? (
-                    <IoCheckmarkDoneOutline size={14} className="text-[#A4B465]"/>
-                  ) : (
-                    <IoClose size={14} className="text-[#FF6347]"/>
-                  )}
-                  <span className={`text-sm font-medium ${
-                    pedido.estado_validade === 'Confirmado' ? 'text-[#A4B465]' : 'text-[#FF6347]'
-                  }`}>{pedido.estado_validade}</span>
-                </div>
-                
-                {/* Contato e tipo de pedido */}
-                <span className={`text-xs text-gray-500 mt-1 ${isExpanded ? 'text-white' : ''}`}>
-                  {pedido.contacto || 'N/A'} / {pedido.tipo_de_pedido}
-                </span>
-              </div>
-
-              {/* Ícone de expandir/recolher */}
-              <div 
-                className="text-[#032221] cursor-pointer"
-                onClick={toggleExpanded}
-              >
-                {isExpanded ? <IoChevronUp size={20} className='text-white' /> : <IoChevronDown size={20} className='text-[#032221]'/>}
-              </div>
+            <FcTodoList size={36} className="text-[#FFFDF6]" />
+            <div className='flex flex-col justify-between items-start'>
+              <h3 className='font-semibold text-[#032221] text-base'>
+                Pedido #{pedido.numero_diario || 'N/A'} - {pedido.nome_cliente || 'Cliente não informado'}
+              </h3>
+              <span className='font-normal text-sm text-gray-500'>
+                {pedido.criado_em ? formatarData(pedido.criado_em) + ' às ' + formatarHora(pedido.criado_em) : 'Data não disponível'}
+              </span>
             </div>
           </div>
-          
-          {/* Conteúdo expansível com altura dinâmica */}
-          <div 
-            className="overflow-hidden transition-all duration-300 ease-in-out"
-            style={{ 
-              maxHeight: isExpanded ? `${contentHeight}px` : '0px',
-              opacity: isExpanded ? 1 : 0
-            }}
-          >
-            <div ref={contentRef} className="px-4 pb-4">
-              {/* Informações adicionais: evento, notas e criador */}
-              <div className="mb-4 grid grid-cols-3 gap-4 pt-3">
-                <div className="flex flex-col">
-                  <span className="text-[#032221] font-semibold text-sm">Evento:</span>
-                  <span className="text-gray-600 text-sm">{pedido.eventoNome || nomeEventoSelecionado}</span>
-                </div>
-                
-                <div className="flex flex-col">
-                  <span className="text-[#032221] font-semibold text-sm">Notas:</span>
-                  <span className="text-gray-600 text-sm truncate">{pedido.nota || 'Nenhuma nota'}</span>
-                </div>
-                
-                <div className="flex flex-col">
-                  <span className="text-[#032221] font-semibold text-sm">Criado por:</span>
-                  <span className="text-gray-600 text-sm">{pedido.profiles.nome || 'Sistema'}</span>
-                </div>
-              </div>
-              
-              {/* Cabeçalho da tabela de itens */}
-              <div className="w-full grid grid-cols-12 gap-2 text-xs text-gray-500 mt-2 mb-2 border-t border-[#A1A3A3] pt-3">
-                <span className="col-span-7">Itens</span>
-                <span className="col-span-2 text-center">Qty</span>
-                <span className="col-span-3 text-right">Preço</span>
-              </div>
-              
-              {/* Lista de itens - agora com limitação de itens visíveis */}
-              <div className="space-y-2 border-b border-[#A1A3A3] pb-3">
-                {itens.length > 0 ? (
-                  <>
-                    {itensToShow.map((item, index) => (
-                      <div
-                        key={item.id}
-                        className={`w-full grid grid-cols-12 gap-2 py-1`}
-                      >
-                        <span className="text-gray-700 font-medium text-sm col-span-7 truncate">
-                          {item.itens?.nome || 'Item não disponível'}
-                        </span>
-                        <span className="text-gray-700 font-medium text-sm col-span-2 text-center">
-                          {item.quantidade}
-                        </span>
-                        <span className="text-gray-700 font-medium text-sm col-span-3 text-right">
-                          {((item.itens?.preco || 0) * item.quantidade).toFixed(2)}€
-                        </span>
-                      </div>
-                    ))}
 
-                    {/* Botão para ver mais/menos itens */}
-                    {hasMoreItems && (
-                      <div className="w-full flex justify-center mt-2">
-                        <button 
-                          onClick={toggleShowAllItems}
-                          className="px-4 py-1 text-sm text-[#032221] bg-[rgba(3,98,76,0.1)] hover:bg-[rgba(3,98,76,0.2)] rounded-full transition-colors duration-200"
-                        >
-                          {showAllItems 
-                            ? `Ver menos itens` 
-                            : `+ ${itens.length - MAX_ITENS_VISIBLE} itens`}
-                        </button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-2 text-gray-500">Nenhum item neste pedido</div>
-                )}
-              </div>
+          {/* Estado, contacto e tipo de pedido*/}
+          <div className='min-w-10 h-full flex flex-col justify-center items-center'>
+            <span className={`flex flex-row items-center space-x-2 ${
+              pedido.estado_validade === 'Confirmado' ? 'text-[#A4B465]' : 'text-red-500'
+            }`}>
+              {pedido.estado_validade === 'Confirmado' ? 
+                <IoCheckmarkDoneOutline size={14} /> : 
+                <IoClose size={14} />
+              }
+              {pedido.estado_validade || 'N/A'}
+            </span>
+            <span className='text-sm text-gray-500'>
+              {pedido.contacto || 'N/A'} / {pedido.tipo_de_pedido || 'N/A'}
+            </span>
+          </div>
 
-              {/* Total */}
-              <div className="pt-3 flex justify-between items-center">
-                <span className="font-bold text-[#032221]">Total</span>
-                <span className="font-bold text-[#032221] text-lg">{calcularTotalPedido(pedido.id)}€</span>
-              </div>
-            </div>
+          {/* Evento e Criado por*/}
+          <div className='min-w-10 h-full flex flex-col justify-center items-center'>
+            <span className='text-[#032221] font-semibold text-sm'>Evento: {nomeEventoSelecionado}</span>
+            <span className='text-gray-500 font-medium text-sm'>
+              Criado Por: {pedido.profiles?.nome || 'N/A'}
+            </span>
+          </div>
+
+          {/* Seta de expansão */}
+          <div className='min-w-10 h-full flex flex-row justify-center items-center space-x-3 p-4'>
+            {isExpanded ? (
+              <MdKeyboardArrowUp 
+                size={20} 
+                className='text-[#032221] hover:text-[#A4B465] transition-colors'
+              />
+            ) : (
+              <MdKeyboardArrowDown 
+                size={20} 
+                className='text-[#032221] hover:text-[#A4B465] transition-colors'
+              />
+            )}
           </div>
         </div>
+        
+        {/* Seção expandida com detalhes dos itens */}
+        {isExpanded && (
+          <div className='w-full px-6 pb-4 border-t border-gray-200'>
+            <div className='mt-4'>
+              <h4 className='font-normal text-sm text-gray-500 mb-2 px-2'>
+                <b className='text-[#032221]'>Notas:</b> {pedido.nota || 'Sem Informações'}
+              </h4>
+              {itens && itens.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[60px]">Imagem</TableHead>
+                      <TableHead>Item</TableHead>
+                      <TableHead className="text-center w-[100px]">Quantidade</TableHead>
+                      <TableHead className="text-right w-[100px]">Preço Unit.</TableHead>
+                      <TableHead className="text-right w-[80px]">IVA (%)</TableHead>
+                      <TableHead className="text-right w-[100px]">Subtotal</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {itens.map((item, itemIndex) => (
+                      <TableRow key={itemIndex}>
+                        <TableCell>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage 
+                              src={item.itens?.imagem_url || `/api/placeholder/32/32`} 
+                              alt={item.itens?.nome || 'Item'} 
+                            />
+                            <AvatarFallback className="bg-[#032221] text-[#FFFDF6] text-xs">
+                              {(item.itens?.nome || 'IT').substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TableCell>
+                        <TableCell className="text-[#032221]">
+                          {item.itens?.nome || 'Item não encontrado'}
+                        </TableCell>
+                        <TableCell className="text-center text-[#032221]">
+                          {item.quantidade}
+                        </TableCell>
+                        <TableCell className="text-right text-[#032221]">
+                          €{(item.itens?.preco || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right text-[#032221]">
+                          {item.itens?.IVA || 23}%
+                        </TableCell>
+                        <TableCell className="text-right text-[#032221] font-medium">
+                          €{((item.itens?.preco || 0) * item.quantidade).toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-right font-bold text-[#032221] text-lg">
+                        Total:
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-[#032221] text-lg">
+                        €{calcularTotalPedido(pedido.id)}
+                      </TableCell>
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+              ) : (
+                <p className='text-gray-500'>Nenhum item encontrado para este pedido.</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
 
   return (
-    <main className="w-full h-full px-6 py-6 bg-[#eaf2e9] flex flex-col overflow-y-hidden">
+    <main className="w-full h-full p-6 bg-[#eaf2e9] flex flex-col justify-between items-center gap-2 overflow-y-hidden">
       {/* Componente de erro (será exibido somente quando houver erro) */}
       {erro && <MensagemErro />}
       {/* Primeira linha */}
-      <div className='w-full min-h-12 flex flex-1 flex-row justify-between items-center gap-2'>
+      <div className='w-full min-h-12 flex flex-row justify-between items-center gap-2'>
         {/* Título da Página */}
         <div className='min-w-116 min-h-15 flex items-center justify-start pl-2'>
-          <h1 className='font-bold text-2xl text-[#032221]'>Histórico & Estatísticas de Pedidos</h1>
+          <h1 className='font-bold text-2xl text-[#032221]'>Gerir Pedidos - Edição ou Exclusão</h1>
         </div>
 
-        {/* Search Bar - Agora com funcionalidade */}
+        {/* Search Bar */}
         <div className='h-10 p-4 mr-4 flex justify-between gap-1 items-center bg-[#FFFDF6] w-full rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]'>
           <GoSearch size={20}/>
           <input
@@ -982,100 +1016,102 @@ function VerEstatisticas() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Segunda Linha */}
+      <div className='w-full min-h-12 flex flex-row justify-between items-center'>
+        {/* Botões */}
+        <div className='space-x-4 flex flex-row items-center'>
+          <Button 
+            variant={filtroValidade === 'Todos' ? 'darkselecionado' : 'dark'}
+            onClick={() => handleFiltroValidadeChange('Todos')}
+          >
+            <MdOutlineStoreMallDirectory size={20}/>Todos
+          </Button>
+          <Button 
+            variant={filtroValidade === 'Confirmado' ? 'confirmarselecionado' : 'confirmar'}
+            onClick={() => handleFiltroValidadeChange('Confirmado')}
+          >
+            <IoCheckmarkDoneOutline size={20}/>Confirmados
+          </Button>
+          <Button 
+            variant={filtroValidade === 'Anulado' ? 'anularselecionado' : 'anular'}
+            onClick={() => handleFiltroValidadeChange('Anulado')}
+          >
+            <IoClose size={20}/>Anulados
+          </Button>
+
+          <Button variant="dark" >
+            <FaRegFilePdf size={20}/>
+          </Button>
+
+          <Button variant="dark" >
+            <ImPrinter size={20}/>
+          </Button>
+        </div>
+
+        {/* Evento */}
+        <div>
+          <Select value={idEventoSelecionado} onValueChange={handleEventoChange}>
+            <SelectTrigger className="w-[480px] bg-[#032221] text-[#FFFDF6] cursor-pointer [&_svg]:text-[#FFFDF6] data-[placeholder]:text-[#FFFDF6]">
+              <SelectValue 
+                className="text-[#FFFDF6] placeholder:text-[#FFFDF6]" 
+                placeholder="Selecionar Evento"
+              />
+            </SelectTrigger>
+            <SelectContent className='bg-[#032221] text-[#FFFDF6] max-h-60'>
+              {eventos.length === 0 ? (
+                <SelectItem value="sem-eventos" disabled>
+                  Nenhum evento disponível
+                </SelectItem>
+              ) : (
+                eventos.map((evento) => (
+                  <SelectItem 
+                    key={evento.id} 
+                    value={evento.id.toString()}
+                    className="text-[#FFFDF6] hover:bg-[#1a4443] cursor-pointer"
+                  >
+                    {formatarEventoSelect(evento)}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Data Atual */}
-        <div className='min-w-110 min-h-15 flex items-center justify-center'>
+        <div className='min-h-15 flex items-center justify-center'>
           <h1 className='font-light text-2xl text-[#032221]'>{dataAtual}</h1>
         </div>
       </div>
 
-      {/* Filtro e Estatisticas Globais */}
-      <div className='flex w-full h-full gap-4 mt-2'>
-        {/* Coluna 1 - Filtros e Histórico de Pedidos */}
-        <div className='w-full h-full flex flex-col gap-2'>
-          {/* Filtros */}
-          <div className='w-full h-12 flex flex-row justify-between items-center px-2 gap-4'>
-            <div className='flex flex-row w-110 h-full justify-between items-center'>
-              {filtros.map((filtro) => (
-                <button
-                  key={filtro}
-                  onClick={() => {
-                    setFiltroValidade(filtro);
-                    setFiltroAtivo(filtro);
-                  }}
-                  className={`w-30 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer
-                    ${
-                      filtroAtivo === filtro
-                        ? 'bg-[#032221] text-[#FFFDF6]'
-                        : 'bg-[#FFFDF6] text-[#032221] hover:bg-[#dce6e7]'
-                    }`}
-                >
-                  {filtro}
-                </button>
-              ))}
-              <button 
-                onClick={toggleFiltroItens}
-                className={`w-10 flex justify-center items-center px-3 py-2 text-sm font-semibold rounded-lg ease-in-out duration-200 
-                            shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer
-                            ${itensAplicadosNoFiltro.length > 0 
-                              ? 'bg-[#032221] text-[#FFFDF6]' 
-                              : 'bg-[#FFFDF6] text-[#032221] hover:bg-[#dce6e7]'
-                            }`}
-              >
-                <IoFilter size={20}/>
-                {itensAplicadosNoFiltro.length > 0 && (
-                  <span className="absolute bg-[#DDEB9D] text-[#032221] text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {itensAplicadosNoFiltro.length}
-                  </span>
-                )}
-              </button>
+      {/* Histórico e Estatisticas Globais */}
+      <div className='w-full h-full flex flex-row justify-between items-center gap-2 overflow-y-hidden'>
+        {/* Histórico Pedidos - Container com altura fixa e scroll */}
+        <div className="w-full h-full bg-transparent rounded-2xl px-2 flex flex-col overflow-y-auto" 
+             style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+             <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
+          {pedidos.length > 0 ? (
+            pedidos.map((pedido: any) => (
+              <CardPedido key={pedido.id} pedido={pedido} />
+            ))
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-[#032221] font-medium text-lg">
+                {idEventoSelecionado 
+                  ? 'Nenhum pedido encontrado para os filtros aplicados.' 
+                  : 'Selecione um evento para visualizar os pedidos.'}
+              </p>
             </div>
-
-            {/* SELECIONAR EVENTO */}
-            <div className="relative flex flex-row items-center gap-4 mr-1">
-              <label className="text-md font-semibold text-[#032221]">Selecionar Evento:</label>
-              <select
-                value={idEventoSelecionado}
-                onChange={(e) => setIdEventoSelecionado(e.target.value)}
-                className="bg-[#032221] text-[#FFFDF6] hover:bg-[#052e2d] focus:ring-0 focus:outline-none appearance-none font-semibold rounded-lg px-18 py-2 text-sm border-none outline-none cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.1)]"
-              >
-                <option value="" disabled hidden>Selecione...</option>
-                {eventos.map((evento) => (
-                  <option key={evento.id} value={evento.id}>
-                    {evento.nome}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#FFFDF6] mr-28">
-                <MdKeyboardArrowDown size={5} className='fill-current h-4 w-4'/>
-              </div>
-              <button className='w-10 flex justify-center items-center px-3 py-2 text-sm font-semibold bg-[#FFFDF6] text-[#032221] rounded-lg ease-in-out duration-200 
-                              hover:bg-[#dce6e7] shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer'>
-                <FaRegFilePdf size={20}/>
-              </button>
-              <button className='w-10 flex justify-center items-center px-3 py-2 text-sm font-semibold bg-[#FFFDF6] text-[#032221] rounded-lg ease-in-out duration-200 
-                              hover:bg-[#dce6e7] shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1 cursor-pointer'>
-                <ImPrinter size={20}/>
-              </button>
-            </div>
-          </div> 
-
-          {/* Histórico Pedidos - Agora mostrando resultados filtrados */}
-            <div className="w-full bg-transparent rounded-2xl p-2 overflow-auto flex flex-col mb-13" 
-              style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-            <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
-              {pedidos.map((pedido: any) => (
-                <CardPedido key={pedido.id} pedido={pedido} />
-              ))}
-          </div>
+          )}
         </div>
-
+        
         {/* Coluna 2 - Estatísticas */}
-        <div className='min-w-110 h-full flex flex-1 flex-col gap-4'>
-          {/* Estatísticas dos Pedidos - Agora atualizadas com a pesquisa */}
-          <div className='w-full h-40 flex flex-row bg-[#032221] rounded-xl'>
+        <div className='min-w-110 h-full flex flex-col jusitfy-between items-center gap-2'>
+          {/* Estatísticas dos Pedidos */}
+          <div className='bg-[#032221] rounded-xl w-full min-h-32 flex flex-row items-center space-y-2 py-1'>
             {/* Total de Pedidos */}
-            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center'>
+            <div className='w-full h-20 border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center p-2'>
               <h1 className='text-[#FFFDF6] font-normal text-xl'>Total de Pedidos</h1>
               <span className='text-[#DDEB9D] font-extralight text-xs'>
                 {nomeEventoSelecionado ? `* ${nomeEventoSelecionado}` : '* Selecione um evento'}
@@ -1083,7 +1119,7 @@ function VerEstatisticas() {
               <h1 className='text-[#FFFDF6] font-bold text-4xl py-2'>{totalPedidosConfirmados}</h1>
             </div>
             {/* Total Faturado */}
-            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center'>
+            <div className='w-full h-full border-r-1 border-[rgba(241,246,247,0.2)] flex flex-col justify-center items-center p-2'>
               <h1 className='text-[#FFFDF6] font-normal text-xl'>Total Faturado</h1>
               <span className='text-[#DDEB9D] font-extralight text-xs'>
                 {nomeEventoSelecionado ? `* ${nomeEventoSelecionado}` : '* Selecione um evento'}
@@ -1093,7 +1129,7 @@ function VerEstatisticas() {
           </div>
 
           {/* Pratos Populares */}
-          <div className='w-full h-full bg-[#FFFDF6] rounded-2xl flex flex-col pt-2 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] mb-13'>
+          <div className="w-full h-full flex-1 bg-[#FFFDF6] rounded-2xl flex flex-col pt-2 shadow-[1px_1px_3px_rgba(3,34,33,0.2)] overflow-y-auto">
             {/* Título */}
             <div className='w-full h-10 flex flex-row justify-between items-center px-3 py-4'>
               <h1 className='font-semibold text-2xl text-[#032221]'>Pratos Populares</h1>
@@ -1107,8 +1143,8 @@ function VerEstatisticas() {
             </div>
 
             {/* Exibição de Itens */}
-            <div className='w-full h-150 flex flex-col px-2 overflow-y-auto' style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style> {/* Permite que haja scroll sem estar visivel a scroll bar */}
+            <div className='w-full h-full flex-1 flex flex-col px-2 mb-4 overflow-y-auto' style={{scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <style jsx>{`div::-webkit-scrollbar {display: none;}`}</style>
               {pratosPopulares.length > 0 ? (
                 pratosPopulares.map((item, index) => (
                   <div key={item.id} className='flex flex-row justify-around items-center border-b-1 border-[rgba(32,41,55,0.1)] py-2'>
@@ -1117,24 +1153,24 @@ function VerEstatisticas() {
                         {String(index + 1).padStart(2, '0')}
                       </span>
                     </div>
-                      <div className="relative w-35 h-full rounded-full overflow-hidden flex items-center justify-center">
-                        {item.imagem_url ? (
-                          <Image
-                            src={item.imagem_url}
-                            alt={item.nome}
-                            fill
-                            className="object-cover rounded-full"
-                            unoptimized={true} // Importante para URLs externas
-                          />
-                        ) : (
-                          <Image
-                            src="/CaldoVerde.jpg"
-                            alt={item.nome}
-                            fill
-                            className="object-cover rounded-full"
-                          />
-                        )}
-                      </div>
+                    <div className="relative w-35 h-full rounded-full overflow-hidden flex items-center justify-center">
+                      {item.imagem_url ? (
+                        <Image
+                          src={item.imagem_url}
+                          alt={item.nome}
+                          fill
+                          className="object-cover rounded-full"
+                          unoptimized={true}
+                        />
+                      ) : (
+                        <Image
+                          src="/CaldoVerde.jpg"
+                          alt={item.nome}
+                          fill
+                          className="object-cover rounded-full"
+                        />
+                      )}
+                    </div>
                     <div className='w-full h-full flex flex-col items-start justify-center pl-7'>
                       <h1 className='font-semibold text-lg text-[#032221]'>{item.nome}</h1>
                       <span className='font-light text-base text-gray-600'>
@@ -1144,7 +1180,7 @@ function VerEstatisticas() {
                   </div>
                 ))
               ) : (
-                <div className='col-span-8 flex justify-center items-center p-4'>
+                <div className='flex justify-center items-center p-4 flex-1'>
                   <p className='text-[#032221] font-medium text-lg'>
                     {idEventoSelecionado 
                       ? 'Nenhum item encontrado para este evento.' 
