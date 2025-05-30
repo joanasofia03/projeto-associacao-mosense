@@ -551,13 +551,6 @@ function VerEstatisticas() {
     }
   }, [idEventoSelecionado, eventos]);
 
-  // Função para calcular o total do pedido
-  const calcularTotalPedido = (pedidoId: number) => {
-    const itens = pedidosItens[pedidoId] || [];
-    return itens.reduce((total, item) => {
-      return total + ((item.itens?.preco || 0) * item.quantidade);
-    }, 0).toFixed(2);
-  };
 
   const fetchTodosItens = async () => {
     try {
