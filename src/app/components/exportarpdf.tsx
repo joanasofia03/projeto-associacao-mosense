@@ -69,7 +69,7 @@ const MyDocument = ({ nomeEvento, data_inicio, data_fim }: { nomeEvento: string;
       <View>
         <View style={{ flexDirection: 'row', gap: 20 }}>
           <Image
-            src="https://vmbqxeaccwcomeuwltwp.supabase.co/storage/v1/object/sign/imagens/Os%20Mosenses%20Logo%20Reduzido.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzhlYmVmN2Q5LTcxMzMtNDE2Yy04MDZhLWRhMDA2NmFhNDVjYSJ9.eyJ1cmwiOiJpbWFnZW5zL09zIE1vc2Vuc2VzIExvZ28gUmVkdXppZG8ucG5nIiwiaWF0IjoxNzQ4NjE5NzM2LCJleHAiOjE5MDYyOTk3MzZ9.SJL72Q4VwjJ3uZlon34a7NC4uxkCqN31PHoDM5ETUk4"
+            src="https://vmbqxeaccwcomeuwltwp.supabase.co/storage/v1/object/public/imagenspublicas//Os%20Mosenses%20Logo%20Reduzido.png"
             style={styles.logo}
           />
           <View>
