@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import Image from 'next/image';
 import '../globals.css'
+import React from 'react';
+import PDFGenerator from '../components/exportarpdf';
 
 //Import de Shadcn
 import { Button } from "@/components/ui/button";
@@ -40,9 +42,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { GoSearch } from "react-icons/go";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { TbChartBarPopular } from "react-icons/tb";
-import { FaRegFilePdf } from "react-icons/fa6";
 import { ImPrinter } from "react-icons/im";
-import { IoCheckmarkDoneOutline, IoClose, IoChevronDown, IoChevronUp, IoFilter } from 'react-icons/io5';
+import { IoCheckmarkDoneOutline, IoClose } from 'react-icons/io5';
 import { FcTodoList } from "react-icons/fc";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { IoFilterOutline } from "react-icons/io5";
@@ -89,9 +90,6 @@ function VerEstatisticas() {
     imagem_url?: string;
   }>>([]);
   const [itensSelecionados, setItensSelecionados] = useState<number[]>([]);
-
-  // Constantes
-  const filtros = ["Todos", "Confirmado", "Anulado"];
   
   // Exibir mensagem de erro quando ocorrer
   const MensagemErro = () => {
@@ -1082,9 +1080,7 @@ function VerEstatisticas() {
             </SheetContent>
           </Sheet>
 
-          <Button variant="dark" >
-            <FaRegFilePdf size={20}/>
-          </Button>
+          <PDFGenerator />
 
           <Button variant="dark" >
             <ImPrinter size={20}/>
