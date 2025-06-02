@@ -62,6 +62,11 @@ const styles = StyleSheet.create({
     color: '#032221',
     fontWeight: 'bold'
   },
+  statisticsLabel2: {
+    fontSize: 12,
+    color: '#2A4759',
+    fontWeight: 'medium'
+  },
   statisticsValue: {
     fontSize: 12,
     color: '#032221'
@@ -82,6 +87,7 @@ interface ItemPedido {
   quantidade: number;
   itens: {
     preco: number;
+    IVA: number;
   };
 }
 
@@ -102,9 +108,11 @@ interface Statistics {
   pedidosConfirmados: number;
   pedidosAnulados: number;
   totalFaturado: number;
+  subtotal: number;
+  totalIVA: number;
 }
 
-// Função otimizada para buscar evento
+//Função otimizada para buscar evento;
 const fetchEventoEmExecucao = async (): Promise<EventData | null> => {
   try {
     // Verificar cache
@@ -187,13 +195,15 @@ const fetchPerfilUsuario = async (): Promise<UserProfile | null> => {
   }
 };
 
-// Função otimizada para buscar estatísticas
+//Função otimizada para buscar estatísticas
 const fetchEstatisticasPedidos = async (eventoId: string): Promise<Statistics> => {
   const defaultStats: Statistics = {
     totalPedidos: 0,
     pedidosConfirmados: 0,
     pedidosAnulados: 0,
-    totalFaturado: 0
+    totalFaturado: 0,
+    subtotal: 0,
+    totalIVA: 0
   };
 
   try {
@@ -202,7 +212,7 @@ const fetchEstatisticasPedidos = async (eventoId: string): Promise<Statistics> =
       return defaultStats;
     }
 
-    // Query otimizada: buscar pedidos e itens em uma única consulta quando possível
+    //Query otimizada: buscar pedidos e itens em uma única consulta quando possível
     const { data: pedidosData, error: pedidosError } = await supabase
       .from('pedidos')
       .select('id, estado_validade')
@@ -225,34 +235,45 @@ const fetchEstatisticasPedidos = async (eventoId: string): Promise<Statistics> =
     const pedidosConfirmadosCount = pedidosConfirmados.length;
     const pedidosAnuladosCount = pedidosAnulados.length;
 
-    let totalFaturado = 0;
+    let subtotal = 0;
+    let totalIVA = 0;
 
     if (pedidosConfirmadosCount > 0) {
       const pedidosConfirmadosIds = pedidosConfirmados.map(p => p.id);
 
-      // Query otimizada para calcular total faturado
+      // Query otimizada para calcular total faturado incluindo IVA
       const { data: itensData, error: itensError } = await supabase
         .from('pedidos_itens')
-        .select('quantidade, itens!inner(preco)')
+        .select('quantidade, itens!inner(preco, IVA)')
         .in('pedido_id', pedidosConfirmadosIds);
 
       if (itensError) {
         console.error('Erro ao buscar itens dos pedidos:', itensError);
       } else if (itensData) {
-        // Cálculo otimizado do total faturado
-        totalFaturado = itensData.reduce((total, item: any) => {
+        // Cálculo otimizado do subtotal e IVA
+        itensData.forEach((item: any) => {
           const quantidade = Number(item?.quantidade) || 0;
           const preco = Number(item?.itens?.preco) || 0;
-          return total + (quantidade * preco);
-        }, 0);
+          const ivaPercentage = Number(item?.itens?.IVA) || 0;
+          
+          const subtotalItem = quantidade * (preco-preco*(ivaPercentage / 100));
+          const ivaItem = quantidade * (preco*(ivaPercentage / 100));
+          
+          subtotal += subtotalItem;
+          totalIVA += ivaItem;
+        });
       }
     }
+
+    const totalFaturado = subtotal + totalIVA;
 
     return {
       totalPedidos,
       pedidosConfirmados: pedidosConfirmadosCount,
       pedidosAnulados: pedidosAnuladosCount,
-      totalFaturado
+      totalFaturado,
+      subtotal,
+      totalIVA
     };
 
   } catch (error) {
@@ -270,14 +291,17 @@ const formatDateString = (dateString: string): string => {
   }
 };
 
-// Função utilitária memoizada para data atual
-const getCurrentDateFormatted = (): string => {
+// Função utilitária memoizada para data e hora atual
+const getCurrentDateTimeFormatted = (): string => {
   const data = new Date();
   const dia = data.toLocaleDateString('pt-PT', { day: '2-digit' });
   const mes = data.toLocaleDateString('pt-PT', { month: 'long' });
   const mesCapitalizado = mes.charAt(0).toUpperCase() + mes.slice(1);
   const ano = data.toLocaleDateString('pt-PT', { year: 'numeric' });
-  return `${dia} ${mesCapitalizado}, ${ano}`;
+  const horas = data.getHours().toString().padStart(2, '0');
+  const minutos = data.getMinutes().toString().padStart(2, '0');
+  
+  return `${dia} de ${mesCapitalizado}, ${ano} às ${horas}h${minutos}`;
 };
 
 // Componente do documento PDF otimizado
@@ -297,7 +321,7 @@ const MyDocument = ({
   estatisticas: Statistics;
 }) => {
   // Memoizar a data atual para evitar recálculos
-  const currentDate = useMemo(() => getCurrentDateFormatted(), []);
+  const currentDateTime = useMemo(() => getCurrentDateTimeFormatted(), []);
   
   return (
     <Document>
@@ -318,7 +342,7 @@ const MyDocument = ({
           </View>
           
           <Text style={[styles.text, { marginTop: 20 }]}>
-            Emitido em: {currentDate}
+            Emitido em: {currentDateTime}
           </Text>
           
           <View style={{ marginTop: 10 }}>
@@ -340,16 +364,26 @@ const MyDocument = ({
             </View>
             
             <View style={styles.statisticsRow}>
-              <Text style={styles.statisticsLabel}>Pedidos Confirmados:</Text>
+              <Text style={styles.statisticsLabel2}>Pedidos Confirmados:</Text>
               <Text style={styles.statisticsValue}>{estatisticas.pedidosConfirmados}</Text>
             </View>
             
             <View style={styles.statisticsRow}>
-              <Text style={styles.statisticsLabel}>Pedidos Anulados:</Text>
+              <Text style={styles.statisticsLabel2}>Pedidos Anulados:</Text>
               <Text style={styles.statisticsValue}>{estatisticas.pedidosAnulados}</Text>
             </View>
+
+            <View style={[styles.statisticsRow, { borderTop: '1px solid #032221', paddingTop: 8, color: '#879191'}]}>
+              <Text style={styles.statisticsLabel2}>Subtotal (sem IVA):</Text>
+              <Text style={styles.statisticsValue}>{estatisticas.subtotal.toFixed(2)}€</Text>
+            </View>
             
-            <View style={[styles.statisticsRow, { borderTop: '1px solid #032221', paddingTop: 8, marginTop: 8 }]}>
+            <View style={styles.statisticsRow}>
+              <Text style={styles.statisticsLabel2}>Total IVA:</Text>
+              <Text style={styles.statisticsValue}>{estatisticas.totalIVA.toFixed(2)}€</Text>
+            </View>
+
+            <View style={styles.statisticsRow}>
               <Text style={styles.statisticsLabel}>Total Faturado:</Text>
               <Text style={styles.statisticsValue}>{estatisticas.totalFaturado.toFixed(2)}€</Text>
             </View>
@@ -373,7 +407,9 @@ const PDFGenerator = () => {
       totalPedidos: 0,
       pedidosConfirmados: 0,
       pedidosAnulados: 0,
-      totalFaturado: 0
+      totalFaturado: 0,
+      subtotal: 0,
+      totalIVA: 0
     }
   });
   const [loading, setLoading] = useState(false);
@@ -397,7 +433,9 @@ const PDFGenerator = () => {
         totalPedidos: 0,
         pedidosConfirmados: 0,
         pedidosAnulados: 0,
-        totalFaturado: 0
+        totalFaturado: 0,
+        subtotal: 0,
+        totalIVA: 0
       };
 
       // Definir dados do evento e buscar estatísticas
@@ -430,7 +468,9 @@ const PDFGenerator = () => {
           totalPedidos: 0,
           pedidosConfirmados: 0,
           pedidosAnulados: 0,
-          totalFaturado: 0
+          totalFaturado: 0,
+          subtotal: 0,
+          totalIVA: 0
         }
       });
     } finally {
@@ -442,7 +482,7 @@ const PDFGenerator = () => {
     fetchAllData();
   }, [fetchAllData]);
 
-  // Memoizar o componente PDF para evitar re-renders desnecessários
+  //Memorizar o componente PDF para evitar re-renders desnecessários
   const memoizedPDFDocument = useMemo(() => (
     <MyDocument 
       nomeEvento={reportData.nomeEvento} 

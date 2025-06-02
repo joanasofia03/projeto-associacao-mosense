@@ -115,15 +115,20 @@ PEQUENAS ALTERAÇÕES A EFETUAR:
     -> Melhorar a velocidade do website;
     -> Esudar a importância e eventual utilização do ZOD neste projeto;
     -> Introduzir debounce nas barras de pesquisas do projeto - Talvez implementar isso num ficheiro e chamar todas as vezes que se utiliza a barra;
+    -> Estudar a divisão entre "client side" e "server side";
 
 MAJOR ALTERAÇÕES:
     -> REGISTAR PEDIDO;
         - Implementar a função de impressão das senhas;
 
     -> VER ESTATÍSTICAS;
-        - Exportar resumo dos eventos em pdf (AlertDialog do shadcn a perguntar se tem a certeza que quer exportar);
+        - Exportar resumo dos eventos em pdf;
+            - Resolver problema de estar associado ao evento em execucção;
         - Imprimir as senhas dos pedidos selecionados com a checkbox;
     
     -> AJUDA - FAQS;
 
     -> RESPONSIVIDADE (ALTERAÇÕES DA RESOLUÇÃO);
+
+    
+    
