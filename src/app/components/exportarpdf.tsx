@@ -27,7 +27,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 0,
     textAlign: 'center',
-    color: '#032221'
+    color: '#032221',
+    fontWeight: 'bold'
   },
   text: {
     fontSize: 12,
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
   },
   statisticsTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: 600,
     color: '#032221',
     marginBottom: 15,
     textAlign: 'center'
@@ -69,7 +70,8 @@ const styles = StyleSheet.create({
   },
   statisticsValue: {
     fontSize: 12,
-    color: '#032221'
+    color: '#032221',
+    fontWeight: 'bold'
   }
 });
 
@@ -365,22 +367,22 @@ const MyDocument = ({
             
             <View style={styles.statisticsRow}>
               <Text style={styles.statisticsLabel2}>Pedidos Confirmados:</Text>
-              <Text style={styles.statisticsValue}>{estatisticas.pedidosConfirmados}</Text>
+              <Text style={styles.statisticsLabel2}>{estatisticas.pedidosConfirmados}</Text>
             </View>
             
             <View style={styles.statisticsRow}>
               <Text style={styles.statisticsLabel2}>Pedidos Anulados:</Text>
-              <Text style={styles.statisticsValue}>{estatisticas.pedidosAnulados}</Text>
+              <Text style={styles.statisticsLabel2}>{estatisticas.pedidosAnulados}</Text>
             </View>
 
             <View style={[styles.statisticsRow, { borderTop: '1px solid #032221', paddingTop: 8, color: '#879191'}]}>
               <Text style={styles.statisticsLabel2}>Subtotal (sem IVA):</Text>
-              <Text style={styles.statisticsValue}>{estatisticas.subtotal.toFixed(2)}€</Text>
+              <Text style={styles.statisticsLabel2}>{estatisticas.subtotal.toFixed(2)}€</Text>
             </View>
             
             <View style={styles.statisticsRow}>
               <Text style={styles.statisticsLabel2}>Total IVA:</Text>
-              <Text style={styles.statisticsValue}>{estatisticas.totalIVA.toFixed(2)}€</Text>
+              <Text style={styles.statisticsLabel2}>{estatisticas.totalIVA.toFixed(2)}€</Text>
             </View>
 
             <View style={styles.statisticsRow}>
