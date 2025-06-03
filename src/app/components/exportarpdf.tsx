@@ -42,7 +42,6 @@ const styles = StyleSheet.create({
   statisticsSection: {
     marginTop: 30,
     padding: 15,
-    backgroundColor: '#f5f5f5',
     borderRadius: 5
   },
   statisticsTitle: {
@@ -72,6 +71,89 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#032221',
     fontWeight: 'bold'
+  },
+  // Novos estilos para a tabela
+  tableSection: {
+    marginTop: 20,
+    padding: 15,
+    borderRadius: 5
+  },
+  tableTitle: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#032221',
+    marginBottom: 5,
+    textAlign: 'center'
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#032221',
+    padding: 8,
+    borderRadius: 3,
+    marginBottom: 5
+  },
+  tableHeaderText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  tableRow: {
+    flexDirection: 'row',
+    padding: 6,
+    borderBottom: '1px solid #e0e0e0',
+    marginBottom: 2
+  },
+  tableCell: {
+    fontSize: 9,
+    color: '#032221',
+    textAlign: 'left',
+    paddingHorizontal: 4
+  },
+  tableCellCenter: {
+    fontSize: 9,
+    color: '#032221',
+    textAlign: 'center',
+    paddingHorizontal: 4
+  },
+  tableCellRight: {
+    fontSize: 9,
+    color: '#032221',
+    textAlign: 'right',
+    paddingHorizontal: 4
+  },
+  // Estilos para a seção de assinatura
+  signatureSection: {
+    marginTop: 40,
+    padding: 20,
+    borderRadius: 5,
+    alignItems: 'center'
+  },
+  signatureTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#032221',
+    marginBottom: 30,
+    textAlign: 'center'
+  },
+  signatureLine: {
+    borderBottom: '1px solid #032221',
+    width: 250,
+    height: 40,
+    marginBottom: 10
+  },
+  signatureLabel: {
+    fontSize: 12,
+    color: '#032221',
+    textAlign: 'center',
+    fontWeight: 'bold'
+  },
+  signatureDate: {
+    fontSize: 11,
+    color: '#2A4759',
+    textAlign: 'center',
+    marginTop: 20,
+    fontStyle: 'italic'
   }
 });
 
@@ -112,6 +194,16 @@ interface Statistics {
   totalFaturado: number;
   subtotal: number;
   totalIVA: number;
+}
+
+// Nova interface para pratos populares
+interface PratoPopular {
+  id: number;
+  nome: string;
+  tipo: string;
+  preco: number;
+  quantidade_pedida: number;
+  preco_faturado: number;
 }
 
 //Função otimizada para buscar evento;
@@ -284,6 +376,116 @@ const fetchEstatisticasPedidos = async (eventoId: string): Promise<Statistics> =
   }
 };
 
+// Nova função para buscar pratos populares
+const fetchPratosPopulares = async (eventoId: string): Promise<PratoPopular[]> => {
+  try {
+    if (!eventoId) {
+      console.warn('EventoId não fornecido para pratos populares');
+      return [];
+    }
+
+    // Primeiro, buscamos todos os itens disponíveis
+    const { data: todosItens, error: itensError } = await supabase
+      .from('itens')
+      .select('id, nome, tipo, preco')
+      .order('nome');
+
+    if (itensError) {
+      console.error('Erro ao buscar itens:', itensError);
+      return [];
+    }
+
+    if (!todosItens || todosItens.length === 0) {
+      return [];
+    }
+
+    // Buscamos pedidos confirmados do evento
+    const { data: pedidosConfirmados, error: pedidosError } = await supabase
+      .from('pedidos')
+      .select('id')
+      .eq('id_evento', eventoId)
+      .eq('estado_validade', 'Confirmado');
+
+    if (pedidosError) {
+      console.error('Erro ao buscar pedidos confirmados:', pedidosError);
+      return [];
+    }
+
+    let pratosPopulares: PratoPopular[] = [];
+
+    if (pedidosConfirmados && pedidosConfirmados.length > 0) {
+      const pedidosIds = pedidosConfirmados.map(p => p.id);
+
+      // Buscamos os itens pedidos com suas quantidades
+      const { data: itensPedidos, error: itensPedidosError } = await supabase
+        .from('pedidos_itens')
+        .select('item_id, quantidade')
+        .in('pedido_id', pedidosIds);
+
+      if (itensPedidosError) {
+        console.error('Erro ao buscar itens pedidos:', itensPedidosError);
+      }
+
+      // Criamos um mapa de quantidades por item
+      const quantidadesPorItem = new Map<number, number>();
+      
+      if (itensPedidos) {
+        itensPedidos.forEach((pedidoItem: any) => {
+          const itemId = pedidoItem.item_id;
+          const quantidade = Number(pedidoItem.quantidade) || 0;
+          
+          if (quantidadesPorItem.has(itemId)) {
+            quantidadesPorItem.set(itemId, quantidadesPorItem.get(itemId)! + quantidade);
+          } else {
+            quantidadesPorItem.set(itemId, quantidade);
+          }
+        });
+      }
+
+      // Montamos a lista final com todos os itens
+      pratosPopulares = todosItens.map((item: any) => {
+        const quantidadePedida = quantidadesPorItem.get(item.id) || 0;
+        const precoFaturado = quantidadePedida * (Number(item.preco) || 0);
+        
+        return {
+          id: item.id,
+          nome: item.nome || 'Nome não disponível',
+          tipo: item.tipo || 'Tipo não disponível',
+          preco: Number(item.preco) || 0,
+          quantidade_pedida: quantidadePedida,
+          preco_faturado: precoFaturado
+        };
+      });
+
+      // Ordenamos por quantidade pedida (descendente) e depois por nome
+      pratosPopulares.sort((a, b) => {
+        if (b.quantidade_pedida !== a.quantidade_pedida) {
+          return b.quantidade_pedida - a.quantidade_pedida;
+        }
+        return a.nome.localeCompare(b.nome);
+      });
+    } else {
+      // Se não há pedidos confirmados, ainda mostramos todos os itens com quantidade 0
+      pratosPopulares = todosItens.map((item: any) => ({
+        id: item.id,
+        nome: item.nome || 'Nome não disponível',
+        tipo: item.tipo || 'Tipo não disponível',
+        preco: Number(item.preco) || 0,
+        quantidade_pedida: 0,
+        preco_faturado: 0
+      }));
+      
+      pratosPopulares.sort((a, b) => a.nome.localeCompare(b.nome));
+    }
+
+    return pratosPopulares;
+    
+  } catch (error) {
+    console.error('Erro ao buscar pratos populares:', error);
+    return [];
+  }
+};
+
 // Função utilitária memoizada para formatação de data
 const formatDateString = (dateString: string): string => {
   try {
@@ -306,6 +508,17 @@ const getCurrentDateTimeFormatted = (): string => {
   return `${dia} de ${mesCapitalizado}, ${ano} às ${horas}h${minutos}`;
 };
 
+// Nova função para formatação da data completa por escrito
+const getFullWrittenDate = (): string => {
+  const data = new Date();
+  const dia = data.getDate();
+  const mes = data.toLocaleDateString('pt-PT', { month: 'long' });
+  const mesCapitalizado = mes.charAt(0).toUpperCase() + mes.slice(1);
+  const ano = data.getFullYear();
+  
+  return `${dia} de ${mesCapitalizado} de ${ano}`;
+};
+
 // Componente do documento PDF otimizado
 const MyDocument = ({ 
   nomeEvento, 
@@ -313,7 +526,8 @@ const MyDocument = ({
   data_fim, 
   responsavel, 
   tipoResponsavel,
-  estatisticas
+  estatisticas,
+  pratosPopulares
 }: { 
   nomeEvento: string; 
   data_inicio: string; 
@@ -321,12 +535,15 @@ const MyDocument = ({
   responsavel: string;
   tipoResponsavel: string;
   estatisticas: Statistics;
+  pratosPopulares: PratoPopular[];
 }) => {
   // Memoizar a data atual para evitar recálculos
   const currentDateTime = useMemo(() => getCurrentDateTimeFormatted(), []);
+  const fullWrittenDate = useMemo(() => getFullWrittenDate(), []);
   
   return (
     <Document>
+      {/* PRIMEIRA PÁGINA */}
       <Page size="A4" style={styles.page}>
         <View>
           <View style={{ flexDirection: 'row', gap: 20 }}>
@@ -356,8 +573,57 @@ const MyDocument = ({
             </Text>
           </View>
 
-          {/* Seção de Estatísticas */}
-          <View style={styles.statisticsSection}>
+          {/* Seção dos Pratos Populares - MOVIDA PARA A PRIMEIRA PÁGINA */}
+          <View style={styles.tableSection}>
+            <Text style={styles.tableTitle}>Análise dos Produtos</Text>
+            <Text style={[styles.text, { marginBottom: 10, fontWeight: 'light', fontSize: 10, textAlign: 'center'}]}>Verificação e análise dos produtos consumidos, com base na quantidade e respetiva faturação.</Text>
+            
+            {/* Cabeçalho da tabela */}
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableHeaderText, { flex: 3 }]}>Nome do Item</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Tipo</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Preço</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Qtd.</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Faturado</Text>
+            </View>
+
+            {/* Linhas da tabela */}
+            {pratosPopulares.map((prato, index) => (
+              <View key={prato.id} style={styles.tableRow}>
+                <Text style={[styles.tableCell, { flex: 3 }]}>
+                  {prato.nome}
+                </Text>
+                <Text style={[styles.tableCellCenter, { flex: 1.5 }]}>
+                  {prato.tipo}
+                </Text>
+                <Text style={[styles.tableCellRight, { flex: 1 }]}>
+                  {prato.preco.toFixed(2)}€
+                </Text>
+                <Text style={[styles.tableCellCenter, { flex: 1 }]}>
+                  {prato.quantidade_pedida}
+                </Text>
+                <Text style={[styles.tableCellRight, { flex: 1.5 }]}>
+                  {prato.preco_faturado.toFixed(2)}€
+                </Text>
+              </View>
+            ))}
+
+            {pratosPopulares.length === 0 && (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableCellCenter, { flex: 1 }]}>
+                  Nenhum item encontrado
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </Page>
+
+      {/* SEGUNDA PÁGINA */}
+      <Page size="A4" style={styles.page}>
+        <View style={{ flex: 1, justifyContent: 'space-between' }}>
+          {/* Seção de Estatísticas - MOVIDA PARA O INÍCIO DA SEGUNDA PÁGINA */}
+          <View style={[styles.statisticsSection, { marginTop: 0 }]}>
             <Text style={styles.statisticsTitle}>Estatísticas do Evento</Text>
             
             <View style={styles.statisticsRow}>
@@ -390,6 +656,18 @@ const MyDocument = ({
               <Text style={styles.statisticsValue}>{estatisticas.totalFaturado.toFixed(2)}€</Text>
             </View>
           </View>
+
+          {/* Seção de Assinatura */}
+          <View style={styles.signatureSection}>
+            <Text style={styles.signatureTitle}>Assinatura do Presidente</Text>
+            
+            <View style={styles.signatureLine}></View>
+            <Text style={styles.signatureLabel}>Presidente da Associação</Text>
+            
+            <Text style={styles.signatureDate}>
+              Data de assinatura: {fullWrittenDate}
+            </Text>
+          </View>
         </View>
       </Page>
     </Document>
@@ -412,7 +690,8 @@ const PDFGenerator = () => {
       totalFaturado: 0,
       subtotal: 0,
       totalIVA: 0
-    }
+    },
+    pratosPopulares: [] as PratoPopular[]
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -440,9 +719,14 @@ const PDFGenerator = () => {
         totalIVA: 0
       };
 
+      let pratosPopulares: PratoPopular[] = [];
+
       // Definir dados do evento e buscar estatísticas
       if (evento?.id) {
-        estatisticas = await fetchEstatisticasPedidos(evento.id);
+        [estatisticas, pratosPopulares] = await Promise.all([
+          fetchEstatisticasPedidos(evento.id),
+          fetchPratosPopulares(evento.id)
+        ]);
       }
 
       // Atualizar estado com todos os dados de uma vez
@@ -452,7 +736,8 @@ const PDFGenerator = () => {
         data_fim: evento?.data_fim ? formatDateString(evento.data_fim) : 'N/A',
         responsavel: perfil?.nome || 'Usuário não identificado',
         tipoResponsavel: perfil?.tipo || 'N/A',
-        estatisticas
+        estatisticas,
+        pratosPopulares
       });
         
     } catch (error) {
@@ -473,7 +758,8 @@ const PDFGenerator = () => {
           totalFaturado: 0,
           subtotal: 0,
           totalIVA: 0
-        }
+        },
+        pratosPopulares: []
       });
     } finally {
       setLoading(false);
@@ -493,6 +779,7 @@ const PDFGenerator = () => {
       responsavel={reportData.responsavel}
       tipoResponsavel={reportData.tipoResponsavel}
       estatisticas={reportData.estatisticas}
+      pratosPopulares={reportData.pratosPopulares}
     />
   ), [reportData]);
 

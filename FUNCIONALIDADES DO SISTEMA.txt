@@ -122,8 +122,6 @@ MAJOR ALTERAÇÕES:
         - Implementar a função de impressão das senhas;
 
     -> VER ESTATÍSTICAS;
-        - Exportar resumo dos eventos em pdf;
-            - Resolver problema de estar associado ao evento em execucção;
         - Imprimir as senhas dos pedidos selecionados com a checkbox;
     
     -> AJUDA - FAQS;
