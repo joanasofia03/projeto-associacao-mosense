@@ -109,8 +109,6 @@ PEQUENAS ALTERAÇÕES A EFETUAR:
     -> Melhorar as transições e efeitos da navbar no recolher e ao expandir;
     -> Adicionar Tooltip ao projeto;
     -> Melhorar o loading das páginas;
-    -> Estilização geral do projeto mantendo as mesmas regras;
-    -> Integrar shadcn para melhorias de estilização e otimização de código;
     -> Realizar testes unitários e outros;
     -> Melhorar a velocidade do website;
     -> Esudar a importância e eventual utilização do ZOD neste projeto;
@@ -120,12 +118,9 @@ PEQUENAS ALTERAÇÕES A EFETUAR:
 MAJOR ALTERAÇÕES:
     -> REGISTAR PEDIDO;
         - Implementar a função de impressão das senhas;
-
     -> VER ESTATÍSTICAS;
         - Imprimir as senhas dos pedidos selecionados com a checkbox;
-    
     -> AJUDA - FAQS;
-
     -> RESPONSIVIDADE (ALTERAÇÕES DA RESOLUÇÃO);
 
     

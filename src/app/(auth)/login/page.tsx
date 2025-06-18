@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase } from '../../../../lib/supabaseClient';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,12 +13,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 import { IoLogInOutline } from "react-icons/io5";
-
-// Interfaces para type safety
-interface LoginData {
-  email: string;
-  password: string;
-}
 
 interface FormData {
   email: string;
