@@ -1,5 +1,8 @@
 'use client';
 
+import SearchBar from "../components/SearchBar";
+import {useState } from 'react';
+
 type Item = {
   id: number;
   nome: string;
@@ -10,11 +13,21 @@ type Props = {
 };
 
 export default function ExibirItens({ itens }: Props) {
+  const [search, setSearch] = useState("");
+
+  const itensFiltrados = itens.filter((item) => 
+    item.nome.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div>
-      {itens.map((item) => {
-        return <h1 key={item.id}>Olá, {item.nome}</h1>;
-      })}
+    <div className="w-full">
+      <SearchBar search={search} setSearch={setSearch} />
+      
+      <div className="mt-4">
+        {itensFiltrados.map((item) => (
+          <h1 key={item.id}>Olá, {item.nome}</h1>
+        ))}
+      </div>
     </div>
   );
 }
