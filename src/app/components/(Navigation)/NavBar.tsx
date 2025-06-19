@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { supabase } from '../../../../lib/supabaseClient';
 
 //shadcn/ui components
 import { Button } from '@/components/ui/button';
@@ -39,16 +40,31 @@ type Props = {
 
 export default function NavBar({ profiles }: Props){
     const[isExpanded, setIsExpanded] = useState<boolean>(true) //Responsável por saber se a navbar esta expadndida ou nao;
-    const[isLoggedIn, setIsLoggedIn] = useState<boolean>(true) //Responsável pelo utilizador estar logado ou não;
+    const[session, setSession] = useState<boolean>(true) //Responsável por análisar a sessão do utilizador (loggado ou não);
     const[emTransicao, setEmTransicao] = useState<boolean>(false) //Responsável pela posição do botão de expandir ou recolher navbar;
+    const[userType, setUserType] = useState<string>("") //Responsável por saber qual o tipo de utilizador para saber se tem permissões ou não;
 
     const handleMudancaNavbar = () => {
-        setEmTransicao(true); 
-        setIsExpanded(!isExpanded);
-        setTimeout(() => {
-            setEmTransicao(false);
-        }, 400);
+        if (session && emTransicao) {
+            setEmTransicao(true); 
+            setIsExpanded(!isExpanded);
+            setTimeout(() => {
+                setEmTransicao(false);
+            }, 400);
+        }
     };
+
+    async function handleLogIn(email: string, password: string){  
+        const { data: login, error } = await supabase.auth.signInWithPassword({email, password})
+        if (error) throw error
+        setSession(true)
+    }
+
+    async function handleLogOut(){
+        const { error } = await supabase.auth.signOut()
+        if(error) throw error
+        setSession(false)
+    }
 
     return(
         <nav className={`flex flex-col h-screen bg-[#FFFDF6] border-r border-border transition-all duration-400 ease-in-out 
@@ -69,7 +85,7 @@ export default function NavBar({ profiles }: Props){
                     </Link>
                 </div>
             
-                {isLoggedIn && (
+                {session && (
                     <Button
                         variant="ghost"
                         size="sm"
