@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -13,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Card, CardContent } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // Icons
@@ -23,7 +22,6 @@ import { IoAddCircleOutline } from "react-icons/io5";
 import { MdOutlineChangeCircle } from "react-icons/md";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import { FaRegEye } from "react-icons/fa";
-import { CgArrowLeftO } from "react-icons/cg";
 import { IoIosLogOut } from "react-icons/io";
 import { TbProgressHelp } from "react-icons/tb";
 import { FaUserLarge } from "react-icons/fa6";

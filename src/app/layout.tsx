@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import { Navigation } from "./components/navigation";
+import Navigation from "./components/(Navigation)/Navigation";
 
 export const metadata: Metadata = {
   title: "Comissão de Festas das Mós",
@@ -18,6 +18,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html lang="en">
       <body
