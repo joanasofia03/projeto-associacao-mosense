@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabaseClient';
 import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import { toast } from "sonner";
 import { Toaster } from 'sonner';
+import SearchBar from '../components/SearchBar';
 
 // Import de icons
 import { RiDeleteBin6Line } from "react-icons/ri";
@@ -54,7 +55,7 @@ type Evento = {
 function AlterarEvento() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [search, setSearch] = useState("");
   
   const [editingEvento, setEditingEvento] = useState<Evento | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,12 +63,12 @@ function AlterarEvento() {
 
   // Filtrar eventos baseado na pesquisa
   const filteredEventos = useMemo(() => {
-    if (!searchQuery.trim()) return eventos;
+    if (!search.trim()) return eventos;
     
     return eventos.filter(evento =>
-      evento.nome.toLowerCase().includes(searchQuery.toLowerCase())
+      evento.nome.toLowerCase().includes(search.toLowerCase())
     );
-  }, [eventos, searchQuery]);
+  }, [eventos, search]);
 
   useEffect(() => {
     const fetchEventos = async () => {
@@ -207,6 +208,8 @@ function AlterarEvento() {
     );
   }
 
+  const PlaceHolder = "Pesquisar eventos..." //Argumento para SearchBar;
+
   return (
     <div className="min-h-screen bg-[#eaf2e9] px-4 py-8">
       <Toaster position="bottom-right" />
@@ -216,23 +219,14 @@ function AlterarEvento() {
         </h1>
 
         {/* Barra de Pesquisa */}
-        <div className="mb-6 flex justify-center items-center">
-          <div className="relative w-full">
-            <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#032221]/60 h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Pesquisar eventos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-[#FFFDF6] focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:shadow-none"
-            />
-          </div>
+        <div className="mb-6 flex flex-row justify-center items-center">
+          <SearchBar search={search} setSearch={setSearch} PlaceHolder={PlaceHolder}/>
         </div>
 
         {filteredEventos.length === 0 ? (
           <div className="bg-[#FFFDF6] rounded-lg p-8 shadow-[1px_1px_3px_rgba(3,34,33,0.1)] text-center">
             <p className="text-[#032221] text-lg">
-              {searchQuery.trim() ? 'Nenhum evento encontrado para a pesquisa.' : 'Nenhum evento encontrado.'}
+              {search.trim() ? 'Nenhum evento encontrado para a pesquisa.' : 'Nenhum evento encontrado.'}
             </p>
           </div>
         ) : (

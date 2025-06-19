@@ -4,13 +4,12 @@ import { GoSearch } from "react-icons/go";
 type Props = {
   search: string;
   setSearch: (value: string) => void;
-  estilizar: string
   PlaceHolder: string
 };
 
-export default function SearchBar({ search, setSearch, estilizar, PlaceHolder }: Props) {
+export default function SearchBar({ search, setSearch, PlaceHolder }: Props) {
   return (
-    <div className={estilizar}>
+    <div className= "flex justify-between gap-1 px-4 items-center bg-[#FFFDF6] w-full min-h-10 rounded-lg shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
       <GoSearch size={20}/>
       <input
         type="search"
