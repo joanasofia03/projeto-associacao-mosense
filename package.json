@@ -23,7 +23,8 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-pdf/renderer": "^4.3.0",
-    "@supabase/supabase-js": "^2.49.4",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.50.1",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
@@ -42,7 +43,8 @@
     "react-router-dom": "^7.5.1",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.3.0",
-    "tailwind-scrollbar-hide": "^2.0.0"
+    "tailwind-scrollbar-hide": "^2.0.0",
+    "ws": "^8.18.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

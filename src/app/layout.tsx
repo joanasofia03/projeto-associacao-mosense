@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   
-  const hideNavBarRoutes = ['/login', '/registar']; //Páginas em que a NavBar deve ficar oculta;
+  const hideNavBarRoutes = ['/login', '/register']; //Páginas em que a NavBar deve ficar oculta;
   const shouldHideNavigation = hideNavBarRoutes.includes(pathname); //Responsável por ocultar ou não a NavBar;
 
   return (

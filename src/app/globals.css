@@ -37,6 +37,12 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  --cor-fundo1: #eaf2e9;
+  --cor-fundo2: #ffffff;
+  --cor-principal: #DDEB9D;
+  --cor-secundaria: #22333B;
+  --cor-texto: #032221;
 }
 
 /*@theme inline {
