@@ -1,71 +1,33 @@
 'use client';
-
-import handleSignUp from './actions';
-
+import { signup } from './actions'
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '../../../../lib/supabaseClient';
+
+//Import ShadCn UI componentes
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Toaster } from 'sonner';
+
+//Import de icons
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
+import { IoLogInOutline } from "react-icons/io5";
 
-type DadosRegisto = {
-  nome: string;
-  email: string;
-  telemovel: string;
-  password: string;
-  confirmPassword: string;
-};
-
-type Props = {
-  profiles: DadosRegisto[];
-};
-
-const INITIAL_FORM_STATE: DadosRegisto = {
-  nome: '',
-  email: '',
-  telemovel: '',
-  password: '',
-  confirmPassword: '',
-};
-
-const ERROR_MESSAGES = {
-  CAMPOS_OBRIGATORIOS: 'Por favor, preencha todos os campos obrigatórios.', //Nome, Email & Palavra-Passe
-  EMAIL_INVALIDO: 'Por favor, insira um email válido.',
-  PASSWORDS_NAO_COINCIDEM: 'As palavras-passe não coincidem.',
-  PASSWORD_FRACA: 'A palavra-passe deve ter pelo menos 6 caracteres.',
-  ERRO_REGISTRO: 'Erro ao registar. Tente novamente.',
-  ERRO_INESPERADO: 'Ocorreu um erro ao registar.',
-} as const;
-
-const SUCCESS_MESSAGES = {
-  REGISTRO_SUCESSO: 'Utilizador criado com sucesso! Verifique o seu e-mail para confirmar o registo.',
-} as const;
-
-
-function SignUp({ profiles }: Props) {
+export default function LoginPage() {
   const [loading, setLoading] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
+  const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
   function togglePasswordVisibility() {
-
+    setShowPassword(prev => !prev);
   }
 
   function toggleConfirmPasswordVisibility() {
-
+    setShowConfirmPassword(prev => !prev);
   }
-
-  function updateField() {
-
-  }
-
-  const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
@@ -80,7 +42,7 @@ function SignUp({ profiles }: Props) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignUp} className="space-y-4">
+          <form action={signup} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nome" className="text-sm font-medium text-[var(--cor-texto)]">
                 Nome
@@ -216,7 +178,5 @@ function SignUp({ profiles }: Props) {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
-
-export default SignUp;
