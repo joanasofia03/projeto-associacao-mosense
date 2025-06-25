@@ -32,8 +32,8 @@ const buttonVariants = cva(
           "border border-[#032221]/30 text-[#032221] hover:bg-[#032221]/5 cursor-pointer",
         botaoguardar:
           "bg-[#032221] text-[#FFFDF6] hover:bg-[#032221]/90 cursor-pointer",
-
-
+        botaovoltar: 
+          "border border-[#032221]/70 text-[#032221] hover:bg-[#032221]/5 cursor-pointer",
   
         anular:
           "bg-[#FFFDF6] text-[#032221] hover:bg-[#7D0A0A] hover:text-[#FFFDF6] cursor-pointer text-sm font-semibold rounded-lg ease-in-out shadow-[1px_1px_3px_rgba(3,34,33,0.2)] transition-transform duration-300 hover:-translate-y-1",

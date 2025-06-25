@@ -1,6 +1,6 @@
 'use client';
 import { login } from './actions'
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 
 //Import ShadCn UI componentes
@@ -16,16 +16,16 @@ import { Eye, EyeOff } from 'lucide-react';
 import { IoLogInOutline } from "react-icons/io5";
 
 export default function LoginPage() {
-  const[showPassword, setShowPassword] = useState<boolean>(false)
-  const[loading, setLoading]=useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false);
   const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
-  function togglePasswordVisibility(){
+  function togglePasswordVisibility() {
     setShowPassword(prev => !prev);
   }
 
   return (
-   <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
       <Toaster position="bottom-right" />
       <Card className="w-full max-w-md bg-[var(--cor-fundo2)] shadow-[3px_3px_3px_3px_var(--cor-texto)]/2">
         <CardHeader>
@@ -84,8 +84,8 @@ export default function LoginPage() {
             </div>
 
             {/* Links para palavra-passe esquecida e registo */}
-            <Link 
-              href="/reset-password" 
+            <Link
+              href="/reset-password"
               className="text-sm text-[var(--cor-texto)] font-normal hover:text-[var(--cor-texto)]/90 text-center transition-colors duration-200"
             >
               Esqueceu a palavra-passe?
@@ -94,7 +94,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="mt-3 w-full bg-[#032221] text-[#FFFDF6] hover:bg-[var(--cor-texto)]/90 cursor-pointer transition-all duration-300"
+              className="mt-3 w-full bg-[var(--cor-texto)] text-[#FFFDF6] hover:bg-[var(--cor-texto)]/90 cursor-pointer transition-all duration-300"
             >
               <IoLogInOutline />
               {loading ? 'Entrando...' : 'Iniciar Sessão'}
@@ -102,8 +102,8 @@ export default function LoginPage() {
 
             <div className="text-sm font-normal text-[var(--cor-texto)]/70 text-center">
               Não tem conta?{' '}
-              <Link 
-                href="/signup" 
+              <Link
+                href="/signup"
                 className="text-[var(--cor-texto)] hover:text-[var(--cor-texto)]/90 hover:underline font-semibold transition-all duration-300"
               >
                 Registar-se
