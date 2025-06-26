@@ -83,7 +83,7 @@ export default function LoginPage() {
 
             {/* Links para palavra-passe esquecida e registo */}
             <Link
-              href="/reset-password"
+              href="/forgot-password"
               className="text-sm text-[var(--cor-texto)] font-normal hover:text-[var(--cor-texto)]/90 text-center transition-colors duration-200"
             >
               Esqueceu a palavra-passe?

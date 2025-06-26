@@ -22,31 +22,22 @@ export async function signUpAction(formData: FormData) {
   const supabase = await createClient()
 
   //1. Criar Utilizador
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
-    },
-  })
-
-  if (signUpError || !signUpData.user) {
-    return { error: signUpError?.message || 'Erro ao criar conta' }
+  const { error, data: signUpData } = await supabase.auth.signUp({
+  email: email,
+  password: password,
+  options: {
+    data: {
+      nome: nome,
+      tipo: "Cliente",
+      aceitou_TU_e_PP: 'sim',
+      telemovel: telemovelNumber
+    }
   }
+});
 
-  const { id } = signUpData.user
-
-  //2. Inserir novo utilizador na tabela "Profiles"
-  const { error: profileError } = await supabase.from('profiles').insert({
-    id,
-    nome,
-    tipo: 'Cliente', //Neste tipo de registo, o utilizado é sempre do tipo "Cliente";
-    telemovel: telemovelNumber,
-    aceitou_TU_e_PP: 'sim', //Como não temos uma aba para o utilizador aceitar os termos, ele automaticamente aceita ao criar uma conta;
-  })
-
-  if (profileError) {
-    return { error: profileError?.message }
+  if (error || !signUpData.user) {
+    console.error('Erro ao criar utilizador:', error)
+    return { error: error?.message || 'Erro ao criar conta' }
   }
 
   return { sucess: 'Conta criada! Por favor, consulte o seu email.' }
