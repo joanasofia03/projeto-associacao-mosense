@@ -105,16 +105,6 @@ function ResetPassword() {
               {loading ? 'A atualizar...' : 'Atualizar palavra-passe'}
               <Key className="h-4 w-4" />
             </Button>
-
-            <div className="text-sm font-normal text-[var(--cor-texto)]/70 text-center">
-              Pretende voltar atrás?{' '}
-              <Link
-                href="/login"
-                className="text-[var(--cor-texto)] hover:text-[var(--cor-texto)]/90 hover:underline font-semibold transition-all duration-300"
-              >
-                Voltar
-              </Link>
-            </div>
           </form>
         </CardContent>
       </Card>
