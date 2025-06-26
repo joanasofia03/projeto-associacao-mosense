@@ -1,7 +1,9 @@
 'use client';
-import { login } from './actions'
+
 import { useState } from 'react';
 import Link from 'next/link';
+import { loginAction } from './actions'
+import { useRouter } from 'next/navigation';
 
 //Import ShadCn UI componentes
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,9 +20,31 @@ import { IoLogInOutline } from "react-icons/io5";
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('')
+  const router = useRouter() //Usado para redirecionar a página para o /menu aquando do sucesso do login;
+
   const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+
+  async function handleSubmitLogin(formData: FormData){
+    setLoading(true)
+    setMessage('')
+
+    const result = await loginAction(formData)
+
+   if (result.error) {
+      setMessage(`Erro: ${result.error}`)
+      toast.error(result.error)
+    } else {
+      toast.success(`Bem-vindo ${result.nome}`)
+      setTimeout(() => {
+        router.push('/menu')
+      }, 1000) //1000ms
+    }
+
+    setLoading(false)
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
@@ -35,7 +59,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={login} className="space-y-4">
+          <form action={handleSubmitLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-[var(--cor-texto)]">
                 Email
@@ -43,8 +67,7 @@ export default function LoginPage() {
               <Input
                 type="email"
                 id="email"
-                //value={formData.email}
-                //onChange={(e) => updateField('email', e.target.value)}
+                name="email"
                 className={InputClassNames}
                 placeholder="seu.email@exemplo.com"
                 required
@@ -59,8 +82,7 @@ export default function LoginPage() {
                 <Input
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  //value={formData.password}
-                  //onChange={(e) => updateField('password', e.target.value)}
+                  name="password"
                   className={InputClassNames}
                   placeholder="Digite sua palavra-passe"
                   required

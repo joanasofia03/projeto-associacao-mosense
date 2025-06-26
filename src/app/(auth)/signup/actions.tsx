@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient } from '../../../utils/supabase/server'
-import { redirect } from 'next/navigation'
 
 export async function signUpAction(formData: FormData) {
   const email = formData.get('email') as string
@@ -23,17 +22,17 @@ export async function signUpAction(formData: FormData) {
 
   //1. Criar Utilizador
   const { error, data: signUpData } = await supabase.auth.signUp({
-  email: email,
-  password: password,
-  options: {
-    data: {
-      nome: nome,
-      tipo: "Cliente",
-      aceitou_TU_e_PP: 'sim',
-      telemovel: telemovelNumber
+    email: email,
+    password: password,
+    options: {
+      data: {
+        nome: nome,
+        tipo: "Cliente",
+        aceitou_TU_e_PP: 'sim',
+        telemovel: telemovelNumber
+      }
     }
-  }
-});
+  });
 
   if (error || !signUpData.user) {
     console.error('Erro ao criar utilizador:', error)

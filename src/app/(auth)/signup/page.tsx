@@ -173,7 +173,6 @@ export default function LoginPage() {
               {loading ? 'A registar....' : 'Registar'}
               <UserPlus className="h-4 w-4" />
             </Button>
-            {message && <p className="text-sm text-center">{message}</p>}
 
             {/* Link para login */}
             <div className="text-sm text-[var(--cor-texto)]/90 text-center">

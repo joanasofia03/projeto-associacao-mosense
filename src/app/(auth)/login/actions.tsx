@@ -1,26 +1,33 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
+import { createClient } from '../../../utils/supabase/server'
 
-import { createClient } from '@/utils/supabase/server'
+export async function loginAction(formData: FormData) {
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
 
-export async function login(formData: FormData) {
   const supabase = await createClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+  const { error, data: loginData } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error || !loginData.user) {
+    console.error('Erro no login', error)
+    return { error: error?.message || 'Erro ao iniciar sessão' }
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  const { error: nomeError, data: nomeUtilizador } = await supabase
+    .from('profiles')
+    .select('nome')
+    .eq('id', loginData.user.id)
+    .single()
 
-  if (error) {
-    redirect('/error')
+  if (nomeError || !nomeUtilizador?.nome) {
+    console.error('Erro ao buscar o nome do utilizador', nomeError)
+    return { error: nomeError?.message || 'Erro ao buscar o nome do utilizador' }
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/menu')
+  return { nome: nomeUtilizador.nome }
 }
