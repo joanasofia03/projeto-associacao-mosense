@@ -13,7 +13,6 @@ import { Toaster } from 'sonner';
 
 //Import de icons
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
-import { IoLogInOutline } from "react-icons/io5";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState<boolean>(false)
@@ -21,13 +20,8 @@ export default function LoginPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
   const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
-  function togglePasswordVisibility() {
-    setShowPassword(prev => !prev);
-  }
-
-  function toggleConfirmPasswordVisibility() {
-    setShowConfirmPassword(prev => !prev);
-  }
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((prev) => !prev)
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
@@ -94,20 +88,23 @@ export default function LoginPage() {
               </Label>
               <div className="relative">
                 <Input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
                   //value={DadosRegisto.password}
                   //onChange={(e) => updateField('password', e.target.value)}
-                  className={InputClassNames}
+                  className={`${InputClassNames} pr-10`}
                   placeholder="Mínimo 6 caracteres"
                   required
                 />
                 <Button
                   type="button"
+                  onClick={ () => {
+                    console.log("Teste Clique");
+                    togglePasswordVisibility();
+                  }}
                   variant="ghost"
                   size="sm"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={togglePasswordVisibility}
                 >
                   {showPassword ? (
                     <Eye className="h-4 w-4 text-[var(--cor-texto)]" />
@@ -128,7 +125,7 @@ export default function LoginPage() {
                   id="confirmPassword"
                   //value={DadosRegisto.confirmPassword}
                   //onChange={(e) => updateField('confirmPassword', e.target.value)}
-                  className={InputClassNames}
+                  className={`${InputClassNames} pr-10`}
                   placeholder="Repita a palavra-passe"
                   required
                 />

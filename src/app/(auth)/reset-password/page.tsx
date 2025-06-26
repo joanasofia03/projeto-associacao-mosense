@@ -21,13 +21,8 @@ function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
   const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
-  function togglePasswordVisibility() {
-    setShowPassword(prev => !prev);
-  }
-
-  function toggleConfirmPasswordVisibility() {
-    setShowConfirmPassword(prev => !prev);
-  }
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((prev) => !prev)
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">

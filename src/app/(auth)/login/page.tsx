@@ -20,9 +20,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
-  function togglePasswordVisibility() {
-    setShowPassword(prev => !prev);
-  }
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
