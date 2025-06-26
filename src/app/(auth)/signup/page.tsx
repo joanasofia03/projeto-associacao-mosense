@@ -1,7 +1,8 @@
 'use client';
-import { signup } from './actions'
-import { useState, useCallback } from 'react';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import { signUpAction } from './actions';
 
 //Import ShadCn UI componentes
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,10 +19,30 @@ export default function LoginPage() {
   const [loading, setLoading] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
+
   const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((prev) => !prev)
+
+  async function handleSubmit(formData: FormData) {
+    setLoading(true)
+    setMessage('')
+
+    const result = await signUpAction(formData)
+
+    if (result.error) {
+      setMessage(`Erro: ${result.error}`)
+      toast.error(result.error)
+    } else {
+      setMessage(result.sucess || 'Conta criada com sucesso!')
+      toast.success('Conta criada! Por favor, consulte o seu email.')
+    }
+
+    setLoading(false)
+  }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
@@ -36,7 +57,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={signup} className="space-y-4">
+          <form action={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nome" className="text-sm font-medium text-[var(--cor-texto)]">
                 Nome
@@ -44,8 +65,7 @@ export default function LoginPage() {
               <Input
                 type="text"
                 id="nome"
-                //value={DadosRegisto.nome}
-                //onChange={(e) => updateField('nome', e.target.value)}
+                name="nome"
                 className={InputClassNames}
                 placeholder="Seu nome completo"
                 required
@@ -59,8 +79,7 @@ export default function LoginPage() {
               <Input
                 type="email"
                 id="email"
-                //value={DadosRegisto.email}
-                //onChange={(e) => updateField('email', e.target.value)}
+                name="email"
                 className={InputClassNames}
                 placeholder="seu.email@exemplo.com"
                 required
@@ -74,8 +93,7 @@ export default function LoginPage() {
               <Input
                 type="tel"
                 id="telemovel"
-                //value={DadosRegisto.telemovel}
-                //onChange={(e) => updateField('telemovel', e.target.value)}
+                name="telemovel"
                 className={InputClassNames}
                 placeholder="987654321"
                 pattern="[0-9]*"
@@ -90,18 +108,14 @@ export default function LoginPage() {
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
-                  //value={DadosRegisto.password}
-                  //onChange={(e) => updateField('password', e.target.value)}
+                  name="password"
                   className={`${InputClassNames} pr-10`}
                   placeholder="Mínimo 6 caracteres"
                   required
                 />
                 <Button
                   type="button"
-                  onClick={ () => {
-                    console.log("Teste Clique");
-                    togglePasswordVisibility();
-                  }}
+                  onClick={togglePasswordVisibility}
                   variant="ghost"
                   size="sm"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
@@ -123,8 +137,7 @@ export default function LoginPage() {
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
                   id="confirmPassword"
-                  //value={DadosRegisto.confirmPassword}
-                  //onChange={(e) => updateField('confirmPassword', e.target.value)}
+                  name="confirmPassword"
                   className={`${InputClassNames} pr-10`}
                   placeholder="Repita a palavra-passe"
                   required
@@ -160,6 +173,7 @@ export default function LoginPage() {
               {loading ? 'A registar....' : 'Registar'}
               <UserPlus className="h-4 w-4" />
             </Button>
+            {message && <p className="text-sm text-center">{message}</p>}
 
             {/* Link para login */}
             <div className="text-sm text-[var(--cor-texto)]/90 text-center">
