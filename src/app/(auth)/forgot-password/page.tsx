@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '../../../../lib/supabaseClient';
 import Link from 'next/link'
+import { forgotPasswordAction } from './actions'
+import { useRouter } from 'next/navigation'
 
 //Import Shadcn UI componentes
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import Toast from '../../components/toast';
-import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
+import { Toaster } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,46 +17,33 @@ import { Button } from '@/components/ui/button';
 import { MdOutlineMarkEmailUnread } from "react-icons/md";
 
 export default function EsqueciPassword() {
-  const [email, setEmail] = useState('');
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [loading, setLoading] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
+  const router = useRouter()
 
   const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
-  const handleReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setToastVisible(false);
+  async function handleResetPassword(formData: FormData) {
+    setLoading(true)
+    setMessage('')
 
-    // Verifica se o utilizador existe
-    const { data: exists, error: checkError } = await supabase.rpc('check_user_exists', {
-      email_to_check: email,
-    });
+    const result = await forgotPasswordAction(formData)
 
-    if (checkError || !exists) {
-      setToastMessage('Este e-mail não está associado a nenhuma conta.');
-      setToastType('error');
-      setToastVisible(true);
-      return;
-    }
-
-    // Envia o e-mail de recuperação
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'http://localhost:3000/reset-password',
-    });
-
-    if (error) {
-      setToastMessage('Erro ao enviar email de recuperação.');
-      setToastType('error');
+    if (result.errorVerify) {
+      setMessage(`Erro: ${result.errorVerify}`)
+      toast.error(`Erro ao verificar o seu email na nossa base de dados - ${result.errorVerify}`)
+    } else if (result.error) {
+      setMessage(`Erro: ${result.error}`)
+      toast.error(`Erro ao enviar o email de verificação - ${result.error}`)
     } else {
-      setToastMessage('Verifica o teu email para redefinir a palavra-passe.');
-      setToastType('success');
-      setEmail('');
+      toast.success('Verifique o seu email para redefinir a palavra-passe.')
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000) //2000ms
     }
 
-    setToastVisible(true);
-  };
+    setLoading(false)
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
@@ -70,7 +58,7 @@ export default function EsqueciPassword() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleReset} className="space-y-4">
+          <form action={handleResetPassword} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-[var(--cor-texto)]">
                 Email
@@ -103,14 +91,6 @@ export default function EsqueciPassword() {
               </Link>
             </div>
           </form>
-
-          {/* Toast */}
-          <Toast
-            message={toastMessage}
-            visible={toastVisible}
-            onClose={() => setToastVisible(false)}
-            type={toastType}
-          />
         </CardContent>
       </Card>
     </div>

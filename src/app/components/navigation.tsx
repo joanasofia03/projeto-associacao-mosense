@@ -63,9 +63,9 @@ export const Navigation = () => {
         if (savedSession) {
           const session = JSON.parse(savedSession);
           const user = session?.user;
-          
+
           setIsLoggedIn(!!user);
-          
+
           if (user) {
             setUserId(user.id);
             const { data, error } = await supabase
@@ -158,34 +158,33 @@ export const Navigation = () => {
     }
   };
 
-  const MenuItem = ({ 
-    href, 
-    icon, 
-    label, 
-    notifications = null 
-  }: { 
-    href: string; 
-    icon: React.ReactNode; 
-    label: string; 
-    notifications?: string | null 
+  const MenuItem = ({
+    href,
+    icon,
+    label,
+    notifications = null
+  }: {
+    href: string;
+    icon: React.ReactNode;
+    label: string;
+    notifications?: string | null
   }) => {
     const content = (
       <Link href={href} className="w-full">
         <Button
           variant="ghost"
-          className={`w-full ${
-            isExpanded 
-              ? 'justify-start gap-3 px-3 py-2 h-auto' 
+          className={`w-full ${isExpanded
+              ? 'justify-start gap-3 px-3 py-2 h-auto'
               : 'justify-center p-2 h-10 w-10'
-          } text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-300 hover:scale-105 group`}
+            } text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-300 hover:scale-105 group`}
         >
           <div className="relative flex items-center">
             <div className="transition-transform duration-300 group-hover:rotate-3">
               {icon}
             </div>
             {notifications && (
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center text-xs bg-blue-500 text-white"
               >
                 {notifications}
@@ -219,12 +218,12 @@ export const Navigation = () => {
     return content;
   };
 
-  const MenuSection = ({ 
-    title = null, 
-    children 
-  }: { 
-    title?: string | null; 
-    children: React.ReactNode 
+  const MenuSection = ({
+    title = null,
+    children
+  }: {
+    title?: string | null;
+    children: React.ReactNode
   }) => (
     <div className="w-full space-y-1">
       {title && (
@@ -249,31 +248,29 @@ export const Navigation = () => {
 
   return (
     <TooltipProvider>
-      <nav 
-        className={`flex flex-col h-screen bg-[#FFFDF6] border-r border-border transition-all duration-400 ease-in-out ${
-          isExpanded ? 'w-[280px]' : 'w-[70px]'
-        } shadow-lg relative overflow-hidden`}
+      <nav
+        className={`flex flex-col h-screen bg-[#FFFDF6] border-r border-border transition-all duration-400 ease-in-out ${isExpanded ? 'w-[280px]' : 'w-[70px]'
+          } shadow-lg relative overflow-hidden`}
       >
         {/* Subtle gradient overlay for smooth transitions */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/5 to-transparent pointer-events-none opacity-50" />
-        
+
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border relative z-10">
-          <div className={`overflow-hidden transition-all duration-400 ease-out ${
-            isExpanded ? 'opacity-100 max-w-[200px] transform translate-x-0' : 'opacity-0 max-w-0 transform -translate-x-4'
-          }`}>
+          <div className={`overflow-hidden transition-all duration-400 ease-out ${isExpanded ? 'opacity-100 max-w-[200px] transform translate-x-0' : 'opacity-0 max-w-0 transform -translate-x-4'
+            }`}>
             <Link href="/" className="block">
-              <Image 
-                src="/OsMosenses.png" 
-                alt="Logo" 
-                width={140} 
-                height={45} 
-                priority 
+              <Image
+                src="/OsMosenses.png"
+                alt="Logo"
+                width={140}
+                height={45}
+                priority
                 className="transition-all duration-300 hover:scale-105"
               />
             </Link>
           </div>
-          
+
           {isLoggedIn && (
             <Button
               variant="ghost"
@@ -298,25 +295,25 @@ export const Navigation = () => {
           <div className="space-y-4">
             {/* Principais */}
             <MenuSection>
-              <MenuItem 
-                href="/menu" 
-                icon={<MdOutlineMenu size={iconSize} />} 
-                label="Menu Principal" 
+              <MenuItem
+                href="/menu"
+                icon={<MdOutlineMenu size={iconSize} />}
+                label="Menu Principal"
               />
             </MenuSection>
 
             {/* Eventos - Apenas para Administradores */}
             {userType === 'Administrador' && (
               <MenuSection title="Gestão de Eventos">
-                <MenuItem 
-                  href="/adicionarevento" 
-                  icon={<MdOutlineEmojiEvents size={iconSize} />} 
-                  label="Adicionar Evento" 
+                <MenuItem
+                  href="/adicionarevento"
+                  icon={<MdOutlineEmojiEvents size={iconSize} />}
+                  label="Adicionar Evento"
                 />
-                <MenuItem 
-                  href="/alterarevento" 
-                  icon={<MdOutlineEventRepeat size={iconSize} />} 
-                  label="Editar Evento" 
+                <MenuItem
+                  href="/alterarevento"
+                  icon={<MdOutlineEventRepeat size={iconSize} />}
+                  label="Editar Evento"
                 />
               </MenuSection>
             )}
@@ -324,15 +321,15 @@ export const Navigation = () => {
             {/* Pedidos */}
             {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
               <MenuSection title="Gestão de Pedidos">
-                <MenuItem 
-                  href="/registarpedido" 
-                  icon={<LuNotebook size={iconSize} />} 
-                  label="Adicionar Pedido" 
+                <MenuItem
+                  href="/registarpedido"
+                  icon={<LuNotebook size={iconSize} />}
+                  label="Adicionar Pedido"
                 />
-                <MenuItem 
-                  href="/anularpedido" 
-                  icon={<LuNotebookPen size={iconSize} />} 
-                  label="Editar Pedido" 
+                <MenuItem
+                  href="/anularpedido"
+                  icon={<LuNotebookPen size={iconSize} />}
+                  label="Editar Pedido"
                 />
               </MenuSection>
             )}
@@ -340,15 +337,15 @@ export const Navigation = () => {
             {/* Inventário */}
             {userType === 'Administrador' && (
               <MenuSection title="Gestão de Inventário">
-                <MenuItem 
-                  href="/adicionaritem" 
-                  icon={<IoAddCircleOutline size={iconSize} />} 
-                  label="Adicionar Produto" 
+                <MenuItem
+                  href="/adicionaritem"
+                  icon={<IoAddCircleOutline size={iconSize} />}
+                  label="Adicionar Produto"
                 />
-                <MenuItem 
-                  href="/alteraritem" 
-                  icon={<MdOutlineChangeCircle size={iconSize} />} 
-                  label="Editar Produto" 
+                <MenuItem
+                  href="/alteraritem"
+                  icon={<MdOutlineChangeCircle size={iconSize} />}
+                  label="Editar Produto"
                 />
               </MenuSection>
             )}
@@ -356,25 +353,25 @@ export const Navigation = () => {
             {/* Administração */}
             {userType === 'Administrador' && (
               <MenuSection title="Administração">
-                <MenuItem 
-                  href="/adicionarutilizador" 
-                  icon={<AiOutlineUserAdd size={iconSize} />} 
-                  label="Adicionar Utilizador" 
+                <MenuItem
+                  href="/adicionarutilizador"
+                  icon={<AiOutlineUserAdd size={iconSize} />}
+                  label="Adicionar Utilizador"
                 />
-                <MenuItem 
-                  href="/verestatisticas" 
-                  icon={<FaRegEye size={iconSize} />} 
-                  label="Consultar Estatísticas" 
+                <MenuItem
+                  href="/verestatisticas"
+                  icon={<FaRegEye size={iconSize} />}
+                  label="Consultar Estatísticas"
                 />
               </MenuSection>
             )}
 
             {/* Ajuda */}
             <MenuSection title="Suporte">
-              <MenuItem 
-                href="/help" 
-                icon={<TbProgressHelp size={iconSize} />} 
-                label="Ajuda & Suporte" 
+              <MenuItem
+                href="/help"
+                icon={<TbProgressHelp size={iconSize} />}
+                label="Ajuda & Suporte"
               />
             </MenuSection>
           </div>
@@ -397,16 +394,15 @@ export const Navigation = () => {
                     {userName?.charAt(0)?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 {isExpanded && (
-                  <div className={`flex-1 min-w-0 transition-all duration-400 ${
-                    isExpanded ? 'opacity-100 transform translate-x-0' : 'opacity-0 transform -translate-x-4'
-                  }`}>
+                  <div className={`flex-1 min-w-0 transition-all duration-400 ${isExpanded ? 'opacity-100 transform translate-x-0' : 'opacity-0 transform -translate-x-4'
+                    }`}>
                     <p className="text-sm font-semibold text-foreground truncate">
                       {userName}
                     </p>
-                    <Badge 
-                      variant="default" 
+                    <Badge
+                      variant="default"
                       className={`bg-transparent text-xs transition-colors duration-200 ${getUserTypeColor(userType)}`}
                     >
                       {userType}
@@ -428,7 +424,7 @@ export const Navigation = () => {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={handleLogout}
                       className="text-destructive focus:text-destructive"
                     >
