@@ -23,7 +23,7 @@ export default function EsqueciPassword() {
 
   const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
-  async function handleResetPassword(formData: FormData) {
+  async function handleForgotPassword(formData: FormData) {
     setLoading(true)
     setMessage('')
 
@@ -40,6 +40,7 @@ export default function EsqueciPassword() {
       setTimeout(() => {
         router.push('/login')
       }, 2000) //2000ms
+      return;
     }
 
     setLoading(false)
@@ -58,7 +59,7 @@ export default function EsqueciPassword() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={handleResetPassword} className="space-y-4">
+          <form action={handleForgotPassword} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-[var(--cor-texto)]">
                 Email

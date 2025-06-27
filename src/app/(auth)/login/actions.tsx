@@ -15,7 +15,7 @@ export async function loginAction(formData: FormData) {
 
   if (error || !loginData.user) {
     console.error('Erro no login', error)
-    return { error: error?.message || 'Erro ao iniciar sessão' }
+    return { error: 'Credenciais inválidas! Tente novamente.' }
   }
 
   const { error: nomeError, data: nomeUtilizador } = await supabase

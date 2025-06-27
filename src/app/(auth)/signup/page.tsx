@@ -37,7 +37,8 @@ export default function LoginPage() {
       toast.error(result.error)
     } else {
       setMessage(result.sucess || 'Conta criada com sucesso!')
-      toast.success('Conta criada! Por favor, consulte o seu email.')
+      toast.success(result.sucess)
+      return;
     }
 
     setLoading(false)

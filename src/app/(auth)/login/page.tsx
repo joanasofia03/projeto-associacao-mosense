@@ -40,7 +40,8 @@ export default function LoginPage() {
       toast.success(`Bem-vindo ${result.nome}`)
       setTimeout(() => {
         router.push('/menu')
-      }, 1000) //1000ms
+      }, 1500) //1500ms
+      return; //Em caso de sucesso não faz o setLoading(false)
     }
 
     setLoading(false)
@@ -117,7 +118,7 @@ export default function LoginPage() {
               className="mt-3 w-full bg-[var(--cor-texto)] text-[#FFFDF6] hover:bg-[var(--cor-texto)]/90 cursor-pointer transition-all duration-300"
             >
               <IoLogInOutline />
-              {loading ? 'Entrando...' : 'Iniciar Sessão'}
+              {loading ? 'A entrar' : 'Iniciar Sessão'}
             </Button>
 
             <div className="text-sm font-normal text-[var(--cor-texto)]/70 text-center">

@@ -1,8 +1,8 @@
 'use client';
-import { reset_password } from './actions'
+
+import { resetPasswordAction } from './actions'
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 
 //Import Shadcn UI Componentes
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,12 +17,44 @@ import { Eye, EyeOff, Key } from 'lucide-react';
 
 function ResetPassword() {
   const [showPassword, setShowPassword] = useState<boolean>(false)
-  const [loading, setLoading] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
+  const router = useRouter()
+
   const InputClassNames = "border-[var(--cor-texto)] focus-visible:ring-0";
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((prev) => !prev)
+
+  async function handleResetPassword(formData: FormData) {
+    setLoading(true)
+    setMessage('')
+
+    const result = await resetPasswordAction(formData)
+
+    if (result.errorCamposVazios) {
+      setMessage(`Erro: ${result.errorCamposVazios}`)
+      toast.error(result.errorCamposVazios)
+    } else if (result.errorPalavraPasseDiferente) {
+      setMessage(`Erro: ${result.errorPalavraPasseDiferente}`)
+      toast.error(result.errorPalavraPasseDiferente)
+    } else if (result.errorTamanhoInferior) {
+      setMessage(`Erro: ${result.errorTamanhoInferior}`)
+      toast.error(result.errorTamanhoInferior)
+    } else if (result.error) {
+      setMessage(`Erro: ${result.error}`)
+      toast.error(result.error)
+    } else {
+      toast.success(result.sucess)
+      setTimeout(() => {
+        router.push('/login')
+      }, 1500) //1500ms
+      return;
+    }
+
+    setLoading(false)
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
@@ -37,7 +69,7 @@ function ResetPassword() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={reset_password} className="space-y-4">
+          <form action={handleResetPassword} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-[var(--cor-texto)]">
                 Nova palavra-passe
@@ -46,8 +78,7 @@ function ResetPassword() {
                 <Input
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  //value={formData.password}
-                  //onChange={(e) => updateField('password', e.target.value)}
+                  name="password"
                   className={InputClassNames}
                   placeholder="Mínimo 6 caracteres"
                   required
@@ -76,8 +107,7 @@ function ResetPassword() {
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
                   id="confirmPassword"
-                  //value={formData.confirmPassword}
-                  //onChange={(e) => updateField('confirmPassword', e.target.value)}
+                  name="confirmPassword"
                   className={InputClassNames}
                   placeholder="Repita a nova palavra-passe"
                   required
