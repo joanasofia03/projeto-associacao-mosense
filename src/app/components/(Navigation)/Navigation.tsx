@@ -6,7 +6,7 @@ import { redirect, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '../../../utils/supabase/client'
 
-import { getCurrentUser, LogOutAction, checkUserPermissions, requireAdmin, requireBanca, requireCliente } from './actions'
+import { getCurrentUser, LogOutAction } from './actions'
 
 // shadcn/ui components
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ import { FaUserLarge } from "react-icons/fa6";
 import { MdOutlineEmojiEvents, MdOutlineEventRepeat } from "react-icons/md";
 import { Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export type UserType = 'Cliente' | 'Administrador' | 'Funcionario de Banca'
+export type UserType = 'Cliente' | 'Administrador' | 'Funcionario Banca'
 
 export const Navigation = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); //Flag responsável pelo estado do login
@@ -46,7 +46,7 @@ export const Navigation = () => {
 
   const iconSize = 20;
 
-   useEffect(() => {
+  useEffect(() => {
     checkAuthStatus()
 
     const supabase = createClient()
@@ -139,11 +139,11 @@ export const Navigation = () => {
   const getUserTypeColor = (type: string | null) => {
     switch (type) {
       case 'Administrador':
-        return 'text-[#B2533E]';
-      case 'Funcionario de Banca':
-        return 'text-[#186F65]';
+        return 'text-[#FF6969]';
+      case 'Funcionario Banca':
+        return 'text-[#7AE2CF]';
       default:
-        return 'text-gray-800';
+        return 'text-[#EEDF7A]';
     }
   };
 
@@ -165,7 +165,7 @@ export const Navigation = () => {
           className={`w-full ${isExpanded
             ? 'justify-start gap-3 px-3 py-2 h-auto'
             : 'justify-center p-2 h-10 w-10'
-            } text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-300 hover:scale-105 group`}
+            } text-[var(--cor-texto)] hover:bg-[var(--cor-texto)]/7 transition-all duration-300 hover:-translate-y-[1px] group`}
         >
           <div className="relative flex items-center">
             <div className="transition-transform duration-300 group-hover:rotate-3">
@@ -174,14 +174,14 @@ export const Navigation = () => {
             {notifications && (
               <Badge
                 variant="secondary"
-                className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center text-xs bg-blue-500 text-white"
+                className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center text-xs bg-[var(--cor-texto)]/10 text-white"
               >
                 {notifications}
               </Badge>
             )}
           </div>
           {isExpanded && (
-            <span className="whitespace-nowrap text-base font-normal text-[#032221] transition-opacity duration-300 cursor-pointer">
+            <span className="whitespace-nowrap text-base font-normal text-[var(--cor-texto)] transition-opacity duration-300 cursor-pointer">
               {label}
             </span>
           )}
@@ -255,7 +255,6 @@ export const Navigation = () => {
                 width={140}
                 height={45}
                 priority
-                className="transition-all duration-300 hover:scale-105"
               />
             </Link>
           </div>
@@ -265,7 +264,7 @@ export const Navigation = () => {
               variant="ghost"
               size="sm"
               onClick={toggleSidebar}
-              className={`p-2 hover:bg-accent transition-all duration-300 hover:scale-110 ${!isExpanded ? 'mx-auto' : ''}`}
+              className={`p-2 hover:bg-[var(--cor-texto)]/7 cursor-pointer transition-all duration-200 ${!isExpanded ? 'mx-auto' : ''}`}
               disabled={isTransitioning}
             >
               <div className={`transition-transform duration-400 ${isTransitioning ? 'rotate-180' : ''}`}>
@@ -308,7 +307,7 @@ export const Navigation = () => {
             )}
 
             {/* Pedidos */}
-            {(userType === 'Administrador' || userType === 'Funcionario de Banca') && (
+            {(userType === 'Administrador' || userType === 'Funcionario Banca') && (
               <MenuSection title="Gestão de Pedidos">
                 <MenuItem
                   href="/registarpedido"
@@ -367,41 +366,54 @@ export const Navigation = () => {
         </ScrollArea>
 
         {/* Footer */}
-        <div className="p-3 mt-auto space-y-1 relative z-10">
-          {!isLoggedIn ? (
-            <Link href="/login" className="block w-full">
-              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:scale-105">
-                Iniciar Sessão
-              </Button>
-            </Link>
-          ) : (
-            <div className="bg-card/50 backdrop-blur-sm rounded-lg py-2 transition-all duration-300 hover:bg-card/70">
-              <div className="flex justify-between items-center gap-3">
-                <Avatar className="h-10 w-10 border-2 border-border transition-all duration-300 hover:border-primary/50">
-                  <AvatarImage src="" alt={userName || ''} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                    {userName?.charAt(0)?.toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
+        <div className="p-3 mt-auto w-full relative z-10">
+          <div
+            className={`transition-all duration-300 rounded-lg py-2 ${isExpanded ? 'w-full bg-[var(--cor-texto)]' : 'bg-transparent'
+              }`}
+          >
+            <div className={`flex items-center space-x-3 transition-all duration-300 ${isExpanded ? 'px-2' : 'px-0'}`}>
+              {/* Avatar */}
+              <Avatar
+                className={`h-10 w-10 border-2 transition-all duration-300 ${isExpanded
+                    ? 'border-[var(--cor-fundo1)]/50 hover:border-[var(--cor-fundo1)]'
+                    : 'border-[var(--cor-texto)]/50 hover:border-[var(--cor-texto)]'
+                  }`}
+              >
+                <AvatarImage src="" alt={userName || ''} />
+                <AvatarFallback
+                  className={`transition-all duration-300 font-semibold ${isExpanded
+                      ? 'bg-[var(--cor-texto)] text-[var(--cor-fundo1)]'
+                      : 'bg-transparent text-[var(--cor-texto)]'
+                    }`}
+                >
+                  {userName?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
 
-                {isExpanded && (
-                  <div className={`flex-1 min-w-0 transition-all duration-400 ${isExpanded ? 'opacity-100 transform translate-x-0' : 'opacity-0 transform -translate-x-4'
-                    }`}>
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {userName}
-                    </p>
-                    <Badge
-                      variant="default"
-                      className={`bg-transparent text-xs transition-colors duration-200 ${getUserTypeColor(userType)}`}
-                    >
-                      {userType}
-                    </Badge>
-                  </div>
-                )}
+              {/* Info Utilizador (nome + tipo) */}
+              {isExpanded && (
+                <div className="flex flex-col justify-center items-center w-full transition-all duration-300">
+                  <p className="text-sm text-[var(--cor-fundo1)] font-semibold truncate">
+                    {userName}
+                  </p>
+                  <Badge
+                    variant="default"
+                    className={`bg-transparent text-xs transition-colors duration-200 truncate ${getUserTypeColor(userType)}`}
+                  >
+                    {userType}
+                  </Badge>
+                </div>
+              )}
 
+              {/* Botão das Definições (Roda Dentada) */}
+              <div className="ml-auto">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 transition-all duration-300 hover:scale-110 hover:bg-accent">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-[var(--cor-fundo1)] hover:text-[var(--cor-texto)] h-8 w-8 p-0 transition-all duration-300 hover:bg-[var(--cor-fundo1)] cursor-pointer"
+                    >
                       <Settings size={16} />
                     </Button>
                   </DropdownMenuTrigger>
@@ -424,7 +436,7 @@ export const Navigation = () => {
                 </DropdownMenu>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </nav>
     </TooltipProvider>
