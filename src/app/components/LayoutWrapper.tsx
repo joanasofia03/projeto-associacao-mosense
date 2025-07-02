@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Navigation } from './(Navigation)/navigation'
+import { Navigation } from './(Navigation)/NavigationClient'
 
 const hiddenRoutes = [
     '/login',

@@ -6,7 +6,7 @@ import { redirect, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '../../../utils/supabase/client'
 
-import { getCurrentUser, LogOutAction  } from './actions'
+import { getCurrentUser, LogOutAction } from './actions'
 
 // shadcn/ui components
 import { Button } from '@/components/ui/button';
