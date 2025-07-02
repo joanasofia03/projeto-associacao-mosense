@@ -1,37 +1,25 @@
-'use client'
-
 import { Montserrat } from "next/font/google";
-
 import "./globals.css";
-import { usePathname } from 'next/navigation'
-import { Navigation } from "./components/(Navigation)/navigation";
+import { LayoutWrapper } from "./components/LayoutWrapper";
+
 
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
 });
 
-const hiddenRoutes  = [
-  '/login',
-  '/signup',
-  '/reset-password',
-  '/forgot-password',
-  '/error',
-]
-
-export default function RootLayout({children,}: Readonly<{children: React.ReactNode;}>) {
-  
-  const pathname = usePathname()
-  const shouldHideNavbar = hiddenRoutes.includes(pathname) || pathname === '/not-found'
-
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body className={`${montserrat.variable} antialiased flex min-h-screen`}>
-        {!shouldHideNavbar && <Navigation />}
-        <div className="flex-1 flex flex-col">
+      <body className={`${montserrat.variable} antialiased`}>
+        <LayoutWrapper>
           {children}
-        </div>
+        </LayoutWrapper>
       </body>
     </html>
-  );
+  )
 }

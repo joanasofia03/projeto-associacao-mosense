@@ -6,7 +6,7 @@ import { redirect, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '../../../utils/supabase/client'
 
-import { getCurrentUser, LogOutAction } from './actions'
+import { getCurrentUser, LogOutAction  } from './actions'
 
 // shadcn/ui components
 import { Button } from '@/components/ui/button';
@@ -35,11 +35,11 @@ import { Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 export type UserType = 'Cliente' | 'Administrador' | 'Funcionario Banca'
 
 export const Navigation = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); //Flag responsável pelo estado do login
-  const [isExpanded, setIsExpanded] = useState<boolean>(true); //Flag responsável pela extensão da NavBar
-  const [isTransitioning, setIsTransitioning] = useState<boolean>(false); //Flag responsável pelo botão de expansão da NavBar
-  const [userType, setUserType] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true) //Flag responsável pelo estado do login
+  const [isExpanded, setIsExpanded] = useState<boolean>(true) //Flag responsável pela extensão da NavBar
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false) //Flag responsável pelo botão de expansão da NavBar
+  const [userType, setUserType] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null)
 
   const [message, setMessage] = useState<string>('') //Flag responsável pelas mensagem de erro ou sucesso
   const [loading, setLoading] = useState<boolean>(false) //Flag responsável pelo loading dos componentes
@@ -48,7 +48,7 @@ export const Navigation = () => {
 
   useEffect(() => {
     checkAuthStatus()
-
+    
     const supabase = createClient()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -367,76 +367,78 @@ export const Navigation = () => {
 
         {/* Footer */}
         <div className="p-3 mt-auto w-full relative z-10">
-          <div
-            className={`transition-all duration-300 rounded-lg py-2 ${isExpanded ? 'w-full bg-[var(--cor-texto)]' : 'bg-transparent'
-              }`}
-          >
-            <div className={`flex items-center space-x-3 transition-all duration-300 ${isExpanded ? 'px-2' : 'px-0'}`}>
-              {/* Avatar */}
-              <Avatar
-                className={`h-10 w-10 border-2 transition-all duration-300 ${isExpanded
-                    ? 'border-[var(--cor-fundo1)]/50 hover:border-[var(--cor-fundo1)]'
-                    : 'border-[var(--cor-texto)]/50 hover:border-[var(--cor-texto)]'
-                  }`}
-              >
-                <AvatarImage src="" alt={userName || ''} />
-                <AvatarFallback
-                  className={`transition-all duration-300 font-semibold ${isExpanded
-                      ? 'bg-[var(--cor-texto)] text-[var(--cor-fundo1)]'
-                      : 'bg-transparent text-[var(--cor-texto)]'
+          {!isLoggedIn ? (
+            <Link href="/login" className="block w-full">
+              <Button className="mt-3 w-full bg-[var(--cor-texto)] text-[#FFFDF6] hover:bg-[var(--cor-texto)]/90 cursor-pointer transition-all duration-300">
+                Iniciar Sessão
+              </Button>
+            </Link>
+          ) : (
+            <div
+              className={`transition-all duration-300 rounded-lg py-2 ${isExpanded ? 'w-full bg-[var(--cor-texto)]' : 'bg-transparent'}`}
+            >
+              <div className={`flex items-center space-x-3 transition-all duration-300 ${isExpanded ? 'px-2' : 'px-0'}`}>
+                {/* Avatar */}
+                <Avatar
+                  className={`h-10 w-10 border-2 transition-all duration-300 ${isExpanded
+                      ? 'border-[var(--cor-fundo1)]/50 hover:border-[var(--cor-fundo1)]'
+                      : 'border-[var(--cor-texto)]/50 hover:border-[var(--cor-texto)]'
                     }`}
                 >
-                  {userName?.charAt(0)?.toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-
-              {/* Info Utilizador (nome + tipo) */}
-              {isExpanded && (
-                <div className="flex flex-col justify-center items-center w-full transition-all duration-300">
-                  <p className="text-sm text-[var(--cor-fundo1)] font-semibold truncate">
-                    {userName}
-                  </p>
-                  <Badge
-                    variant="default"
-                    className={`bg-transparent text-xs transition-colors duration-200 truncate ${getUserTypeColor(userType)}`}
+                  <AvatarImage src="" alt={userName || ''} />
+                  <AvatarFallback
+                    className={`transition-all duration-300 font-semibold ${isExpanded
+                        ? 'bg-[var(--cor-texto)] text-[var(--cor-fundo1)]'
+                        : 'bg-transparent text-[var(--cor-texto)]'
+                      }`}
                   >
-                    {userType}
-                  </Badge>
-                </div>
-              )}
+                    {userName?.charAt(0)?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
 
-              {/* Botão das Definições (Roda Dentada) */}
-              <div className="ml-auto">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-[var(--cor-fundo1)] hover:text-[var(--cor-texto)] h-8 w-8 p-0 transition-all duration-300 hover:bg-[var(--cor-fundo1)] cursor-pointer"
+                {/* Info Utilizador (nome + tipo) */}
+                {isExpanded && (
+                  <div className="flex flex-col justify-center items-center w-full transition-all duration-300">
+                    <p className="text-sm text-[var(--cor-fundo1)] font-semibold truncate">{userName}</p>
+                    <Badge
+                      variant="default"
+                      className={`bg-transparent text-xs transition-colors duration-200 truncate ${getUserTypeColor(userType)}`}
                     >
-                      <Settings size={16} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/editarperfil/${encodeURIComponent(userName || '')}`}>
-                        <FaUserLarge size={14} className="mr-2" />
-                        Editar Perfil
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <IoIosLogOut size={16} className="mr-2" />
-                      Terminar Sessão
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      {userType}
+                    </Badge>
+                  </div>
+                )}
+
+                {/* Botão das Definições (Roda Dentada) */}
+                <div className="ml-auto">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[var(--cor-fundo1)] hover:text-[var(--cor-texto)] h-8 w-8 p-0 transition-all duration-300 hover:bg-[var(--cor-fundo1)] cursor-pointer"
+                      >
+                        <Settings size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/editarperfil/${encodeURIComponent(userName || '')}`}>
+                          <FaUserLarge size={14} className="mr-2" />
+                          Editar Perfil
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                        <IoIosLogOut size={16} className="mr-2" />
+                        Terminar Sessão
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </nav>
     </TooltipProvider>

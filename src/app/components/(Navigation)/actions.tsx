@@ -48,14 +48,3 @@ export async function LogOutAction() {
         return { sucesso: false, error: 'Erro inesperado' }
     }
 }
-
-/*export async function checkUserPermissions(permissionUserType: UserType[]) {
-    const { user, profile } = await getCurrentUser()
-
-    //Se a sessão não estiver iniciada ou se o utilizador não tiver um tipo atribuido -> redirecionar para o /login;
-    if (!user || !profile || !permissionUserType.includes(profile.user_type)) {
-        redirect('/login')
-    }
-
-    return { user, profile }
-}*/
