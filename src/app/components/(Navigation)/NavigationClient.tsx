@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { redirect, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '../../../utils/supabase/client'
 
-import { getCurrentUser, LogOutAction } from './actions'
+import { LogOutAction } from './actions'
 
 // shadcn/ui components
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { Toaster } from 'sonner';
 
 // Icons
 import { MdOutlineMenu } from "react-icons/md";
@@ -34,28 +33,42 @@ import { Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export type UserType = 'Cliente' | 'Administrador' | 'Funcionario Banca'
 
-export const Navigation = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true) //Flag responsável pelo estado do login
-  const [isExpanded, setIsExpanded] = useState<boolean>(true) //Flag responsável pela extensão da NavBar
-  const [isTransitioning, setIsTransitioning] = useState<boolean>(false) //Flag responsável pelo botão de expansão da NavBar
-  const [userType, setUserType] = useState<string | null>(null)
-  const [userName, setUserName] = useState<string | null>(null)
+interface InitialUserData {
+  isLoggedIn: boolean;
+  userName: string | null;
+  userType: string | null;
+  error: string | null;
+}
 
-  const [message, setMessage] = useState<string>('') //Flag responsável pelas mensagem de erro ou sucesso
-  const [loading, setLoading] = useState<boolean>(false) //Flag responsável pelo loading dos componentes
+interface NavigationClientProps {
+  initialUserData: InitialUserData;
+}
 
-  const iconSize = 20;
+const iconSize = 20;
+
+export const Navigation = ({ initialUserData }: NavigationClientProps) => {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(initialUserData.isLoggedIn)
+  const [isExpanded, setIsExpanded] = useState<boolean>(true)
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false)
+  const [userType, setUserType] = useState<string | null>(initialUserData.userType)
+  const [userName, setUserName] = useState<string | null>(initialUserData.userName)
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const router = useRouter();
 
   useEffect(() => {
-    checkAuthStatus()
-    
-    const supabase = createClient()
+    if (initialUserData.error) {
+      toast.error(initialUserData.error)
+    }
+
+    const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          await checkAuthStatus();
+          router.refresh();
         } else if (event === 'SIGNED_OUT') {
           handleAuth(false, null, null);
+          router.push('/login');
         }
       }
     );
@@ -63,49 +76,25 @@ export const Navigation = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [])
-
-  async function checkAuthStatus() {
-    setLoading(true)
-
-    try {
-      const result = await getCurrentUser()
-
-      if (result.error || !result.user || !result.profile) {
-        handleAuth(false, null, null)
-        toast.error(result.error)
-      } else {
-        handleAuth(true, result.profile.nome, result.profile.tipo)
-      }
-    }
-    catch (error) {
-      console.error('Erro ao verificar a sessão do utilziador', error)
-      handleAuth(false, null, null)
-    }
-    finally {
-      setLoading(false)
-    }
-  }
+  }, [initialUserData.error, router]);
 
   async function handleLogout() {
     setLoading(true)
-    setMessage('')
 
     try {
       const result = await LogOutAction()
 
-      if (result.LogOutError) {
-        setMessage(result.LogOutError)
+      if (result && 'LogOutError' in result && result.LogOutError) {
         toast.error(result.LogOutError)
       } else {
         handleAuth(false, null, null)
         toast.success('Sessão terminada com sucesso!')
-        redirect('/login')
+        router.push('/login');
       }
     }
     catch (error) {
       console.error('Erro no logout', error)
-      toast.error('Erro inesperado ao terminiar sessão')
+      toast.error('Erro inesperado ao terminar sessão')
     }
     finally {
       setLoading(false)
@@ -241,10 +230,8 @@ export const Navigation = () => {
         className={`flex flex-col h-screen bg-[#FFFDF6] border-r border-border transition-all duration-400 ease-in-out ${isExpanded ? 'w-[280px]' : 'w-[70px]'
           } shadow-lg relative overflow-hidden`}
       >
-        {/* Subtle gradient overlay for smooth transitions */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/5 to-transparent pointer-events-none opacity-50" />
 
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border relative z-10">
           <div className={`overflow-hidden transition-all duration-400 ease-out ${isExpanded ? 'opacity-100 max-w-[200px] transform translate-x-0' : 'opacity-0 max-w-0 transform -translate-x-4'
             }`}>
@@ -278,10 +265,8 @@ export const Navigation = () => {
           )}
         </div>
 
-        {/* Menu Content */}
         <ScrollArea className="flex-1 px-2 py-4 relative z-10">
           <div className="space-y-4">
-            {/* Principais */}
             <MenuSection>
               <MenuItem
                 href="/menu"
@@ -290,7 +275,6 @@ export const Navigation = () => {
               />
             </MenuSection>
 
-            {/* Eventos - Apenas para Administradores */}
             {userType === 'Administrador' && (
               <MenuSection title="Gestão de Eventos">
                 <MenuItem
@@ -306,7 +290,6 @@ export const Navigation = () => {
               </MenuSection>
             )}
 
-            {/* Pedidos */}
             {(userType === 'Administrador' || userType === 'Funcionario Banca') && (
               <MenuSection title="Gestão de Pedidos">
                 <MenuItem
@@ -322,7 +305,6 @@ export const Navigation = () => {
               </MenuSection>
             )}
 
-            {/* Inventário */}
             {userType === 'Administrador' && (
               <MenuSection title="Gestão de Inventário">
                 <MenuItem
@@ -338,7 +320,6 @@ export const Navigation = () => {
               </MenuSection>
             )}
 
-            {/* Administração */}
             {userType === 'Administrador' && (
               <MenuSection title="Administração">
                 <MenuItem
@@ -354,7 +335,6 @@ export const Navigation = () => {
               </MenuSection>
             )}
 
-            {/* Ajuda */}
             <MenuSection title="Suporte">
               <MenuItem
                 href="/help"
@@ -365,7 +345,6 @@ export const Navigation = () => {
           </div>
         </ScrollArea>
 
-        {/* Footer */}
         <div className="p-3 mt-auto w-full relative z-10">
           {!isLoggedIn ? (
             <Link href="/login" className="block w-full">
@@ -378,25 +357,23 @@ export const Navigation = () => {
               className={`transition-all duration-300 rounded-lg py-2 ${isExpanded ? 'w-full bg-[var(--cor-texto)]' : 'bg-transparent'}`}
             >
               <div className={`flex items-center space-x-3 transition-all duration-300 ${isExpanded ? 'px-2' : 'px-0'}`}>
-                {/* Avatar */}
                 <Avatar
                   className={`h-10 w-10 border-2 transition-all duration-300 ${isExpanded
-                      ? 'border-[var(--cor-fundo1)]/50 hover:border-[var(--cor-fundo1)]'
-                      : 'border-[var(--cor-texto)]/50 hover:border-[var(--cor-texto)]'
+                    ? 'border-[var(--cor-fundo1)]/50 hover:border-[var(--cor-fundo1)]'
+                    : 'border-[var(--cor-texto)]/50 hover:border-[var(--cor-texto)]'
                     }`}
                 >
                   <AvatarImage src="" alt={userName || ''} />
                   <AvatarFallback
                     className={`transition-all duration-300 font-semibold ${isExpanded
-                        ? 'bg-[var(--cor-texto)] text-[var(--cor-fundo1)]'
-                        : 'bg-transparent text-[var(--cor-texto)]'
+                      ? 'bg-[var(--cor-texto)] text-[var(--cor-fundo1)]'
+                      : 'bg-transparent text-[var(--cor-texto)]'
                       }`}
                   >
                     {userName?.charAt(0)?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
 
-                {/* Info Utilizador (nome + tipo) */}
                 {isExpanded && (
                   <div className="flex flex-col justify-center items-center w-full transition-all duration-300">
                     <p className="text-sm text-[var(--cor-fundo1)] font-semibold truncate">{userName}</p>
@@ -409,7 +386,6 @@ export const Navigation = () => {
                   </div>
                 )}
 
-                {/* Botão das Definições (Roda Dentada) */}
                 <div className="ml-auto">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

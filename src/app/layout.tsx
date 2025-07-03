@@ -1,14 +1,13 @@
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import { LayoutWrapper } from "./components/LayoutWrapper";
-
+import { NavigationServer } from "./components/(Navigation)/NavigationServer";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
@@ -16,9 +15,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${montserrat.variable} antialiased`}>
-        <LayoutWrapper>
-          {children}
-        </LayoutWrapper>
+        <div className="flex min-h-screen">
+          <NavigationServer />
+          <div className="flex-1 flex flex-col">
+            {children}
+          </div>
+        </div>
       </body>
     </html>
   )
