@@ -1,14 +1,15 @@
 'use client'
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '../../../utils/supabase/client'
 
-import { LogOutAction } from './actions'
+import { LogOutAction, refreshUserData } from './actions'
+import type { UserType } from './actions'
 
-// shadcn/ui components
+//shadcn/ui components
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +19,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
-// Icons
+//Icons
 import { MdOutlineMenu } from "react-icons/md";
 import { LuNotebookPen, LuNotebook } from "react-icons/lu";
 import { IoAddCircleOutline } from "react-icons/io5";
@@ -30,8 +31,6 @@ import { TbProgressHelp } from "react-icons/tb";
 import { FaUserLarge } from "react-icons/fa6";
 import { MdOutlineEmojiEvents, MdOutlineEventRepeat } from "react-icons/md";
 import { Settings, ChevronLeft, ChevronRight } from 'lucide-react';
-
-export type UserType = 'Cliente' | 'Administrador' | 'Funcionario Banca'
 
 interface InitialUserData {
   isLoggedIn: boolean;
@@ -56,6 +55,31 @@ export const Navigation = ({ initialUserData }: NavigationClientProps) => {
 
   const router = useRouter();
 
+  //Função para atualizar dados do utilizador
+  const updateUserData = useCallback(async () => {
+    try {
+      const userData = await refreshUserData()
+
+      if (userData.error) {
+        console.error('Erro ao atualizar dados', userData.error)
+        if (userData.error.includes('Sessão inválida')) {
+          handleAuth(false, null, null)
+          router.push('/login')
+        }
+        return
+      }
+
+      if (userData.user && userData.profile) {
+        handleAuth(true, userData.profile.nome, userData.profile.tipo)
+      } else {
+        handleAuth(false, null, null)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar utilizador:', error)
+      toast.error('Erro ao carregar dados do utilizador')
+    }
+  }, [router])
+
   useEffect(() => {
     if (initialUserData.error) {
       toast.error(initialUserData.error)
@@ -65,6 +89,9 @@ export const Navigation = ({ initialUserData }: NavigationClientProps) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
+          setIsLoggedIn(true)
+          await updateUserData();
+          setIsLoggedIn(false)
           router.refresh();
         } else if (event === 'SIGNED_OUT') {
           handleAuth(false, null, null);
@@ -76,38 +103,43 @@ export const Navigation = ({ initialUserData }: NavigationClientProps) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [initialUserData.error, router]);
+  }, [initialUserData.error, router, updateUserData]);
 
-  async function handleLogout() {
+  //Sincronizar o estado do utilizador com os dados iniciais
+  useEffect(() => {
+    setIsLoggedIn(initialUserData.isLoggedIn);
+    setUserName(initialUserData.userName);
+    setUserType(initialUserData.userType);
+  }, [initialUserData]);
+
+  const handleLogout = useCallback(async () => {
     setLoading(true)
 
     try {
       const result = await LogOutAction()
 
-      if (result && 'LogOutError' in result && result.LogOutError) {
-        toast.error(result.LogOutError)
-      } else {
+      if (result.success) {
         handleAuth(false, null, null)
         toast.success('Sessão terminada com sucesso!')
-        router.push('/login');
+        router.push('/login')
+      } else {
+        toast.error(result.error || 'Erro ao terminar sessão')
       }
-    }
-    catch (error) {
-      console.error('Erro no logout', error)
+    } catch (error) {
+      console.error('Erro no logout:', error)
       toast.error('Erro inesperado ao terminar sessão')
-    }
-    finally {
+    } finally {
       setLoading(false)
     }
-  }
+  }, [router])
 
-  const handleAuth = (LoggedIn: boolean, name: string | null, type: string | null) => {
+  const handleAuth = useCallback((LoggedIn: boolean, name: string | null, type: UserType | null) => {
     setIsLoggedIn(LoggedIn)
     setUserName(name)
     setUserType(type)
-  }
+  }, [])
 
-  const toggleSidebar = () => {
+  const toggleSidebar = useCallback(() => {
     if (isLoggedIn && !isTransitioning) {
       setIsTransitioning(true);
       setIsExpanded(!isExpanded);
@@ -115,12 +147,15 @@ export const Navigation = ({ initialUserData }: NavigationClientProps) => {
         setIsTransitioning(false);
       }, 400);
     }
-  };
+  }, [isLoggedIn, isTransitioning, isExpanded]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
-        <div className="animate-pulse text-muted-foreground">A carregar...</div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="text-muted-foreground">A carregar...</div>
+        </div>
       </div>
     );
   }
