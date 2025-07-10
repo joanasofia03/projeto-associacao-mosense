@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import { useRouter } from 'next/navigation';
 
 // Import de Icons
@@ -44,7 +43,7 @@ import {
 } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-function AlterarPedido() {
+export default function AlterarPedido() {
   // Estados principais
   const [pedidos, setPedidos] = useState<Array<any>>([]);
   const [pedidosOriginal, setPedidosOriginal] = useState<Array<any>>([]); // Armazenar todos os pedidos originais
@@ -850,5 +849,3 @@ function AlterarPedido() {
     </main>
   );
 }
-
-export default VerificacaoDePermissoes(AlterarPedido, ['Administrador', 'Funcionario de Banca']);

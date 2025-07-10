@@ -1,8 +1,13 @@
+import { redirect } from 'next/navigation'
 import { getCurrentUser } from './actions'
 import { Navigation } from './NavigationClient'
 
 export async function NavigationServer() {
     const { user, profile, error } = await getCurrentUser()
+
+    if (error && error.includes('Sessão inválida')) {
+        redirect('/login')
+    }
 
     const userData = {
         isLoggedIn: !!user || !!profile,
@@ -13,3 +18,4 @@ export async function NavigationServer() {
 
     return <Navigation initialUserData={userData} />
 }
+

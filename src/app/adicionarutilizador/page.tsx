@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -235,7 +234,7 @@ function UserTypeSelector({ selectedType, onTypeSelect }: UserTypeSelectorProps)
   );
 }
 
-function AdicionarUtilizador() {
+export default function AdicionarUtilizador() {
   const {
     formData,
     loading,
@@ -418,5 +417,3 @@ function AdicionarUtilizador() {
     </div>
   );
 }
-
-export default VerificacaoDePermissoes(AdicionarUtilizador, ['Administrador']);

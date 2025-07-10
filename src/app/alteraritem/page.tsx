@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -295,7 +294,7 @@ const ItemCard = ({
   );
 };
 
-function AlterarItem() {
+export default function AlterarItem() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
@@ -739,5 +738,3 @@ function AlterarItem() {
     </main>
   );
 }
-
-export default VerificacaoDePermissoes(AlterarItem, ['Administrador', 'Funcionario de Banca']);

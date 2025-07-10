@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import Image from 'next/image';
 import '../globals.css'
 import React from 'react';
@@ -49,7 +48,7 @@ import { MdKeyboardArrowUp } from "react-icons/md";
 import { IoFilterOutline } from "react-icons/io5";
 import { MdOutlineStoreMallDirectory } from "react-icons/md";
 
-function VerEstatisticas() {
+export default function VerEstatisticas() {
   // Estados principais
   const [pedidos, setPedidos] = useState<Array<any>>([]);
   const [pedidosOriginal, setPedidosOriginal] = useState<Array<any>>([]); // Armazenar todos os pedidos originais
@@ -1225,5 +1224,3 @@ function VerEstatisticas() {
     </main>
   );
 }
-
-export default VerificacaoDePermissoes(VerEstatisticas, ['Administrador', 'Funcionario de Banca']);

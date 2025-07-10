@@ -3,7 +3,6 @@
 //Imports do Shadcn
 import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -187,7 +186,7 @@ function DateField({ label, value, onChange }: DateFieldProps) {
   );
 }
 
-function AdicionarEvento() {
+export default function AdicionarEvento() {
   const {
     formData,
     loading,
@@ -340,5 +339,3 @@ function AdicionarEvento() {
     </div>
   );
 }
-
-export default VerificacaoDePermissoes(AdicionarEvento, ['Administrador']);

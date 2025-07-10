@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import { toast } from "sonner";
 import { Toaster } from 'sonner';
 import SearchBar from '../components/SearchBar';
@@ -52,7 +51,7 @@ type Evento = {
   em_execucao: boolean;
 };
 
-function AlterarEvento() {
+export default function AlterarEvento() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -425,5 +424,3 @@ function AlterarEvento() {
     </div>
   );
 }
-
-export default VerificacaoDePermissoes(AlterarEvento, ['Administrador']);

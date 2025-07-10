@@ -6,6 +6,19 @@ import { revalidatePath } from 'next/cache'
 
 export type UserType = 'Cliente' | 'Administrador' | 'Funcionario Banca'
 
+export interface UserProfile {
+    id: string
+    nome: string
+    email: string
+    tipo: UserType
+}
+
+export interface userData {
+    user: string | null;
+    profile: UserProfile | null;
+    error: string | null;
+}
+
 export async function getCurrentUser() {
     const supabase = await createClient()
 
@@ -43,12 +56,12 @@ export async function LogOutAction() {
         const { error: LogOutError } = await supabase.auth.signOut()
         if (LogOutError) {
             console.error('Erro no logout:', LogOutError)
-            return { LogOutError: 'Erro ao desconectar' }
+            return { success: false, LogOutError: 'Erro ao desconectar' }
         }
         revalidatePath('/', 'layout')
         redirect('/login')
     } catch (error) {
         console.error('Erro no logout', error)
-        return { sucesso: false, error: 'Erro inesperado ao terminar sessão' }
+        return { success: false, error: 'Erro inesperado ao terminar sessão' }
     }
 }

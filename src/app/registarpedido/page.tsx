@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import Image from 'next/image';
 
 // Import shadcn/ui components
@@ -61,7 +60,7 @@ type MenuItem = {
   quantidade?: number;
 };
 
-function RegistarPedido() {
+export default function RegistarPedido() {
   const [itensMenu, setItensMenu] = useState<MenuItem[]>([]);
   const [itensFiltrados, setItensFiltrados] = useState<MenuItem[]>([]);
   const [itensSelecionados, setItensSelecionados] = useState<Record<number, MenuItem>>({});
@@ -893,5 +892,3 @@ function RegistarPedido() {
     </div>
   );
 }
-
-export default VerificacaoDePermissoes(RegistarPedido, ['Administrador', 'Funcionario de Banca']);

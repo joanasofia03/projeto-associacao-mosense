@@ -1,6 +1,33 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const ROUTES_WITH_AUTH = {
+  //Para qualquer UserType
+  '/menu': ['Cliente', 'Administrador', 'Funcionario Banca'],
+  '/help': ['Cliente', 'Administrador', 'Funcionario Banca'],
+  '/editarperfil': ['Cliente', 'Administrador', 'Funcionario Banca'],
+
+  //Para UserType = Administrador
+  '/adicionarevento': ['Administrador'],
+  '/alterarevento': ['Administrador'],
+  '/adicionaritem': ['Administrador'],
+  '/alteraritem': ['Administrador'],
+  '/adicionarutilizador': ['Administrador'],
+  '/verestatisticas': ['Administrador'],
+
+  //Para UserType = Administrador & Funcionario Banca
+  '/registarpedido': ['Administrador', 'Funcionario Banca'],
+  '/anularpedido': ['Administrador', 'Funcionario Banca'],
+} as const
+
+const ROUTES_WITHOUT_AUTH = [
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/not-found',
+]
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -37,31 +64,63 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/signup') &&
-    !request.nextUrl.pathname.startsWith('/forgot-password') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  const pathname = request.nextUrl.pathname
+
+  //Verificar se a rota é uma rota pública
+  const isPublicRoute = ROUTES_WITHOUT_AUTH.some(route => pathname.startsWith(route))
+
+  //Se não houver utilizador autenticado e a rota não for pública
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  //Se houver utilizador autenticado e a rota for /login ou /signup redirecionar para /menu
+  if (user && (pathname.startsWith('/login') || pathname.startsWith('/signup'))) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/menu'
+    return NextResponse.redirect(url)
+  }
 
+  //Verificar se a rota requer autenticação
+  let allowedUserTypes: readonly string[] | undefined
+  for (const [route, userTypes] of Object.entries(ROUTES_WITH_AUTH)) {
+    if (pathname.startsWith(route)) {
+      allowedUserTypes = userTypes
+      break
+    }
+  }
+
+  if (user && allowedUserTypes) {
+    try {
+      //Buscar o perfil do utilizador
+      const { data: profile, error: profileError } = await supabase.from('profiles')
+        .select('tipo')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError || !profile) {
+        console.error('Error ao buscar perfil:', profileError)
+        const url = request.nextUrl.clone()
+        url.pathname = '/login'
+        return NextResponse.redirect(url)
+      }
+
+      //Verificar se o utilizador tem o tipo permitido para a rota
+      if (!allowedUserTypes.includes(profile.tipo)) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/not-found'
+        return NextResponse.redirect(url)
+      }
+    } catch (error) {
+      console.error('Erro na verificação das permissões do utilizador:', error)
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // IMPORTANT: You *must* return the supabaseResponse object as it is
   return supabaseResponse
 }

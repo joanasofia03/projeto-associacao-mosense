@@ -3,7 +3,6 @@
 //Imports do Shadcn
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { VerificacaoDePermissoes } from '../components/VerificacaoDePermissoes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -306,7 +305,7 @@ function ImageUpload({
   );
 }
 
-function AdicionarItem() {
+export default function AdicionarItem() {
   const {
     formData,
     loading,
@@ -560,5 +559,3 @@ function AdicionarItem() {
     </div>
   );
 }
-
-export default VerificacaoDePermissoes(AdicionarItem, ['Administrador', 'Funcionario de Banca']);
