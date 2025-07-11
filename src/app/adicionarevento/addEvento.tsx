@@ -1,7 +1,6 @@
 'use client'
 
-import { useFormState } from 'react-dom'
-import { useEffect } from 'react'
+import { useEffect, useActionState } from 'react'
 import { adicionarEventoAction } from './actions'
 
 // Imports do Shadcn
@@ -17,7 +16,7 @@ import { Toaster } from 'sonner';
 const initialState = { success: false, message: '' }
 
 export default function AdicionarEvento() {
-  const [state, formAction] = useFormState(adicionarEventoAction, initialState)
+  const [state, formAction] = useActionState(adicionarEventoAction, initialState)
 
   useEffect(() => {
     if (state.message) {
@@ -96,7 +95,7 @@ export default function AdicionarEvento() {
               className="w-full bg-[var(--cor-texto)] text-[#FFFDF6] hover:bg-[var(--cor-texto)]/90 cursor-pointer transition-all duration-300"
             >
               Adicionar Evento
-              <MdOutlineEmojiEvents className="ml-2" />
+              <MdOutlineEmojiEvents />
             </Button>
           </form>
         </CardContent>

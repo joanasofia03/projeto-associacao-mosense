@@ -262,7 +262,7 @@ export const Navigation = ({ initialUserData }: NavigationClientProps) => {
   return (
     <TooltipProvider>
       <nav
-        className={`flex flex-col h-screen bg-[#FFFDF6] border-r border-border transition-all duration-400 ease-in-out ${isExpanded ? 'w-[280px]' : 'w-[70px]'
+        className={`flex flex-col h-screen bg-[var(--cor-fundo2)] transition-all duration-400 ease-in-out ${isExpanded ? 'w-[280px]' : 'w-[70px]'
           } shadow-lg relative overflow-hidden`}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-background/5 to-transparent pointer-events-none opacity-50" />

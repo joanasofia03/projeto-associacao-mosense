@@ -59,7 +59,7 @@ export default function ExibirItens({ itens }: Props) {
 
       <div className="mt-4 grid grid-cols-4 gap-4 w-full h-full max-h-8">
         {itensFiltrados.map((item) => (
-          <div key={item.id} className="flex flex-col justify-start bg-[#FFFDF6] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
+          <div key={item.id} className="flex flex-col justify-start bg-[var(--cor-fundo2)] rounded-2xl p-5 shadow-[1px_1px_3px_rgba(3,34,33,0.1)]">
             {/* Imagem */}
             <div className="relative w-full h-42 rounded-2xl overflow-hidden">
               {item.imagem_url ? (

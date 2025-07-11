@@ -25,9 +25,9 @@ const buttonVariants = cva(
         botaoadicionar: 
           "bg-[#032221] text-[#FFFDF6] hover:bg-[#032221]/90 cursor-pointer",
         botaoeditar:
-          "bg-[#032221] text-[#FFFDF6] hover:bg-[#032221]/90 hover:scale-105 transition-all duration-200 cursor-pointer",
+          "bg-[#032221] text-[#FFFDF6] hover:bg-[#032221]/85 transition-all duration-200 cursor-pointer",
         botaoeliminar:
-          "border border-[#7D0A0A]/30 text-[#7D0A0A] bg-transparent hover:bg-[#7D0A0A]/10 hover:border-[#7D0A0A] hover:scale-105 transition-all duration-200 cursor-pointer",
+          "border border-[#7D0A0A]/30 text-[#7D0A0A] bg-transparent hover:bg-[#7D0A0A]/10 hover:border-[#7D0A0A] transition-all duration-200 cursor-pointer",
         botaocancelar: 
           "border border-[#032221]/30 text-[#032221] hover:bg-[#032221]/5 cursor-pointer",
         botaoguardar:
