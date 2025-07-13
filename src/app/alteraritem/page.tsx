@@ -2,7 +2,7 @@
 
 import { createClient } from '../../utils/supabase/server'
 import AlterarItem from './components/editItem'
-import { ToasterProvider } from '../components/toasterProvider'
+import { ToasterProvider, toastMessage } from '../components/toasterProvider'
 import { updateItemAction, deleteItemAction, fetchItensAction } from './server/actions';
 
 const TIPOS_OPTIONS = [
@@ -22,9 +22,27 @@ const IVA_OPTIONS = [
   { value: 0, label: "0% (Isento)" }
 ];
 
-export default async function AlterarItemPage() {
+interface Item {
+  id: string,
+  nome: string;
+  preco: number;
+  tipo: string;
+  criado_em: string;
+  isMenu: boolean;
+  IVA?: number;
+  imagem_url?: string | null;
+}
 
+export default async function AlterarItemPage() {
   const supabase = await createClient()
+
+  //Buscar todos os itens
+  const itensResult = await fetchItensAction();
+
+  if (!itensResult.success) {
+    toastMessage('Teste', 'error');
+    return null;
+  }
 
   const initialData = {
     tipos: TIPOS_OPTIONS,
@@ -32,10 +50,13 @@ export default async function AlterarItemPage() {
   };
 
   return (
-    <div className="min-h-screen w-full px-4 bg-[#eaf2e9]">
+    <div className="h-screen w-full px-4 bg-[#eaf2e9] overflow-y-auto">
       <ToasterProvider />
       <AlterarItem
         initialData={initialData}
+        itens={itensResult.data || []}
+        updateItemAction={updateItemAction}
+        deleteItemAction={deleteItemAction}
       />
     </div>
   )

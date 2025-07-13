@@ -138,7 +138,7 @@ export async function deleteItemAction(id: string) {
         }
     } catch (error) {
         console.log('Erro inesperado ao eliminar item:', error)
-        return { sucess: false, message: 'Erro inesperado ao eliminar item.' }
+        return { success: false, message: 'Erro inesperado ao eliminar item.' } // Corrigido: estava "sucess"
     }
 
     revalidatePath('/alteraritem');
