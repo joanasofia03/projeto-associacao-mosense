@@ -106,7 +106,7 @@ const ImageUpload = ({
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-medium text-[#032221]">
+      <Label className="text-sm font-medium text-[var(--cor-texto)]">
         Imagem do Item
       </Label>
       <div className="flex flex-col gap-2">
@@ -124,7 +124,7 @@ const ImageUpload = ({
             type="button"
             variant="outline"
             onClick={handleFileSelect}
-            className="flex-grow border-[#032221] hover:bg-[rgba(3,98,76,0.1)] cursor-pointer transition-all duration-200"
+            className="flex-grow border-[var(--cor-texto)] hover:bg-[rgba(3,98,76,0.1)] cursor-pointer transition-all duration-200"
           >
             {imagem ? 'Trocar Imagem' : 'Selecionar Imagem'}
           </Button>
@@ -140,7 +140,7 @@ const ImageUpload = ({
         </div>
         
         {imagemPreview && (
-          <div className="mt-2 border border-[#032221] rounded-lg p-2">
+          <div className="mt-2 border border-[var(--cor-texto)] rounded-lg p-2">
             <img
               src={imagemPreview}
               alt="Pré-visualização"
@@ -178,8 +178,8 @@ const ItemCard = ({
   const handleDelete = useCallback(() => onDelete(item.id, item.nome), [onDelete, item.id, item.nome]);
 
   return (
-    <Card className="bg-[#FFFDF6] shadow-lg border border-[#032221]/10 hover:shadow-xl transition-shadow duration-300">
-      <CardHeader className="text-[#032221] border-b border-[rgba(32,41,55,0.15)]">
+    <Card className="bg-[var(--cor-fundo2)] shadow-lg border border-[var(--cor-texto)]/10 hover:shadow-xl transition-shadow duration-300">
+      <CardHeader className="text-[var(--cor-texto)] border-b border-[rgba(32,41,55,0.15)]">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Avatar da imagem */}
@@ -188,7 +188,7 @@ const ItemCard = ({
                 <img
                   src={item.imagem_url}
                   alt={`Imagem de ${item.nome}`}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-[#032221]/10"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-[var(--cor-texto)]/10"
                   onError={(e) => {
                     // Fallback para quando a imagem não carrega
                     const target = e.target as HTMLImageElement;
@@ -198,21 +198,21 @@ const ItemCard = ({
                 />
               ) : null}
               {/* Fallback avatar quando não há imagem */}
-              <div className={`w-10 h-10 rounded-full bg-[#DDEB9D] border-2 border-[#032221]/10 flex items-center justify-center ${item.imagem_url ? 'hidden' : ''}`}>
-                <span className="text-[#032221] font-medium text-sm">
+              <div className={`w-10 h-10 rounded-full bg-[#DDEB9D] border-2 border-[var(--cor-texto)]/10 flex items-center justify-center ${item.imagem_url ? 'hidden' : ''}`}>
+                <span className="text-[var(--cor-texto)] font-medium text-sm">
                   {item.nome.charAt(0).toUpperCase()}
                 </span>
               </div>
             </div>
             
             {/* Nome do item */}
-            <CardTitle className="text-xl text-[#032221] truncate flex-1 min-w-0">
+            <CardTitle className="text-xl text-[var(--cor-texto)] truncate flex-1 min-w-0">
               {item.nome}
             </CardTitle>
           </div>
           
           {/* Badge do tipo */}
-          <span className="px-3 py-1 bg-[#DDEB9D] text-[#032221] text-xs font-medium rounded-full flex-shrink-0">
+          <span className="px-3 py-1 bg-[#DDEB9D] text-[var(--cor-texto)] text-xs font-medium rounded-full flex-shrink-0">
             {item.tipo}
           </span>
         </div>
@@ -221,25 +221,25 @@ const ItemCard = ({
       <CardContent className="px-5 flex-grow">
         <div className="space-y-3 mb-4">
           <div className="flex justify-between items-center">
-            <span className="text-[#032221]">Preço:</span>
-            <span className="text-[#032221] font-semibold">€{item.preco.toFixed(2)}</span>
+            <span className="text-[var(--cor-texto)]">Preço:</span>
+            <span className="text-[var(--cor-texto)] font-semibold">€{item.preco.toFixed(2)}</span>
           </div>
           
           {item.IVA !== undefined && (
             <div className="flex justify-between items-center">
-              <span className="text-[#032221]">IVA:</span>
-              <span className="text-[#032221] font-semibold">{item.IVA}%</span>
+              <span className="text-[var(--cor-texto)]">IVA:</span>
+              <span className="text-[var(--cor-texto)] font-semibold">{item.IVA}%</span>
             </div>
           )}
           
           <div className="flex justify-between items-center">
-            <span className="text-[#032221]">Menu:</span>
+            <span className="text-[var(--cor-texto)]">Menu:</span>
             <span className={`font-medium ${item.isMenu ? 'text-[#1B4D3E]' : 'text-[#7D0A0A]'}`}>
               {item.isMenu ? 'Incluído' : 'Não incluído'}
             </span>
           </div>
           
-          <div className="flex justify-between items-center text-sm text-[#032221]/70">
+          <div className="flex justify-between items-center text-sm text-[var(--cor-texto)]/70">
             <span>Criado em:</span>
             <span>{formatDateTime.data} às {formatDateTime.hora}</span>
           </div>
@@ -264,24 +264,24 @@ const ItemCard = ({
                 Excluir
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="bg-[#FFFDF6]">
+            <AlertDialogContent className="bg-[var(--cor-fundo2)]">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-[#032221]">
+                <AlertDialogTitle className="text-[var(--cor-texto)]">
                   Confirmar Exclusão
                 </AlertDialogTitle>
-                <AlertDialogDescription className="text-[#032221]/70">
+                <AlertDialogDescription className="text-[var(--cor-texto)]/70">
                   Tem certeza que deseja excluir o item <strong>"{item.nome}"</strong>?
                   <br />
                   Esta ação não pode ser desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className="border-[#032221]/20 text-[#032221] hover:bg-[#032221]/5 cursor-pointer">
+                <AlertDialogCancel className="border-[var(--cor-texto)]/20 text-[var(--cor-texto)] hover:bg-[var(--cor-texto)]/5 cursor-pointer">
                   Cancelar
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDelete}
-                  className="bg-[#7D0A0A] text-[#FFFDF6] hover:bg-[#7D0A0A]/90 cursor-pointer"
+                  className="bg-[#7D0A0A] text-[var(--cor-fundo2)] hover:bg-[#7D0A0A]/90 cursor-pointer"
                 >
                   Excluir
                 </AlertDialogAction>
@@ -560,7 +560,7 @@ export default function AlterarItem() {
       <Toaster position="bottom-right" />
       
       {/* Cabeçalho */}
-      <div className="bg-[#eaf2e9] text-[#032221] pt-5 px-10">
+      <div className="bg-[#eaf2e9] text-[var(--cor-texto)] pt-5 px-10">
         <h1 className="text-3xl font-bold">Gerir Itens - Edição ou Exclusão</h1>
       </div>
 
@@ -574,8 +574,8 @@ export default function AlterarItem() {
               variant="dark"
               className={`px-3 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-1 cursor-pointer shadow-[1px_1px_3px_rgba(3,34,33,0.2)] ${
                 activeFilter === category
-                  ? 'bg-[#032221] text-[#FFFDF6]'
-                  : 'bg-[#FFFDF6] text-[#032221]'
+                  ? 'bg-[var(--cor-texto)] text-[var(--cor-fundo2)]'
+                  : 'bg-[var(--cor-fundo2)] text-[var(--cor-texto)]'
               }`}
             >
               {category}
@@ -588,12 +588,12 @@ export default function AlterarItem() {
       <div className="w-full py-2 px-10">
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#032221]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--cor-texto)]"></div>
           </div>
         ) : filteredItems.length === 0 ? (
-          <Card className="bg-[#FFFDF6] shadow-md">
+          <Card className="bg-[var(--cor-fundo2)] shadow-md">
             <CardContent className="p-8 text-center">
-              <p className="text-lg text-[#032221]/70">Nenhum item encontrado para esta categoria.</p>
+              <p className="text-lg text-[var(--cor-texto)]/70">Nenhum item encontrado para esta categoria.</p>
             </CardContent>
           </Card>
         ) : (
@@ -612,32 +612,32 @@ export default function AlterarItem() {
 
       {/* Dialog de Edição */}
       <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="sm:max-w-md bg-[#FFFDF6] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md bg-[var(--cor-fundo2)] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-[#032221]">
+            <DialogTitle className="text-xl font-semibold text-[var(--cor-texto)]">
               Editar Item
             </DialogTitle>
-            <DialogDescription className="text-[#032221]/70">
+            <DialogDescription className="text-[var(--cor-texto)]/70">
               Faça as alterações necessárias ao item
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="edit-nome" className="text-sm font-medium text-[#032221]">
+              <Label htmlFor="edit-nome" className="text-sm font-medium text-[var(--cor-texto)]">
                 Nome do Item
               </Label>
               <Input
                 id="edit-nome"
                 value={editFormData.nome}
                 onChange={(e) => updateEditField('nome', e.target.value)}
-                className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="border-[var(--cor-texto)] focus-visible:ring-0 focus-visible:ring-offset-0"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="edit-preco" className="text-sm font-medium text-[#032221]">
+              <Label htmlFor="edit-preco" className="text-sm font-medium text-[var(--cor-texto)]">
                 Preço (€)
               </Label>
               <Input
@@ -645,7 +645,7 @@ export default function AlterarItem() {
                 id="edit-preco"
                 value={editFormData.preco}
                 onChange={(e) => updateEditField('preco', parseFloat(e.target.value) || 0)}
-                className="border-[#032221] focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="border-[var(--cor-texto)] focus-visible:ring-0 focus-visible:ring-offset-0"
                 required
                 step="0.01"
                 min="0"
@@ -654,14 +654,14 @@ export default function AlterarItem() {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-[#032221]">
+                <Label className="text-sm font-medium text-[var(--cor-texto)]">
                   Tipo
                 </Label>
                 <Select
                   value={editFormData.tipo}
                   onValueChange={(value) => updateEditField('tipo', value)}
                 >
-                  <SelectTrigger className="w-full border-[#032221] focus:ring-0 focus:ring-offset-0">
+                  <SelectTrigger className="w-full border-[var(--cor-texto)] focus:ring-0 focus:ring-offset-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -675,14 +675,14 @@ export default function AlterarItem() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-[#032221]">
+                <Label className="text-sm font-medium text-[var(--cor-texto)]">
                   IVA (%)
                 </Label>
                 <Select
                   value={editFormData.IVA.toString()}
                   onValueChange={(value) => updateEditField('IVA', Number(value))}
                 >
-                  <SelectTrigger className="w-full border-[#032221] focus:ring-0 focus:ring-offset-0">
+                  <SelectTrigger className="w-full border-[var(--cor-texto)] focus:ring-0 focus:ring-offset-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -709,9 +709,9 @@ export default function AlterarItem() {
                 id="edit-isMenu"
                 checked={editFormData.isMenu}
                 onCheckedChange={(checked) => updateEditField('isMenu', checked as boolean)}
-                className="border-[#1a4d4a] data-[state=checked]:bg-[#032221] data-[state=checked]:border-[#032221]"
+                className="border-[#1a4d4a] data-[state=checked]:bg-[var(--cor-texto)] data-[state=checked]:border-[var(--cor-texto)]"
               />
-              <Label htmlFor="edit-isMenu" className="text-sm text-[#032221]">
+              <Label htmlFor="edit-isMenu" className="text-sm text-[var(--cor-texto)]">
                 Incluir no menu?
               </Label>
             </div>

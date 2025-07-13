@@ -30,7 +30,6 @@ export default async function AdicionarUtilizador() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#eaf2e9]">
-      {/* Conteúdo renderizado no servidor */}
       <div className="w-full max-w-lg">
         <div className="bg-[var(--cor-fundo2)] shadow-[3px_3px_3px_3px_var(--cor-texto)]/2 rounded-lg">
           <div className="p-6 pb-0">
