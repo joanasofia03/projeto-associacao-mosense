@@ -1,6 +1,5 @@
 'use server'
 
-import { sign } from 'crypto';
 import { createClient } from '../../../utils/supabase/server'
 
 const TYPE_OPTIONS = {
@@ -84,7 +83,7 @@ export async function adicionarImagemAction(formData: FormData) {
     const file = formData.get('imagem') as File;
 
     if (!file || file.size === 0) {
-        console.error('NNenhum arquivo válido encontrado.');
+        console.error('Nenhum arquivo válido encontrado.');
         return { success: false, message: 'Nenhum arquivo foi enviado.' };
     }
 

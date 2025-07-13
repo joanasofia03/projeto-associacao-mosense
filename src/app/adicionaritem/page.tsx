@@ -2,9 +2,9 @@
 'use server';
 
 import { createClient } from '../../utils/supabase/server'
-import AdicionarItem from './componentes/itemForm'
+import AdicionarItem from './components/itemForm'
 import { Toaster } from 'sonner';
-import { adicionarItemAction } from './actions/actions';
+import { adicionarItemAction } from './server/actions';
 
 const TIPOS_OPTIONS = [
   { value: "Sopas", label: "Sopas" },
