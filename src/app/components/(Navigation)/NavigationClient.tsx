@@ -328,7 +328,7 @@ export const Navigation = ({ initialUserData }: NavigationClientProps) => {
             {(userType === 'Administrador' || userType === 'Funcionario Banca') && (
               <MenuSection title="Gestão de Pedidos">
                 <MenuItem
-                  href="/registarpedido"
+                  href="/adicionarpedido"
                   icon={<LuNotebook size={iconSize} />}
                   label="Adicionar Pedido"
                 />
