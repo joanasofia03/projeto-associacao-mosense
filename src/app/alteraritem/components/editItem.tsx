@@ -1,17 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState, useMemo } from 'react';
+import { BotaoEditar } from '../components/editButton'
+
+//Import Shadcn components
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Toaster } from 'sonner';
-import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import {
     Command,
@@ -29,7 +25,6 @@ import {
 
 // Import de icons
 import { RiDeleteBin6Line } from "react-icons/ri";
-import { MdOutlineEdit } from "react-icons/md";
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
 
 interface TipoOption {
@@ -43,7 +38,8 @@ interface IvaOption {
 }
 
 interface initialData {
-    tipos: TipoOption[];
+    tiposFiltro: TipoOption[];  // Para filtros
+    tiposItem: TipoOption[];    // Para edição
     taxaIVA: IvaOption[];
 }
 
@@ -77,10 +73,9 @@ function formatDateTimeString(dateString: string) {
 
 
 export default function AlterarItem({ initialData, itens, updateItemAction, deleteItemAction }: Props) {
-    const [loading, setLoading] = useState<boolean>(true);
     const [openTipo, setOpenTipo] = useState<boolean>(false)
     const [tipoSelecionado, setTipoSelecionado] = useState<string>("Todos os Itens")
-    const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+    const [deletingItemId, setDeletingItemId] = useState<string | null>(null)
 
     //Filtrar itens com base no tipo selecionado e barra de pesquisa
     const itensFiltrados = useMemo(() => {
@@ -126,7 +121,7 @@ export default function AlterarItem({ initialData, itens, updateItemAction, dele
                         {itensFiltrados.length}/{itens.length} itens
                     </div>
 
-                    {/* Seleção do tipo */}
+                    {/* Seleção do tipo - USA tiposFiltro */}
                     <div className="flex flex-col items-stretch gap-3">
                         <Popover open={openTipo} onOpenChange={setOpenTipo}>
                             <PopoverTrigger asChild>
@@ -138,7 +133,7 @@ export default function AlterarItem({ initialData, itens, updateItemAction, dele
                                     type="button"
                                 >
                                     {tipoSelecionado
-                                        ? initialData.tipos.find((tipo) => tipo.value === tipoSelecionado)?.label
+                                        ? initialData.tiposFiltro.find((tipo) => tipo.value === tipoSelecionado)?.label
                                         : "Selecionar Tipo de Item..."}
                                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
@@ -150,7 +145,7 @@ export default function AlterarItem({ initialData, itens, updateItemAction, dele
                                     <CommandList>
                                         <CommandEmpty>Nenhum tipo encontrado.</CommandEmpty>
                                         <CommandGroup>
-                                            {initialData.tipos.map((tipo) => (
+                                            {initialData.tiposFiltro.map((tipo) => (
                                                 <CommandItem
                                                     key={tipo.value}
                                                     value={tipo.value}
@@ -189,13 +184,13 @@ export default function AlterarItem({ initialData, itens, updateItemAction, dele
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-3">
                         {itensFiltrados.map((item) => {
                             const formatDateTime = formatDateTimeString(item.criado_em);
 
                             return (
                                 <Card key={item.id} className="bg-[var(--cor-fundo2)] shadow-[3px_3px_3px_3px_var(--cor-texto)]/2 pt-4 pb-2 w-full h-full">
-                                    <CardHeader className="text-[var(--cor-texto)] border-b border-[rgba(32,41,55,0.15) w-full h-[50px]">
+                                    <CardHeader className="text-[var(--cor-texto)] border-b border-[rgba(32,41,55,0.15) w-full">
                                         <div className="flex justify-between items-center w-full h-full">
                                             <div className="flex items-center gap-3 flex-1 min-w-0">
                                                 {/* Avatar da imagem */}
@@ -262,25 +257,23 @@ export default function AlterarItem({ initialData, itens, updateItemAction, dele
 
                                         {/* Botões de ação */}
                                         <div className="grid grid-cols-2 gap-2">
-                                            <Button
-                                                variant="botaoeditar"
-                                                size="sm"
-                                                className="text-xs"
-                                            >
-                                                <MdOutlineEdit className="h-3 w-3 mr-1" />
-                                                Editar
-                                            </Button>
+                                            {/* Editar - USA tiposItem */}
+                                            <BotaoEditar
+                                                initialData={initialData}
+                                                item={item}
+                                                updateItemAction={updateItemAction}
+                                            />
 
+                                            {/* Eliminar*/}
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
                                                     <Button
                                                         variant="botaoeliminar"
                                                         size="sm"
-                                                        className="text-xs"
                                                         disabled={deletingItemId === item.id}
                                                     >
                                                         <RiDeleteBin6Line className="h-3 w-3 mr-1" />
-                                                        {deletingItemId === item.id ? 'Excluindo...' : 'Excluir'}
+                                                        {deletingItemId === item.id ? 'A excluir...' : 'Excluir'}
                                                     </Button>
                                                 </AlertDialogTrigger>
                                                 <AlertDialogContent className="bg-[var(--cor-fundo2)]">

@@ -60,12 +60,6 @@ export async function updateItemAction(formData: FormData) {
         return { success: false, message: 'Tipo de IVA inválido.' }
     }
 
-    //Verificar se o item já existe
-    const itemExists = await checkItemExistsAction(nome);
-    if (itemExists.exists) {
-        return { success: false, message: itemExists.message };
-    }
-
     //Processar imagem se existir
     const file = formData.get('imagem') as File;
     let imagemUrl = null;

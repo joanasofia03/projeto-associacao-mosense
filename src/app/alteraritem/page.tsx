@@ -5,8 +5,19 @@ import AlterarItem from './components/editItem'
 import { ToasterProvider, toastMessage } from '../components/toasterProvider'
 import { updateItemAction, deleteItemAction, fetchItensAction } from './server/actions';
 
-const TIPOS_OPTIONS = [
+// Array para filtros (inclui "Todos os Itens")
+const TIPOS_FILTRO_OPTIONS = [
   { value: "Todos os Itens", label: "Todos os Itens" },
+  { value: "Sopas", label: "Sopas" },
+  { value: "Comida", label: "Comida" },
+  { value: "Sobremesas", label: "Sobremesas" },
+  { value: "Bebida", label: "Bebida" },
+  { value: "Álcool", label: "Álcool" },
+  { value: "Brindes", label: "Brindes" }
+];
+
+// Array para edição de itens (sem "Todos os Itens")
+const TIPOS_ITEM_OPTIONS = [
   { value: "Sopas", label: "Sopas" },
   { value: "Comida", label: "Comida" },
   { value: "Sobremesas", label: "Sobremesas" },
@@ -22,17 +33,6 @@ const IVA_OPTIONS = [
   { value: 0, label: "0% (Isento)" }
 ];
 
-interface Item {
-  id: string,
-  nome: string;
-  preco: number;
-  tipo: string;
-  criado_em: string;
-  isMenu: boolean;
-  IVA?: number;
-  imagem_url?: string | null;
-}
-
 export default async function AlterarItemPage() {
   const supabase = await createClient()
 
@@ -45,7 +45,8 @@ export default async function AlterarItemPage() {
   }
 
   const initialData = {
-    tipos: TIPOS_OPTIONS,
+    tiposFiltro: TIPOS_FILTRO_OPTIONS,  //Para filtros
+    tiposItem: TIPOS_ITEM_OPTIONS,      //Para edição
     taxaIVA: IVA_OPTIONS,
   };
 
